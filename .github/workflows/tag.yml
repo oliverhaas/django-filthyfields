@@ -51,6 +51,6 @@ jobs:
 
       - name: Trigger publish workflow
         if: steps.version.outputs.on_pypi == 'false'
-        run: gh workflow run publish.yml -f version=${{ steps.version.outputs.current }}
+        run: gh workflow run publish.yml -f version=${{ steps.version.outputs.current }} -R ${{ github.repository }}
         env:
           GH_TOKEN: ${{ github.token }}
