@@ -10,23 +10,23 @@ Installation
 
 .. code-block:: bash
 
-    $ pip install django-dirtyfields
+    $ pip install django-filthyfields
 
 
 Usage
 -----
 
-To use ``django-dirtyfields``, you need to:
+To use ``django-filthyfields``, you need to:
 
 - Inherit from the ``DirtyFieldsMixin`` class in the Django model you want to track dirty fields.
 
 .. code-block:: python
 
     from django.db import models
-    from dirtyfields import DirtyFieldsMixin
+    from filthyfields import DirtyFieldsMixin
 
     class ExampleModel(DirtyFieldsMixin, models.Model):
-        """A simple example model to test dirtyfields with"""
+        """A simple example model to test filthyfields with"""
         characters = models.CharField(max_length=80)
 
 - Use one of these 2 functions on a model instance to know if this instance is dirty, and get the dirty fields:

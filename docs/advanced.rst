@@ -59,80 +59,82 @@ Warning: This calls the ``save()`` method internally so will trigger the same si
     False
 
 
-Performance Impact
-------------------
+Checking what was dirty before save
+-----------------------------------
+After saving a model, you can check what fields were dirty before the save using ``was_dirty()`` and
+``get_was_dirty_fields()``:
 
-Using ``DirtyFieldsMixin`` in your Model will have a (normally small) performance impact even when you don't call
-any of ``DirtyFieldsMixin``'s methods. This is because ``DirtyFieldsMixin`` needs to capture the state of the Model
-when it is initialized and when it is saved, so that ``DirtyFieldsMixin`` can later determine if the fields are dirty.
+.. code-block:: pycon
 
-Using a Proxy Model to reduce Performance Impact
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    >>> model = ExampleModel.objects.create(characters="first value")
+    >>> model.characters = "second value"
+    >>> model.save()
+    >>> model.is_dirty()
+    False
+    >>> model.was_dirty()
+    True
+    >>> model.get_was_dirty_fields()
+    {'characters': 'first value'}
 
-If you only use ``DirtyFieldsMixin``'s methods in some places of you project but not all, you can eliminate the
-performance impact in the places you don't use them by inheriting from ``DirtyFieldsMixin`` in a `Proxy Model`_.
+
+Performance
+-----------
+
+``django-filthyfields`` uses a descriptor-based approach that only tracks fields when they are actually
+modified. This is significantly faster than the original ``django-dirtyfields`` signal-based approach,
+which captured full model state on every load.
+
+The performance impact is minimal because:
+
+- No ``post_init`` signal handler runs on every model load
+- Only fields that are actually changed are tracked
+- Original values are stored lazily on first modification
+
+Using a Proxy Model
+^^^^^^^^^^^^^^^^^^^
+
+If you only need dirty field tracking in some places, you can use a `Proxy Model`_ to avoid
+any overhead in code paths that don't need tracking:
 
 .. _Proxy Model: https://docs.djangoproject.com/en/dev/topics/db/models/#proxy-models
 
-For example define your Model without ``DirtyFieldsMixin``:
-
 .. code-block:: python
 
+    # Base model without tracking
     class FooModel(models.Model):
         ...
 
-Use this Model class when you don't need to track dirty fields. It is a regular Model so there will be no performance
-impact, but ``is_dirty()`` and ``get_dirty_fields()`` can't be used.
-
-Then define a Proxy Model for that Model which includes ``DirtyFieldsMixin``:
-
-.. code-block:: python
-
-     class FooModelWithDirtyFields(DirtyFieldsMixin, FooModel):
-         class Meta:
-             proxy = True
-
-Use this Model class when you do want dirty fields to be tracked. There will be a performance impact but
-``is_dirty()`` and ``get_dirty_fields()`` can be used.
+    # Proxy model with tracking
+    class FooModelWithDirtyFields(DirtyFieldsMixin, FooModel):
+        class Meta:
+            proxy = True
 
 
 Database Transactions Limitations
 ---------------------------------
-There is currently a limitation when using dirtyfields and database transactions.
+There is a limitation when using filthyfields with database transactions.
 If your code saves Model instances inside a ``transaction.atomic()`` block, and the transaction is rolled back,
 then the Model instance's ``is_dirty()`` method will return ``False`` when it should return ``True``.
-The ``get_dirty_fields()`` method will also return the wrong thing in the same way.
 
 This is because after the ``save()`` method is called, the instance's dirty state is reset because it thinks it has
-successfully saved to the database. Then when the transaction rolls back, the database is reset back to the original value.
-At this point this Model instance thinks it is not dirty when it actually is.
-Here is a code example to illustrate the problem:
+successfully saved to the database. When the transaction rolls back, the database is reset but the model doesn't know.
 
 .. code-block:: python
 
-    # first create a model
     model = ExampleModel.objects.create(characters="first")
-    # then make an edit in-memory, model becomes dirty
     model.characters = "second"
     assert model.is_dirty()
-    # then attempt to save the model in a transaction
+
     try:
         with transaction.atomic():
             model.save()
-            # no longer dirty because save() has been called,
-            # BUT we are still in a transaction ...
-            assert not model.is_dirty()
-            # force a transaction rollback
+            assert not model.is_dirty()  # dirty state was reset
             raise DatabaseError("pretend something went wrong")
     except DatabaseError:
         pass
 
-    # Here is the problem:
-    # value in DB is still "first" but model does not think its dirty,
-    # because in-memory value is still "second"
+    # Problem: value in DB is still "first" but model thinks it's clean
     assert model.characters == "second"
-    assert not model.is_dirty()
+    assert not model.is_dirty()  # This is wrong!
 
-
-This simplest workaround to this issue is to call ``model.refresh_from_db()`` if the transaction is rolled back.
-Or you can manually restore the fields that were edited in-memory.
+The workaround is to call ``model.refresh_from_db()`` if the transaction is rolled back.

@@ -1,6 +1,6 @@
 
-Welcome to django-dirtyfields's documentation!
-==============================================
+Welcome to django-filthyfields's documentation!
+===============================================
 
 .. include:: description.rst
 
@@ -13,6 +13,5 @@ Table of Contents:
 
    quickstart
    advanced
-   customisation
    contributing
    credits

@@ -1,43 +1,42 @@
-===================
-Django Dirty Fields
-===================
+======================
+Django Filthy Fields
+======================
 
-.. image:: https://badges.gitter.im/Join%20Chat.svg
-   :alt: Join the chat at https://gitter.im/romgar/django-dirtyfields
-   :target: https://gitter.im/romgar/django-dirtyfields?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
-.. image:: https://img.shields.io/pypi/v/django-dirtyfields.svg
+.. image:: https://img.shields.io/pypi/v/django-filthyfields.svg
    :alt: Published PyPI version
-   :target: https://pypi.org/project/django-dirtyfields/
-.. image:: https://github.com/romgar/django-dirtyfields/actions/workflows/tests.yml/badge.svg
+   :target: https://pypi.org/project/django-filthyfields/
+.. image:: https://github.com/oliverhaas/django-filthyfields/actions/workflows/ci.yml/badge.svg
    :alt: Github Actions Test status
-   :target: https://github.com/romgar/django-dirtyfields/actions/workflows/tests.yml
-.. image:: https://coveralls.io/repos/github/romgar/django-dirtyfields/badge.svg?branch=develop
-   :alt: Coveralls code coverage status
-   :target: https://coveralls.io/github/romgar/django-dirtyfields?branch=develop
-.. image:: https://readthedocs.org/projects/django-dirtyfields/badge/?version=latest
-   :alt: Read the Docs documentation status
-   :target: https://django-dirtyfields.readthedocs.io/en/latest/
+   :target: https://github.com/oliverhaas/django-filthyfields/actions/workflows/ci.yml
 
 Tracking dirty fields on a Django model instance.
 Dirty means that field in-memory and database values are different.
 
-This package is compatible and tested with the following Python & Django versions:
+This is a fork of `django-dirtyfields <https://github.com/romgar/django-dirtyfields>`_ with a
+completely rewritten implementation using descriptors instead of signals. The goal is to
+eventually merge these improvements upstream once the implementation matures.
 
+**Key differences from django-dirtyfields:**
+
+- **Descriptor-based tracking**: Only stores original values of fields that actually change,
+  rather than capturing full model state on every load. Significantly faster.
+- **Simpler implementation**: No signal handlers (post_init, post_save).
+- **F() expression support**: Properly tracks fields assigned with F() expressions.
+- **Modern Python only**: Requires Python 3.13+ and Django 5.0+.
+
+**Removed features** (may be re-added if needed):
+
+- M2M field tracking (``ENABLE_M2M_CHECK``)
+- ``FIELDS_TO_CHECK`` for limiting tracked fields
+- Custom ``compare_function``
+
+This package is compatible with:
 
 +------------------------+-----------------------------------+
 | Django                 | Python                            |
 +========================+===================================+
-| 3.2, 4.0               | 3.10                              |
+| 5.0, 5.1, 5.2          | 3.13, 3.14                        |
 +------------------------+-----------------------------------+
-| 4.1                    | 3.10, 3.11                        |
-+------------------------+-----------------------------------+
-| 4.2, 5.0               | 3.10, 3.11, 3.12                  |
-+------------------------+-----------------------------------+
-| 5.1                    | 3.10, 3.11, 3.12, 3.13            |
-+------------------------+-----------------------------------+
-| 5.2                    | 3.10, 3.11, 3.12, 3.13, 3.14      |
-+------------------------+-----------------------------------+
-
 
 
 Install
@@ -45,20 +44,20 @@ Install
 
 .. code-block:: bash
 
-    $ pip install django-dirtyfields
+    $ pip install django-filthyfields
 
 
 Usage
 =====
 
-To use ``django-dirtyfields``, you need to:
+To use ``django-filthyfields``, you need to:
 
 - Inherit from ``DirtyFieldsMixin`` in the Django model you want to track.
 
 .. code-block:: python
 
     from django.db import models
-    from dirtyfields import DirtyFieldsMixin
+    from filthyfields import DirtyFieldsMixin
 
     class ExampleModel(DirtyFieldsMixin, models.Model):
         """A simple example model to test dirty fields mixin with"""
@@ -76,7 +75,7 @@ Example
 
 .. code-block:: python
 
-    >>> model = ExampleModel.objects.create(boolean=True,characters="first value")
+    >>> model = ExampleModel.objects.create(boolean=True, characters="first value")
     >>> model.is_dirty()
     False
     >>> model.get_dirty_fields()
@@ -88,7 +87,7 @@ Example
     >>> model.is_dirty()
     True
     >>> model.get_dirty_fields()
-    {'boolean': True, "characters": "first_value"}
+    {'boolean': True, 'characters': 'first value'}
 
 
-Consult the `full documentation <https://django-dirtyfields.readthedocs.io/>`_ for more information.
+Consult the `full documentation <docs/>`_ for more information.
