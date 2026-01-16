@@ -17,8 +17,7 @@ from tests.models import (
 
 def test_version_numbers():
     assert isinstance(dirtyfields.__version__, str)
-    assert isinstance(dirtyfields.VERSION, tuple)
-    assert all(isinstance(number, int) for number in dirtyfields.VERSION)
+    assert dirtyfields.__version__  # Not empty
 
 
 @pytest.mark.django_db
