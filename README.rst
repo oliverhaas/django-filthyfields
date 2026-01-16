@@ -9,6 +9,8 @@ Django Filthy Fields
    :alt: Github Actions Test status
    :target: https://github.com/oliverhaas/django-dirtyfields/actions/workflows/ci.yml
 
+| `Documentation <https://oliverhaas.github.io/django-dirtyfields/>`_
+
 Tracking dirty fields on a Django model instance.
 Dirty means that field in-memory and database values are different.
 
