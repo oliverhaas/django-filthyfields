@@ -1,6 +1,6 @@
 [project]
 name = "django-filthyfields"
-version = "0.1.0a4"
+version = "0.1.0a5"
 description = "Tracking dirty fields on a Django model instance."
 readme = "README.rst"
 license = "BSD-3-Clause"

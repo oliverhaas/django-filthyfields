@@ -4,7 +4,8 @@ Only stores original values of fields that actually change, rather than
 capturing full model state upfront. Significantly faster than the signal-based approach.
 """
 
-from collections.abc import Iterable
+from __future__ import annotations
+
 from copy import deepcopy
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
@@ -20,6 +21,7 @@ from django.db.models.fields.related_descriptors import ForeignKeyDeferredAttrib
 from django.db.models.query_utils import DeferredAttribute
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from typing import Self
 
 # Types that don't need deepcopy (immutable)
@@ -38,7 +40,7 @@ _IMMUTABLE_TYPES = frozenset(
         datetime,
         time,
         timedelta,
-    )
+    ),
 )
 
 
@@ -270,7 +272,7 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         self,
         using: str | None = None,
         fields: Iterable[str] | None = None,
-        from_queryset: "models.QuerySet[Self, Self] | None" = None,
+        from_queryset: models.QuerySet[Self, Self] | None = None,
     ) -> None:
         super().refresh_from_db(using=using, fields=fields, from_queryset=from_queryset)
         self._dirty_reset_state(fields=fields)
