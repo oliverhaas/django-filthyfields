@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/project/django-dirtyfields/
+      url: https://pypi.org/project/django-filthyfields/
     permissions:
       id-token: write
     steps:

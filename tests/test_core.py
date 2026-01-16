@@ -2,7 +2,7 @@ import django
 import pytest
 from django.db import DatabaseError, transaction
 
-import dirtyfields
+import filthyfields
 from tests.models import (
     FileFieldModel,
     ModelTest,
@@ -15,9 +15,9 @@ from tests.models import (
 
 
 def test_version_numbers():
-    assert isinstance(dirtyfields.__version__, str)
-    assert isinstance(dirtyfields.VERSION, tuple)
-    assert all(isinstance(number, int) for number in dirtyfields.VERSION)
+    assert isinstance(filthyfields.__version__, str)
+    assert isinstance(filthyfields.VERSION, tuple)
+    assert all(isinstance(number, int) for number in filthyfields.VERSION)
 
 
 @pytest.mark.django_db

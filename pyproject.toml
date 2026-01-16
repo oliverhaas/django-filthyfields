@@ -1,13 +1,13 @@
 [project]
-name = "django-dirtyfields"
-version = "2.0.0"
+name = "django-filthyfields"
+version = "0.1.0a1"
 description = "Tracking dirty fields on a Django model instance."
 readme = "README.rst"
 license = "BSD-3-Clause"
 requires-python = ">=3.13"
-keywords = ["django", "dirtyfields", "track", "model", "changes"]
+keywords = ["django", "filthyfields", "dirtyfields", "track", "model", "changes"]
 classifiers = [
-  "Development Status :: 5 - Production/Stable",
+  "Development Status :: 3 - Alpha",
   "Framework :: Django",
   "Framework :: Django :: 5.0",
   "Framework :: Django :: 5.1",
@@ -26,9 +26,8 @@ classifiers = [
 dependencies = ["Django>=5.0"]
 
 [project.urls]
-Homepage = "https://github.com/romgar/django-dirtyfields"
-Repository = "https://github.com/romgar/django-dirtyfields.git"
-Changelog = "https://github.com/romgar/django-dirtyfields/blob/main/ChangeLog.rst"
+Homepage = "https://github.com/oliverhaas/django-filthyfields"
+Repository = "https://github.com/oliverhaas/django-filthyfields.git"
 
 [dependency-groups]
 dev = [
@@ -47,10 +46,10 @@ requires = ["hatchling>=1.27.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/dirtyfields"]
+packages = ["src/filthyfields"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/dirtyfields"]
+include = ["src/filthyfields"]
 
 [tool.ruff]
 line-length = 120
@@ -118,7 +117,7 @@ markers = [
 [tool.coverage.run]
 concurrency = ["thread"]
 branch = true
-source = ["dirtyfields"]
+source = ["filthyfields"]
 omit = ["*/__init__.py"]
 
 [tool.coverage.report]

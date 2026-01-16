@@ -14,4 +14,4 @@ DATABASES = {
 
 INSTALLED_APPS = ("tests",)
 
-MEDIA_ROOT = tempfile.mkdtemp(prefix="django-dirtyfields-test-media-root-")
+MEDIA_ROOT = tempfile.mkdtemp(prefix="django-filthyfields-test-media-root-")

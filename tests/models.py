@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models.signals import pre_save
 from django.utils import timezone as django_timezone
 
-from dirtyfields import DirtyFieldsMixin
+from filthyfields import DirtyFieldsMixin
 
 
 class ModelTest(DirtyFieldsMixin, models.Model):
