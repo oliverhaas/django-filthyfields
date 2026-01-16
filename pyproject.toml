@@ -26,8 +26,8 @@ classifiers = [
 dependencies = ["Django>=5.0"]
 
 [project.urls]
-Homepage = "https://github.com/oliverhaas/django-filthyfields"
-Repository = "https://github.com/oliverhaas/django-filthyfields.git"
+Homepage = "https://github.com/oliverhaas/django-dirtyfields"
+Repository = "https://github.com/oliverhaas/django-dirtyfields.git"
 
 [dependency-groups]
 dev = [

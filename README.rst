@@ -5,9 +5,9 @@ Django Filthy Fields
 .. image:: https://img.shields.io/pypi/v/django-filthyfields.svg
    :alt: Published PyPI version
    :target: https://pypi.org/project/django-filthyfields/
-.. image:: https://github.com/oliverhaas/django-filthyfields/actions/workflows/ci.yml/badge.svg
+.. image:: https://github.com/oliverhaas/django-dirtyfields/actions/workflows/ci.yml/badge.svg
    :alt: Github Actions Test status
-   :target: https://github.com/oliverhaas/django-filthyfields/actions/workflows/ci.yml
+   :target: https://github.com/oliverhaas/django-dirtyfields/actions/workflows/ci.yml
 
 Tracking dirty fields on a Django model instance.
 Dirty means that field in-memory and database values are different.
