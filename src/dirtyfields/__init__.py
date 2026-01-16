@@ -3,6 +3,6 @@
 __all__ = ["DirtyFieldsMixin"]
 __version__ = "0.1.0a1"
 
-from filthyfields.filthyfields import DirtyFieldsMixin
+from dirtyfields.dirtyfields import DirtyFieldsMixin
 
 VERSION = (0, 1, 0)

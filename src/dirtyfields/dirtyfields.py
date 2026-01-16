@@ -53,9 +53,18 @@ def _normalize_value(value: Any) -> Any:
     return deepcopy(value)
 
 
+def _should_track_field(instance: models.Model, field_name: str) -> bool:
+    """Check if a field should be tracked based on FIELDS_TO_CHECK."""
+    fields_to_check = getattr(instance, "FIELDS_TO_CHECK", None)
+    return fields_to_check is None or field_name in fields_to_check
+
+
 def _track_file_change(instance: models.Model, field_name: str, old_name: str, new_name: str) -> None:
     """Track a file field change in the instance's diff dict."""
     if old_name == new_name:
+        return
+
+    if not _should_track_field(instance, field_name):
         return
 
     d = instance.__dict__
@@ -105,7 +114,9 @@ class _DiffDescriptor(DeferredAttribute):
         field_name = self._field_name
 
         state = getattr(instance, "_state", None)
-        should_track = state is not None and not state.adding and attname in d
+        should_track = (
+            state is not None and not state.adding and attname in d and _should_track_field(instance, field_name)
+        )
         old = d[attname] if should_track else None
 
         d[attname] = value
@@ -176,7 +187,9 @@ class _FileDiffDescriptor(FileDescriptor):
         field_name = self.field.name
 
         state = getattr(instance, "_state", None)
-        should_track = state is not None and not state.adding and attname in d
+        should_track = (
+            state is not None and not state.adding and attname in d and _should_track_field(instance, field_name)
+        )
 
         if should_track:
             old = d[attname]
@@ -320,6 +333,7 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         """Get current field values (for new instances)."""
         result = {}
         deferred = self.get_deferred_fields()
+        fields_to_check = getattr(self, "FIELDS_TO_CHECK", None)
 
         for field in self._meta.concrete_fields:
             if field.primary_key and not include_pk:
@@ -327,6 +341,8 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
             if field.remote_field and not check_relationship:
                 continue
             if field.attname in deferred:
+                continue
+            if fields_to_check is not None and field.name not in fields_to_check:
                 continue
 
             value = self.__dict__.get(field.attname)

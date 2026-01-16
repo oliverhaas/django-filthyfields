@@ -13,7 +13,7 @@ Tracking dirty fields on a Django model instance.
 Dirty means that field in-memory and database values are different.
 
 This is a fork of `django-dirtyfields <https://github.com/romgar/django-dirtyfields>`_ with a
-completely rewritten implementation using descriptors instead of signals. The goal is to
+completely rewritten "lazy" implementation. The goal is to
 eventually merge these improvements upstream once the implementation matures.
 
 **Key differences from django-dirtyfields:**
@@ -27,7 +27,6 @@ eventually merge these improvements upstream once the implementation matures.
 **Removed features** (may be re-added if needed):
 
 - M2M field tracking (``ENABLE_M2M_CHECK``)
-- ``FIELDS_TO_CHECK`` for limiting tracked fields
 - Custom ``compare_function``
 
 This package is compatible with:
@@ -57,7 +56,7 @@ To use ``django-filthyfields``, you need to:
 .. code-block:: python
 
     from django.db import models
-    from filthyfields import DirtyFieldsMixin
+    from dirtyfields import DirtyFieldsMixin
 
     class ExampleModel(DirtyFieldsMixin, models.Model):
         """A simple example model to test dirty fields mixin with"""

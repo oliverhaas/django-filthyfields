@@ -2,10 +2,11 @@ import django
 import pytest
 from django.db import DatabaseError, transaction
 
-import filthyfields
+import dirtyfields
 from tests.models import (
     FileFieldModel,
     ModelTest,
+    ModelWithFieldsToCheck,
     ModelWithForeignKeyTest,
     ModelWithOneToOneFieldTest,
     OrdinaryModelTest,
@@ -15,9 +16,9 @@ from tests.models import (
 
 
 def test_version_numbers():
-    assert isinstance(filthyfields.__version__, str)
-    assert isinstance(filthyfields.VERSION, tuple)
-    assert all(isinstance(number, int) for number in filthyfields.VERSION)
+    assert isinstance(dirtyfields.__version__, str)
+    assert isinstance(dirtyfields.VERSION, tuple)
+    assert all(isinstance(number, int) for number in dirtyfields.VERSION)
 
 
 @pytest.mark.django_db
@@ -348,3 +349,43 @@ def test_was_dirty_with_relationship():
     assert tm.was_dirty(check_relationship=True)
     assert tm.get_was_dirty_fields(check_relationship=True) == {"fkey": tm1.pk}
     assert not tm.was_dirty(check_relationship=False)
+
+
+@pytest.mark.django_db
+def test_fields_to_check():
+    """Test FIELDS_TO_CHECK limits which fields are tracked."""
+    tm = ModelWithFieldsToCheck.objects.create()
+    assert tm.get_dirty_fields() == {}
+
+    # Change both fields
+    tm.boolean1 = False
+    tm.boolean2 = False
+
+    # Only boolean1 should be tracked (it's in FIELDS_TO_CHECK)
+    assert tm.get_dirty_fields() == {"boolean1": True}
+    assert tm.is_dirty()
+
+
+@pytest.mark.django_db
+def test_fields_to_check_on_new_instance():
+    """Test FIELDS_TO_CHECK with new unsaved instances."""
+    tm = ModelWithFieldsToCheck()
+
+    # Only boolean1 should be reported as dirty
+    dirty = tm.get_dirty_fields()
+    assert "boolean1" in dirty
+    assert "boolean2" not in dirty
+
+
+@pytest.mark.django_db
+def test_fields_to_check_revert():
+    """Test reverting a tracked field clears dirty state."""
+    tm = ModelWithFieldsToCheck.objects.create()
+
+    tm.boolean1 = False
+    assert tm.get_dirty_fields() == {"boolean1": True}
+
+    # Revert to original
+    tm.boolean1 = True
+    assert tm.get_dirty_fields() == {}
+    assert not tm.is_dirty()

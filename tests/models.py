@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models.signals import pre_save
 from django.utils import timezone as django_timezone
 
-from filthyfields import DirtyFieldsMixin
+from dirtyfields import DirtyFieldsMixin
 
 
 class ModelTest(DirtyFieldsMixin, models.Model):
@@ -111,3 +111,12 @@ class ImageFieldModel(DirtyFieldsMixin, models.Model):
 
 class JSONFieldModel(DirtyFieldsMixin, models.Model):
     json_field = models.JSONField(default=dict)
+
+
+class ModelWithFieldsToCheck(DirtyFieldsMixin, models.Model):
+    """Model that only tracks specific fields."""
+
+    FIELDS_TO_CHECK = ["boolean1"]
+
+    boolean1 = models.BooleanField(default=True)
+    boolean2 = models.BooleanField(default=True)

@@ -23,7 +23,7 @@ To use ``django-filthyfields``, you need to:
 .. code-block:: python
 
     from django.db import models
-    from filthyfields import DirtyFieldsMixin
+    from dirtyfields import DirtyFieldsMixin
 
     class ExampleModel(DirtyFieldsMixin, models.Model):
         """A simple example model to test filthyfields with"""

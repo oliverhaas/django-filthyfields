@@ -46,10 +46,10 @@ requires = ["hatchling>=1.27.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/filthyfields"]
+packages = ["src/dirtyfields"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/filthyfields"]
+include = ["src/dirtyfields"]
 
 [tool.ruff]
 line-length = 120
@@ -117,7 +117,7 @@ markers = [
 [tool.coverage.run]
 concurrency = ["thread"]
 branch = true
-source = ["filthyfields"]
+source = ["dirtyfields"]
 omit = ["*/__init__.py"]
 
 [tool.coverage.report]
