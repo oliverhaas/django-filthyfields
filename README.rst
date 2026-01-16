@@ -87,6 +87,3 @@ Example
     True
     >>> model.get_dirty_fields()
     {'boolean': True, 'characters': 'first value'}
-
-
-Consult the `full documentation <docs/>`_ for more information.
