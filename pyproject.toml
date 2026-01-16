@@ -1,11 +1,18 @@
 [project]
 name = "django-filthyfields"
-version = "0.1.0a3"
+version = "0.1.0a4"
 description = "Tracking dirty fields on a Django model instance."
 readme = "README.rst"
 license = "BSD-3-Clause"
 requires-python = ">=3.13"
-keywords = ["django", "filthyfields", "dirtyfields", "track", "model", "changes"]
+keywords = [
+  "django",
+  "filthyfields",
+  "dirtyfields",
+  "track",
+  "model",
+  "changes",
+]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Framework :: Django",
@@ -40,11 +47,7 @@ dev = [
   "ruff==0.11.12",
   "ty==0.0.1a10",
 ]
-docs = [
-  "mkdocs>=1.6.0",
-  "mkdocs-material>=9.5.0",
-  "mike>=2.1.0",
-]
+docs = ["mkdocs>=1.6.0", "mkdocs-material>=9.5.0", "mike>=2.1.0"]
 
 [build-system]
 requires = ["hatchling>=1.27.0"]
