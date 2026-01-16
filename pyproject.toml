@@ -40,6 +40,11 @@ dev = [
   "ruff==0.11.12",
   "ty==0.0.1a10",
 ]
+docs = [
+  "mkdocs>=1.6.0",
+  "mkdocs-material>=9.5.0",
+  "mike>=2.1.0",
+]
 
 [build-system]
 requires = ["hatchling>=1.27.0"]

@@ -1,0 +1,59 @@
+site_name: Django Filthy Fields
+site_url: https://oliverhaas.github.io/django-dirtyfields/
+site_description: Tracking dirty fields on a Django model instance.
+site_author: Oliver Haas
+repo_name: oliverhaas/django-dirtyfields
+repo_url: https://github.com/oliverhaas/django-dirtyfields
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep-purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep-purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+    - content.code.annotate
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+  - Guide:
+      - Basic Usage: guide/basic-usage.md
+      - Advanced Features: guide/advanced.md
+  - Reference:
+      - API Reference: reference/api.md
+      - Changelog: reference/changelog.md
+
+extra:
+  version:
+    provider: mike

@@ -46,7 +46,4 @@ Thumbs.db
 *.db
 
 # Documentation
-docs/_build/
-docs/_template/
-docs/_static/
-docs/.venv-docs/
+site/
