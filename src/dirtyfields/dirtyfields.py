@@ -1,198 +1,354 @@
+"""Diff-based dirty field tracking for Django models.
+
+Only stores original values of fields that actually change, rather than
+capturing full model state upfront. Significantly faster than the signal-based approach.
+"""
+
+from collections.abc import Iterable
 from copy import deepcopy
-from django.core.exceptions import ValidationError
+from datetime import date, datetime, time, timedelta
+from decimal import Decimal
+from typing import TYPE_CHECKING, Any
+from uuid import UUID
+
 from django.core.files import File
-from django.db.models.expressions import BaseExpression
-from django.db.models.expressions import Combinable
-from django.db.models.signals import post_save, m2m_changed
+from django.db import models
+from django.db.models.base import ModelBase
+from django.db.models.expressions import BaseExpression, Combinable
+from django.db.models.fields.files import FileDescriptor
+from django.db.models.fields.related_descriptors import ForeignKeyDeferredAttribute
+from django.db.models.query_utils import DeferredAttribute
 
-from .compare import raw_compare, compare_states, normalise_value
+if TYPE_CHECKING:
+    from typing import Self
+
+# Types that don't need deepcopy (immutable)
+_IMMUTABLE_TYPES = frozenset(
+    (
+        int,
+        float,
+        complex,
+        str,
+        bool,
+        bytes,
+        range,
+        Decimal,
+        UUID,
+        date,
+        datetime,
+        time,
+        timedelta,
+    )
+)
 
 
-def get_m2m_with_model(given_model):
-    return [
-        (f, f.model if f.model != given_model else None)
-        for f in given_model._meta.get_fields()
-        if f.many_to_many and not f.auto_created
-    ]
+def _normalize_value(value: Any) -> Any:
+    """Normalize a field value for storage in the diff dict."""
+    if isinstance(value, File):
+        return value.name
+    if isinstance(value, memoryview):
+        return bytes(value)
+    if value is None or type(value) in _IMMUTABLE_TYPES:
+        return value
+    return deepcopy(value)
 
 
-class DirtyFieldsMixin(object):
-    compare_function = (raw_compare, {})
-    normalise_function = (normalise_value, {})
+def _track_file_change(instance: models.Model, field_name: str, old_name: str, new_name: str) -> None:
+    """Track a file field change in the instance's diff dict."""
+    if old_name == new_name:
+        return
 
-    # This mode has been introduced to handle some situations like this one:
-    # https://github.com/romgar/django-dirtyfields/issues/73
-    ENABLE_M2M_CHECK = False
+    d = instance.__dict__
+    diff = d.setdefault("_state_diff", {})
 
-    FIELDS_TO_CHECK = None
+    if field_name not in diff:
+        diff[field_name] = old_name
+        return
 
-    def __init__(self, *args, **kwargs):
-        super(DirtyFieldsMixin, self).__init__(*args, **kwargs)
-        post_save.connect(
-            reset_state, sender=self.__class__, weak=False,
-            dispatch_uid='{name}-DirtyFieldsMixin-sweeper'.format(
-                name=self.__class__.__name__))
-        if self.ENABLE_M2M_CHECK:
-            self._connect_m2m_relations()
-        reset_state(sender=self.__class__, instance=self)
+    # Check if reverting to original
+    if new_name == diff[field_name]:
+        del diff[field_name]
 
-    def refresh_from_db(self, using=None, fields=None, *args, **kwargs):
-        super().refresh_from_db(using, fields, *args, **kwargs)
-        reset_state(sender=self.__class__, instance=self, update_fields=fields)
 
-    def _connect_m2m_relations(self):
-        for m2m_field, model in get_m2m_with_model(self.__class__):
-            m2m_changed.connect(
-                reset_state, sender=m2m_field.remote_field.through, weak=False,
-                dispatch_uid='{name}-DirtyFieldsMixin-sweeper-m2m'.format(
-                    name=self.__class__.__name__))
+class _DiffDescriptor(DeferredAttribute):
+    """Descriptor that tracks field changes on __set__.
 
-    def _as_dict(self, check_relationship, include_primary_key=True):
+    When a field value changes, stores the original value in instance._state_diff.
+    Only tracks the first change per field (original value).
+    """
+
+    __slots__ = ("_attname", "_field", "_field_name", "_is_relation")
+
+    def __init__(self, field: models.Field[Any, Any]) -> None:
+        super().__init__(field)
+        self._attname = field.attname
+        self._field_name = field.name
+        self._is_relation = field.remote_field is not None
+        self._field = field
+
+    def __get__(self, instance: models.Model | None, cls: type | None = None) -> Any:
+        if instance is None:
+            return self
+        val = instance.__dict__.get(self._attname)
+        if val is not None:
+            return val
+        if self._attname in instance.__dict__:
+            return None
+        return super().__get__(instance, cls)
+
+    def __set__(self, instance: models.Model | None, value: Any) -> None:
+        if instance is None:
+            return
+
+        d = instance.__dict__
+        attname = self._attname
+        field_name = self._field_name
+
+        state = getattr(instance, "_state", None)
+        should_track = state is not None and not state.adding and attname in d
+        old = d[attname] if should_track else None
+
+        d[attname] = value
+
+        if not should_track or value == old:
+            return
+
+        if self._is_relation and self._field.is_cached(instance):
+            self._field.delete_cached_value(instance)
+
+        diff = d.setdefault("_state_diff", {})
+
+        if field_name not in diff:
+            diff[field_name] = _normalize_value(old)
+            if self._is_relation:
+                d.setdefault("_state_diff_rel", set()).add(field_name)
+            return
+
+        if _normalize_value(value) != diff[field_name]:
+            return
+
+        del diff[field_name]
+        if self._is_relation and (rel := d.get("_state_diff_rel")):
+            rel.discard(field_name)
+
+
+class _FileDiffDescriptor(FileDescriptor):
+    """Descriptor for file fields that tracks changes and returns tracking-aware FieldFile."""
+
+    def __get__(self, instance: models.Model | None, cls: type | None = None) -> Any:
+        if instance is None:
+            return self
+
+        file = super().__get__(instance, cls)
+
+        # Wrap the FieldFile's save and delete methods to track changes
+        # Note: empty FieldFile is falsy, so we check 'is not None' instead of 'if file'
+        if file is not None and not getattr(file, "_dirty_wrapped", False):
+            original_save = file.save
+            original_delete = file.delete
+            field_name = self.field.name
+
+            def tracked_save(name: str, content: File, save: bool = True) -> None:
+                old_name = file.name or ""
+                original_save(name, content, save=save)
+                new_name = file.name or ""
+                if not instance._state.adding:
+                    _track_file_change(instance, field_name, old_name, new_name)
+
+            def tracked_delete(save: bool = True) -> None:
+                old_name = file.name or ""
+                original_delete(save=save)
+                if not instance._state.adding:
+                    _track_file_change(instance, field_name, old_name, "")
+
+            file.save = tracked_save
+            file.delete = tracked_delete
+            file._dirty_wrapped = True
+
+        return file
+
+    def __set__(self, instance: models.Model | None, value: Any) -> None:
+        if instance is None:
+            return
+
+        d = instance.__dict__
+        attname = self.field.attname
+        field_name = self.field.name
+
+        state = getattr(instance, "_state", None)
+        should_track = state is not None and not state.adding and attname in d
+
+        if should_track:
+            old = d[attname]
+            old_normalized = old.name if isinstance(old, File) else (old or "")
+            new_normalized = value.name if isinstance(value, File) else (value or "")
+
+            _track_file_change(instance, field_name, old_normalized, new_normalized)
+
+        super().__set__(instance, value)
+
+
+class _DirtyMeta(ModelBase):
+    """Metaclass that installs diff-tracking descriptors on model fields."""
+
+    def __new__(
+        mcs,
+        name: str,
+        bases: tuple[type, ...],
+        namespace: dict[str, Any],
+        **kwargs: Any,
+    ) -> type:
+        cls = super().__new__(mcs, name, bases, namespace, **kwargs)
+
+        if hasattr(cls, "_meta") and not cls._meta.abstract:
+            for field in cls._meta.concrete_fields:
+                attr = getattr(cls, field.attname, None)
+                if type(attr) in (DeferredAttribute, ForeignKeyDeferredAttribute):
+                    setattr(cls, field.attname, _DiffDescriptor(field))
+                elif isinstance(attr, FileDescriptor):
+                    setattr(cls, field.attname, _FileDiffDescriptor(field))
+
+        return cls
+
+
+class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
+    """Mixin for Django models with dirty field tracking via descriptors.
+
+    Key methods: is_dirty(), get_dirty_fields(), was_dirty(), get_was_dirty_fields().
+    """
+
+    class Meta:
+        abstract = True
+
+    _was_dirty_fields: dict[str, Any] = {}
+    _was_dirty_fields_rel: dict[str, Any] = {}
+
+    def _dirty_capture_was_dirty(self) -> None:
+        """Capture current dirty state into _was_dirty_fields for post-save inspection."""
+        self._was_dirty_fields = self.get_dirty_fields(check_relationship=False)
+        self._was_dirty_fields_rel = self.get_dirty_fields(check_relationship=True)
+
+    def _dirty_reset_state(self, fields: Iterable[str] | None = None) -> None:
+        """Reset dirty tracking state.
+
+        Args:
+            fields: If provided, only reset these fields. Otherwise reset all.
         """
-        Capture the model fields' state as a dictionary.
+        if fields is None:
+            self.__dict__.pop("_state_diff", None)
+            self.__dict__.pop("_state_diff_rel", None)
+        else:
+            diff = self.__dict__.get("_state_diff")
+            if diff:
+                for name in fields:
+                    diff.pop(name, None)
+                rel = self.__dict__.get("_state_diff_rel")
+                if rel:
+                    for name in fields:
+                        rel.discard(name)
 
-        Only capture values we are confident are in the database, or would be
-        saved to the database if self.save() is called.
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        self._dirty_capture_was_dirty()
+        super().save(*args, **kwargs)
+        self._dirty_reset_state()
+
+    def refresh_from_db(
+        self,
+        using: str | None = None,
+        fields: Iterable[str] | None = None,
+        from_queryset: "models.QuerySet[Self, Self] | None" = None,
+    ) -> None:
+        super().refresh_from_db(using=using, fields=fields, from_queryset=from_queryset)
+        self._dirty_reset_state(fields=fields)
+
+    def is_dirty(self, check_relationship: bool = False) -> bool:
+        """Check if instance has unsaved changes."""
+        if self._state.adding:
+            return True
+        diff = self.__dict__.get("_state_diff")
+        if not diff:
+            return False
+        if check_relationship:
+            return True
+        rel = self.__dict__.get("_state_diff_rel") or set()
+        return any(k not in rel for k in diff)
+
+    def get_dirty_fields(
+        self,
+        check_relationship: bool = False,
+        verbose: bool = False,
+    ) -> dict[str, Any]:
+        """Get fields that have changed since load from DB.
+
+        Args:
+            check_relationship: Include FK field changes
+            verbose: Return {"saved": old, "current": new} instead of just old value
+
+        Returns:
+            Dict mapping field names to original values (or verbose dicts)
         """
-        all_field = {}
+        if self._state.adding:
+            current = self._get_current_values(check_relationship, self.pk is not None)
+            if verbose:
+                return {k: {"saved": None, "current": v} for k, v in current.items()}
+            return current
 
-        deferred_fields = self.get_deferred_fields()
+        diff = self.__dict__.get("_state_diff")
+        if not diff:
+            return {}
+
+        if not check_relationship:
+            rel = self.__dict__.get("_state_diff_rel") or set()
+            diff = {k: v for k, v in diff.items() if k not in rel}
+
+        if verbose:
+            return {k: {"saved": v, "current": self._get_field_value_for_verbose(k)} for k, v in diff.items()}
+        return dict(diff)
+
+    def _get_field_value_for_verbose(self, field_name: str) -> Any:
+        """Get current field value for verbose mode, normalizing file fields."""
+        value = getattr(self, field_name, None)
+        if isinstance(value, File):
+            return value.name
+        return value
+
+    def _get_current_values(
+        self,
+        check_relationship: bool,
+        include_pk: bool,
+    ) -> dict[str, Any]:
+        """Get current field values (for new instances)."""
+        result = {}
+        deferred = self.get_deferred_fields()
 
         for field in self._meta.concrete_fields:
-
-            # For backward compatibility reasons, in particular for fkey fields, we check both
-            # the real name and the wrapped name (it means that we can specify either the field
-            # name with or without the "_id" suffix.
-            field_names_to_check = [field.name, field.get_attname()]
-            if self.FIELDS_TO_CHECK and (not any(name in self.FIELDS_TO_CHECK for name in field_names_to_check)):
+            if field.primary_key and not include_pk:
+                continue
+            if field.remote_field and not check_relationship:
+                continue
+            if field.attname in deferred:
                 continue
 
-            if field.primary_key and not include_primary_key:
+            value = self.__dict__.get(field.attname)
+            if isinstance(value, (BaseExpression, Combinable)):
                 continue
 
-            if field.remote_field:
-                if not check_relationship:
-                    continue
+            result[field.name] = _normalize_value(value)
 
-            if field.get_attname() in deferred_fields:
-                continue
+        return result
 
-            field_value = getattr(self, field.attname)
+    def was_dirty(self, check_relationship: bool = False) -> bool:
+        """Check if instance was dirty before the last save."""
+        return bool(self.get_was_dirty_fields(check_relationship=check_relationship))
 
-            if isinstance(field_value, File):
-                # Uses the name for files due to a perfomance regression caused by Django 3.1.
-                # For more info see: https://github.com/romgar/django-dirtyfields/issues/165
-                field_value = field_value.name
+    def get_was_dirty_fields(self, check_relationship: bool = False) -> dict[str, Any]:
+        """Get fields that were dirty before the last save."""
+        return self._was_dirty_fields_rel if check_relationship else self._was_dirty_fields
 
-            # If current field value is an expression, we are not evaluating it
-            if isinstance(field_value, (BaseExpression, Combinable)):
-                continue
-
-            try:
-                # Store the converted value for fields with conversion
-                field_value = field.to_python(field_value)
-            except ValidationError:
-                # The current value is not valid so we cannot convert it
-                pass
-
-            if isinstance(field_value, memoryview):
-                # psycopg2 returns uncopyable type buffer for bytea
-                field_value = bytes(field_value)
-
-            # Explanation of copy usage here :
-            # https://github.com/romgar/django-dirtyfields/commit/efd0286db8b874b5d6bd06c9e903b1a0c9cc6b00
-            all_field[field.name] = deepcopy(field_value)
-
-        return all_field
-
-    def _as_dict_m2m(self):
-        m2m_fields = {}
-
-        if self.pk:
-            for f, model in get_m2m_with_model(self.__class__):
-                if self.FIELDS_TO_CHECK and (f.attname not in self.FIELDS_TO_CHECK):
-                    continue
-
-                m2m_fields[f.attname] = set([obj.pk for obj in getattr(self, f.attname).all()])
-
-        return m2m_fields
-
-    def get_dirty_fields(self, check_relationship=False, check_m2m=None, verbose=False):
-        if self._state.adding:
-            # If the object has not yet been saved in the database, all fields are considered dirty
-            # for consistency (see https://github.com/romgar/django-dirtyfields/issues/65 for more details)
-            pk_specified = self.pk is not None
-            initial_dict = self._as_dict(check_relationship, include_primary_key=pk_specified)
-            if verbose:
-                initial_dict = {key: {'saved': None, 'current': self.normalise_function[0](value)}
-                                for key, value in initial_dict.items()}
-            return initial_dict
-
-        if check_m2m is not None and not self.ENABLE_M2M_CHECK:
-            raise ValueError("You can't check m2m fields if ENABLE_M2M_CHECK is set to False")
-
-        modified_fields = compare_states(self._as_dict(check_relationship),
-                                         self._original_state,
-                                         self.compare_function,
-                                         self.normalise_function)
-
-        if check_m2m:
-            modified_m2m_fields = compare_states(check_m2m,
-                                                 self._original_m2m_state,
-                                                 self.compare_function,
-                                                 self.normalise_function)
-            modified_fields.update(modified_m2m_fields)
-
-        if not verbose:
-            # Keeps backward compatibility with previous function return
-            modified_fields = {
-                key: self.normalise_function[0](value['saved'])
-                for key, value in modified_fields.items()
-            }
-
-        return modified_fields
-
-    def is_dirty(self, check_relationship=False, check_m2m=None):
-        return {} != self.get_dirty_fields(check_relationship=check_relationship,
-                                           check_m2m=check_m2m)
-
-    def save_dirty_fields(self):
+    def save_dirty_fields(self) -> None:
+        """Save only the dirty fields (optimization for partial updates)."""
         if self._state.adding:
             self.save()
         else:
             dirty_fields = self.get_dirty_fields(check_relationship=True)
             self.save(update_fields=dirty_fields.keys())
-
-
-def reset_state(sender, instance, **kwargs):
-    # original state should hold all possible dirty fields to avoid
-    # getting a `KeyError` when checking if a field is dirty or not
-    update_fields = kwargs.pop('update_fields', None)
-    new_state = instance._as_dict(check_relationship=True)
-    FIELDS_TO_CHECK = getattr(instance, "FIELDS_TO_CHECK", None)
-
-    if update_fields is not None:
-        for field_name in update_fields:
-            field = sender._meta.get_field(field_name)
-            if not FIELDS_TO_CHECK or (field.name in FIELDS_TO_CHECK):
-
-                if field.get_attname() in instance.get_deferred_fields():
-                    continue
-
-                if field.name in new_state:
-                    instance._original_state[field.name] = (
-                        new_state[field.name]
-                    )
-                elif field.name in instance._original_state:
-                    # If we are here it means the field was updated in the DB,
-                    # and we don't know the new value in the database.
-                    # e.g it was updated with an F() expression.
-                    # Because we now don't know the value in the DB,
-                    # we remove it from _original_state, because we can't tell
-                    # if its dirty or not.
-                    del instance._original_state[field.name]
-    else:
-        instance._original_state = new_state
-
-    if instance.ENABLE_M2M_CHECK:
-        instance._original_m2m_state = instance._as_dict_m2m()

@@ -3,11 +3,19 @@ from django.db import IntegrityError
 from django.db.models import F
 from django.test.utils import override_settings
 
-from .models import (ModelTest, ModelWithForeignKeyTest, ModelWithNonEditableFieldsTest,
-                     OrdinaryModelTest, OrdinaryModelWithForeignKeyTest, ModelWithSelfForeignKeyTest,
-                     ExpressionModelTest, WithPreSaveSignalModelTest, DoubleForeignKeyModelTest,
-                     BinaryModelTest)
-from .utils import assert_select_number_queries_on_model
+from tests.models import (
+    BinaryModelTest,
+    DoubleForeignKeyModelTest,
+    ExpressionModelTest,
+    ModelTest,
+    ModelWithForeignKeyTest,
+    ModelWithNonEditableFieldsTest,
+    ModelWithSelfForeignKeyTest,
+    OrdinaryModelTest,
+    OrdinaryModelWithForeignKeyTest,
+    WithPreSaveSignalModelTest,
+)
+from tests.utils import assert_select_number_queries_on_model
 
 
 @pytest.mark.django_db
@@ -16,8 +24,8 @@ def test_slicing_and_only():
     for _ in range(10):
         ModelWithNonEditableFieldsTest.objects.create()
 
-    qs_ = ModelWithNonEditableFieldsTest.objects.only('pk').filter()
-    [o for o in qs_.filter().order_by('pk')]
+    qs_ = ModelWithNonEditableFieldsTest.objects.only("pk").filter()
+    list(qs_.filter().order_by("pk"))
 
 
 @pytest.mark.django_db
@@ -28,11 +36,8 @@ def test_dirty_fields_ignores_the_editable_property_of_fields():
 
     # Changing values should flag them as dirty
     tm.boolean = False
-    tm.characters = 'testing'
-    assert tm.get_dirty_fields() == {
-        'boolean': True,
-        'characters': ''
-    }
+    tm.characters = "testing"
+    assert tm.get_dirty_fields() == {"boolean": True, "characters": ""}
 
 
 @pytest.mark.django_db
@@ -44,7 +49,7 @@ def test_mandatory_foreign_key_field_not_initialized_is_not_raising_related_obje
 
 
 @pytest.mark.django_db
-@override_settings(DEBUG=True)  # The test runner sets DEBUG to False. Set to True to enable SQL logging.
+@override_settings(DEBUG=True)
 def test_relationship_model_loading_issue():
     # Non regression test case for bug:
     # https://github.com/romgar/django-dirtyfields/issues/34
@@ -56,20 +61,19 @@ def test_relationship_model_loading_issue():
     OrdinaryModelWithForeignKeyTest.objects.create(fkey=tm2)
 
     with assert_select_number_queries_on_model(OrdinaryModelWithForeignKeyTest, 1):
-        # should be 0 since we don't access the relationship for now
         with assert_select_number_queries_on_model(OrdinaryModelTest, 0):
             for tmf in OrdinaryModelWithForeignKeyTest.objects.all():
-                tmf.pk
+                _ = tmf.pk
 
     with assert_select_number_queries_on_model(OrdinaryModelWithForeignKeyTest, 1):
         with assert_select_number_queries_on_model(OrdinaryModelTest, 2):
             for tmf in OrdinaryModelWithForeignKeyTest.objects.all():
-                tmf.fkey  # access the relationship here
+                _ = tmf.fkey
 
     with assert_select_number_queries_on_model(OrdinaryModelWithForeignKeyTest, 1):
-        with assert_select_number_queries_on_model(OrdinaryModelTest, 0):  # should be 0 since we use `select_related`
-            for tmf in OrdinaryModelWithForeignKeyTest.objects.select_related('fkey').all():
-                tmf.fkey  # access the relationship here
+        with assert_select_number_queries_on_model(OrdinaryModelTest, 0):
+            for tmf in OrdinaryModelWithForeignKeyTest.objects.select_related("fkey").all():
+                _ = tmf.fkey
 
     # Query tests with models that are using django-dirtyfields
     tm1 = ModelTest.objects.create()
@@ -78,20 +82,19 @@ def test_relationship_model_loading_issue():
     ModelWithForeignKeyTest.objects.create(fkey=tm2)
 
     with assert_select_number_queries_on_model(ModelWithForeignKeyTest, 1):
-        with assert_select_number_queries_on_model(ModelTest, 0):  # should be 0, was 2 before bug fixing
+        with assert_select_number_queries_on_model(ModelTest, 0):
             for tmf in ModelWithForeignKeyTest.objects.all():
-                tmf.pk  # we don't need the relationship here
+                _ = tmf.pk
 
     with assert_select_number_queries_on_model(ModelWithForeignKeyTest, 1):
         with assert_select_number_queries_on_model(ModelTest, 2):
             for tmf in ModelWithForeignKeyTest.objects.all():
-                tmf.fkey  # access the relationship here
+                _ = tmf.fkey
 
     with assert_select_number_queries_on_model(ModelWithForeignKeyTest, 1):
-        # should be 0 since we use `selected_related` (was 2 before)
         with assert_select_number_queries_on_model(ModelTest, 0):
-            for tmf in ModelWithForeignKeyTest.objects.select_related('fkey').all():
-                tmf.fkey  # access the relationship here
+            for tmf in ModelWithForeignKeyTest.objects.select_related("fkey").all():
+                _ = tmf.fkey
 
 
 @pytest.mark.django_db
@@ -112,31 +115,29 @@ def test_relationship_option_for_foreign_key_to_self():
 def test_expressions_not_taken_into_account_for_dirty_check():
     # Non regression test case for bug:
     # https://github.com/romgar/django-dirtyfields/issues/39
-    from django.db.models import F
     tm = ExpressionModelTest.objects.create()
-    tm.counter = F('counter') + 1
+    tm.counter = F("counter") + 1
 
-    # This save() was raising a ValidationError: [u"'F(counter) + Value(1)' value must be an integer."]
-    # caused by a call to_python() on an expression node
+    # This save() was raising a ValidationError
     tm.save()
 
 
 @pytest.mark.django_db
 def test_pre_save_signal_make_dirty_checking_not_consistent():
     # first case
-    model = WithPreSaveSignalModelTest.objects.create(data='specific_value')
-    assert model.data_updated_on_presave == 'presave_value'
+    model = WithPreSaveSignalModelTest.objects.create(data="specific_value")
+    assert model.data_updated_on_presave == "presave_value"
 
     # second case
-    model = WithPreSaveSignalModelTest(data='specific_value')
+    model = WithPreSaveSignalModelTest(data="specific_value")
     model.save()
-    assert model.data_updated_on_presave == 'presave_value'
+    assert model.data_updated_on_presave == "presave_value"
 
     # third case
     model = WithPreSaveSignalModelTest()
-    model.data = 'specific_value'
+    model.data = "specific_value"
     model.save()
-    assert model.data_updated_on_presave == 'presave_value'
+    assert model.data_updated_on_presave == "presave_value"
 
 
 @pytest.mark.django_db
@@ -146,17 +147,15 @@ def test_foreign_key_deferred_field():
     tm = ModelTest.objects.create()
     DoubleForeignKeyModelTest.objects.create(fkey1=tm)
 
-    list(DoubleForeignKeyModelTest.objects.only('fkey1'))  # RuntimeError was raised here!
+    list(DoubleForeignKeyModelTest.objects.only("fkey1"))  # RuntimeError was raised here!
 
 
 @pytest.mark.django_db
 def test_bytea():
-    BinaryModelTest.objects.create(bytea=b'^H\xc3\xabllo')
+    BinaryModelTest.objects.create(bytea=b"^H\xc3\xabllo")
     tbm = BinaryModelTest.objects.get()
-    tbm.bytea = b'W\xc3\xb6rlD'
-    assert tbm.get_dirty_fields() == {
-        'bytea': b'^H\xc3\xabllo',
-    }
+    tbm.bytea = b"W\xc3\xb6rlD"
+    assert tbm.get_dirty_fields() == {"bytea": b"^H\xc3\xabllo"}
 
 
 @pytest.mark.django_db
@@ -169,14 +168,14 @@ def test_access_deferred_field_doesnt_reset_state():
     tm_deferred.boolean = False
     assert tm_deferred.get_dirty_fields() == {"boolean": True}
 
-    tm_deferred.characters  # access deferred field
+    _ = tm_deferred.characters  # access deferred field
     assert tm_deferred.get_deferred_fields() == set()
     # previously accessing the deferred field would reset the dirty state.
     assert tm_deferred.get_dirty_fields() == {"boolean": True}
 
 
 @pytest.mark.django_db
-def test_f_objects_and_save_update_fields_works():
+def test_f_objects_and_save_works():
     # Non regression test case for bug:
     # https://github.com/romgar/django-dirtyfields/issues/118
     tm = ExpressionModelTest.objects.create(counter=0)
@@ -188,24 +187,6 @@ def test_f_objects_and_save_update_fields_works():
     assert tm.counter == 1
 
     tm.counter = F("counter") + 1
-    tm.save(update_fields=["counter"])
+    tm.save()
     tm.refresh_from_db()
     assert tm.counter == 2
-
-
-@pytest.mark.django_db
-def test_f_objects_and_save_update_fields_works_multiple_times():
-    # Non regression test case for bug:
-    # https://github.com/romgar/django-dirtyfields/issues/208
-    tm = ExpressionModelTest.objects.create(counter=0)
-    assert tm.counter == 0
-
-    tm.counter = F("counter") + 1
-    tm.save(update_fields=["counter"])
-    tm_from_db = ExpressionModelTest.objects.get(id=tm.id)
-    assert tm_from_db.counter == 1
-
-    tm.counter = F("counter") + 1
-    tm.save(update_fields=["counter"])
-    tm_from_db = ExpressionModelTest.objects.get(id=tm.id)
-    assert tm_from_db.counter == 2

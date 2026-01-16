@@ -4,8 +4,7 @@ from django.conf import settings
 from django.db import connection
 
 
-class assert_number_queries(object):
-
+class assert_number_queries:
     def __init__(self, number):
         self.number = number
 
@@ -26,39 +25,27 @@ class assert_number_queries(object):
         settings.DEBUG = self.DEBUG
 
 
-class RegexMixin(object):
+class RegexMixin:
     regex = None
 
     def matched_queries(self):
-        matched_queries = super(RegexMixin, self).matched_queries()
+        matched_queries = super().matched_queries()
 
         if self.regex is not None:
             pattern = re.compile(self.regex)
-            regex_compliant_queries = [query for query in matched_queries if pattern.match(query.get('sql'))]
+            return [query for query in matched_queries if pattern.match(query.get("sql"))]
 
-        return regex_compliant_queries
+        return matched_queries
 
 
 class assert_number_of_queries_on_regex(RegexMixin, assert_number_queries):
-
     def __init__(self, regex, number):
-        super(assert_number_of_queries_on_regex, self).__init__(number)
+        super().__init__(number)
         self.regex = regex
 
 
 class assert_select_number_queries_on_model(assert_number_of_queries_on_regex):
-
     def __init__(self, model_class, number):
         model_name = model_class._meta.model_name
-        regex = r'^.*SELECT.*FROM "tests_%s".*$' % model_name
-
-        super(assert_select_number_queries_on_model, self).__init__(regex, number)
-
-
-def is_postgresql_env_with_jsonb_field():
-    try:
-        PG_VERSION = connection.pg_version
-    except AttributeError:
-        PG_VERSION = 0
-
-    return PG_VERSION >= 90400
+        regex = rf'^.*SELECT.*FROM "tests_{model_name}".*$'
+        super().__init__(regex, number)

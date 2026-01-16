@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # django-dirtyfields documentation build configuration file, created by
 # sphinx-quickstart on Wed Nov 18 20:17:31 2015.
@@ -36,7 +35,7 @@ def get_dirtyfields_version():
 
     This avoids importing the module which requires django to be installed
     """
-    with open(path.join(_root_directory, "src", "dirtyfields", "__init__.py"), "r") as f:
+    with open(path.join(_root_directory, "src", "dirtyfields", "__init__.py")) as f:
         source = f.read()
     root_node = ast.parse(source, "__init__.py")
     for node in root_node.body:
@@ -57,35 +56,35 @@ def get_dirtyfields_version():
 sys.path.append(path.join(_docs_directory, "_ext"))
 
 extensions = [
-    'djangodocs',
-    'sphinx.ext.intersphinx'
+    "djangodocs",
+    "sphinx.ext.intersphinx"
 ]
 
 # Added manually to reference other sphinx documentations
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'django': ('https://docs.djangoproject.com/en/dev/',
-               'https://docs.djangoproject.com/en/dev/_objects/'),
+    "python": ("https://docs.python.org/3", None),
+    "django": ("https://docs.djangoproject.com/en/dev/",
+               "https://docs.djangoproject.com/en/dev/_objects/"),
 }
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 # source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ".rst"
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
 
 # The root toctree document.
-root_doc = 'index'
+root_doc = "index"
 
 # General information about the project.
-project = u'django-dirtyfields'
-copyright = f'{date.today().year}, Romain Garrigues'
-author = u'Romain Garrigues'
+project = "django-dirtyfields"
+copyright = f"{date.today().year}, Romain Garrigues"
+author = "Romain Garrigues"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -129,7 +128,7 @@ exclude_patterns = ["_build", ".venv-docs"]
 # show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
@@ -145,7 +144,7 @@ todo_include_todos = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'alabaster'
+html_theme = "alabaster"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -191,12 +190,12 @@ html_theme = 'alabaster'
 
 # Custom sidebar templates, maps document names to template names.
 html_sidebars = {
-    '**': [
-        'about.html',
-        'dirtyfields-links.html',
-        'navigation.html',
-        'relations.html',
-        'searchbox.html',
+    "**": [
+        "about.html",
+        "dirtyfields-links.html",
+        "navigation.html",
+        "relations.html",
+        "searchbox.html",
     ]
 }
 
@@ -245,7 +244,7 @@ html_sidebars = {
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'django-dirtyfieldsdoc'
+htmlhelp_basename = "django-dirtyfieldsdoc"
 
 # Define the canonical URL if you are using a custom domain on Read the Docs
 html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
@@ -260,10 +259,10 @@ if os.environ.get("READTHEDOCS", "") == "True":
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
-    'papersize': 'a4paper',
+    "papersize": "a4paper",
 
     # The font size ('10pt', '11pt' or '12pt').
-    'pointsize': '12pt',
+    "pointsize": "12pt",
 
     # Additional stuff for the LaTeX preamble.
     # 'preamble': '',
@@ -275,8 +274,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, theme, toctree_only).
 latex_documents = [
-    (root_doc, 'django-dirtyfields.tex', 'django-dirtyfields Documentation',
-     'Romain Garrigues', 'howto', True),
+    (root_doc, "django-dirtyfields.tex", "django-dirtyfields Documentation",
+     "Romain Garrigues", "howto", True),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -305,7 +304,7 @@ latex_toplevel_sectioning = "section"
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (root_doc, 'django-dirtyfields', u'django-dirtyfields Documentation',
+    (root_doc, "django-dirtyfields", "django-dirtyfields Documentation",
      [author], 1)
 ]
 
@@ -319,9 +318,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (root_doc, 'django-dirtyfields', 'django-dirtyfields Documentation',
-     author, 'django-dirtyfields', 'One line description of project.',
-     'Miscellaneous'),
+    (root_doc, "django-dirtyfields", "django-dirtyfields Documentation",
+     author, "django-dirtyfields", "One line description of project.",
+     "Miscellaneous"),
 ]
 
 # Documents to append as an appendix to all manuals.

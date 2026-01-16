@@ -1,15 +1,13 @@
 from django.db import models
 from django.db.models.signals import pre_save
 from django.utils import timezone as django_timezone
-from jsonfield import JSONField as JSONFieldThirdParty
 
 from dirtyfields import DirtyFieldsMixin
-from dirtyfields.compare import timezone_support_compare
-from tests.utils import is_postgresql_env_with_jsonb_field
 
 
 class ModelTest(DirtyFieldsMixin, models.Model):
     """A simple test model to test dirty fields mixin with"""
+
     boolean = models.BooleanField(default=True)
     characters = models.CharField(blank=True, max_length=80)
 
@@ -33,8 +31,7 @@ class ModelWithOneToOneFieldTest(DirtyFieldsMixin, models.Model):
 
 class ModelWithNonEditableFieldsTest(DirtyFieldsMixin, models.Model):
     dt = models.DateTimeField(auto_now_add=True)
-    characters = models.CharField(blank=True, max_length=80,
-                                  editable=False)
+    characters = models.CharField(blank=True, max_length=80, editable=False)
     boolean = models.BooleanField(default=True)
 
 
@@ -65,33 +62,11 @@ class ExpressionModelTest(DirtyFieldsMixin, models.Model):
 
 
 class DatetimeModelTest(DirtyFieldsMixin, models.Model):
-    compare_function = (timezone_support_compare, {})
     datetime_field = models.DateTimeField(default=django_timezone.now)
-
-
-class CurrentDatetimeModelTest(DirtyFieldsMixin, models.Model):
-    compare_function = (
-        timezone_support_compare,
-        {'timezone_to_set': django_timezone.get_current_timezone()},
-    )
-    datetime_field = models.DateTimeField(default=django_timezone.now)
-
-
-class Many2ManyModelTest(DirtyFieldsMixin, models.Model):
-    m2m_field = models.ManyToManyField(ModelTest)
-    ENABLE_M2M_CHECK = True
-
-
-class Many2ManyWithoutMany2ManyModeEnabledModelTest(DirtyFieldsMixin, models.Model):
-    m2m_field = models.ManyToManyField(ModelTest)
 
 
 class ModelWithCustomPKTest(DirtyFieldsMixin, models.Model):
     custom_primary_key = models.CharField(max_length=80, primary_key=True)
-
-
-class M2MModelWithCustomPKOnM2MTest(DirtyFieldsMixin, models.Model):
-    m2m_field = models.ManyToManyField(ModelWithCustomPKTest)
 
 
 class WithPreSaveSignalModelTest(DirtyFieldsMixin, models.Model):
@@ -101,10 +76,8 @@ class WithPreSaveSignalModelTest(DirtyFieldsMixin, models.Model):
     @staticmethod
     def pre_save(instance, *args, **kwargs):
         dirty_fields = instance.get_dirty_fields()
-        # only works for case2
-        if 'data' in dirty_fields:
-            if 'specific_value' in instance.data:
-                instance.data_updated_on_presave = 'presave_value'
+        if "data" in dirty_fields and "specific_value" in instance.data:
+            instance.data_updated_on_presave = "presave_value"
 
 
 pre_save.connect(
@@ -114,51 +87,14 @@ pre_save.connect(
 )
 
 
-class ModelWithoutM2MCheckTest(DirtyFieldsMixin, models.Model):
-    characters = models.CharField(blank=True, max_length=80)
-    ENABLE_M2M_CHECK = False
-
-
 class DoubleForeignKeyModelTest(DirtyFieldsMixin, models.Model):
     fkey1 = models.ForeignKey(ModelTest, on_delete=models.CASCADE)
-    fkey2 = models.ForeignKey(ModelTest, null=True, related_name='fkey2',
-                              on_delete=models.CASCADE)
-
-
-if is_postgresql_env_with_jsonb_field():
-    from django.contrib.postgres.fields import JSONField as JSONBField
-
-    class ModelWithJSONBFieldTest(DirtyFieldsMixin, models.Model):
-        jsonb_field = JSONBField()
-
-
-class ModelWithJSONFieldThirdPartyTest(DirtyFieldsMixin, models.Model):
-    json_field_third_party = JSONFieldThirdParty()
-
-
-class ModelWithSpecifiedFieldsTest(DirtyFieldsMixin, models.Model):
-    boolean1 = models.BooleanField(default=True)
-    boolean2 = models.BooleanField(default=True)
-    FIELDS_TO_CHECK = ['boolean1']
-
-
-class ModelWithSpecifiedFieldsAndForeignKeyTest(DirtyFieldsMixin, models.Model):
-    boolean1 = models.BooleanField(default=True)
-    boolean2 = models.BooleanField(default=True)
-    fk_field = models.OneToOneField(ModelTest, null=True,
-                                    on_delete=models.CASCADE)
-    FIELDS_TO_CHECK = ['fk_field']
-
-
-class ModelWithSpecifiedFieldsAndForeignKeyTest2(ModelWithSpecifiedFieldsAndForeignKeyTest):
-    FIELDS_TO_CHECK = ['fk_field_id']
-
-
-class ModelWithM2MAndSpecifiedFieldsTest(DirtyFieldsMixin, models.Model):
-    m2m1 = models.ManyToManyField(ModelTest)
-    m2m2 = models.ManyToManyField(ModelTest)
-    ENABLE_M2M_CHECK = True
-    FIELDS_TO_CHECK = ['m2m1']
+    fkey2 = models.ForeignKey(
+        ModelTest,
+        null=True,
+        related_name="fkey2",
+        on_delete=models.CASCADE,
+    )
 
 
 class BinaryModelTest(DirtyFieldsMixin, models.Model):
@@ -171,3 +107,7 @@ class FileFieldModel(DirtyFieldsMixin, models.Model):
 
 class ImageFieldModel(DirtyFieldsMixin, models.Model):
     image1 = models.ImageField(upload_to="image1/")
+
+
+class JSONFieldModel(DirtyFieldsMixin, models.Model):
+    json_field = models.JSONField(default=dict)

@@ -1,90 +1,129 @@
-[build-system]
-requires = ["setuptools >= 80.9.0, < 81"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "django-dirtyfields"
-dynamic = ["version"]
+version = "2.0.0"
 description = "Tracking dirty fields on a Django model instance."
-keywords = ["django", "dirtyfields", "track", "model", "changes"]
-readme = {file = "README.rst", content-type = "text/x-rst"}
+readme = "README.rst"
 license = "BSD-3-Clause"
-license-files = ["LICENSE"]
-authors = [{name = "Romain Garrigues"}]
-maintainers = [{name = "Lincoln Puzey"}]
-requires-python = ">=3.10"
-dependencies = [
-  "Django>=3.2",
-]
+requires-python = ">=3.13"
+keywords = ["django", "dirtyfields", "track", "model", "changes"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Developers",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Natural Language :: English",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
-    "Framework :: Django",
-    "Framework :: Django :: 3.2",
-    "Framework :: Django :: 4.0",
-    "Framework :: Django :: 4.1",
-    "Framework :: Django :: 4.2",
-    "Framework :: Django :: 5.0",
-    "Framework :: Django :: 5.1",
-    "Framework :: Django :: 5.2",
+  "Development Status :: 5 - Production/Stable",
+  "Framework :: Django",
+  "Framework :: Django :: 5.0",
+  "Framework :: Django :: 5.1",
+  "Framework :: Django :: 5.2",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: BSD License",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+dependencies = ["Django>=5.0"]
 
 [project.urls]
 Homepage = "https://github.com/romgar/django-dirtyfields"
 Repository = "https://github.com/romgar/django-dirtyfields.git"
-Changelog = "https://github.com/romgar/django-dirtyfields/blob/develop/ChangeLog.rst"
-Documentation = "https://django-dirtyfields.readthedocs.io"
-
-[tool.setuptools.dynamic]
-version = {attr = "dirtyfields.__version__"}
+Changelog = "https://github.com/romgar/django-dirtyfields/blob/main/ChangeLog.rst"
 
 [dependency-groups]
 dev = [
-    {include-group = "test"},
-    {include-group = "lint"},
-    {include-group = "security"},
-    {include-group = "build"},
+  "django-stubs==5.2.0",
+  "pre-commit==4.1.0",
+  "pytest==8.3.5",
+  "pytest-cov==6.1.1",
+  "pytest-django==4.11.0",
+  "pytest-xdist>=3.6.0",
+  "ruff==0.11.12",
+  "ty==0.0.1a10",
 ]
-test = [
-    "pytest>=8.4.0,<9",
-    "coverage[toml]>=7.10.0,<8",
-    "psycopg2",
-    # let pip choose the latest version compatible with the python/django version being tested.
-    "pytest-django",
-    "jsonfield",
+
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dirtyfields"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/dirtyfields"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+extend-exclude = ["docs"]
+
+[tool.ruff.lint]
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+explicit-preview-rules = true
+fixable = ["ALL"]
+ignore = [
+  "ANN401",  # Any needed for Django's dynamic APIs
+  "ARG001",  # Signal handlers and overrides have required signatures
+  "ARG002",
+  "C901",    # Some functions are inherently complex
+  "COM812",  # Conflicts with ruff-format
+  "D",       # Docstrings - too extensive
+  "DJ012",   # Method order in models follows our conventions
+  "E5",      # 120 char limit is sufficient
+  "EM101",   # Extracting exception messages to variables hurts readability
+  "EM102",
+  "FBT001",  # Boolean traps - Django conventions use booleans extensively
+  "FBT002",
+  "N802",    # Naming follows Django conventions
+  "N806",
+  "PLC0415", # Lazy imports for optional dependencies
+  "PLR1704", # Redefining argument in context manager
+  "RUF005",  # Tuple concatenation is clearer
+  "RUF012",  # Class-level mutable defaults are fine for our mixin pattern
+  "RUF015",  # Readability over micro-optimization
+  "RUF059",  # Keep unused variables explicit
+  "SLF001",  # Private member access needed for Django internals
+  "TRY003",  # Long exception messages are fine
 ]
-lint = [
-    "flake8",
-]
-security = [
-    "bandit",
-]
-build = [
-    "build",
+preview = true
+select = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+  "A002",    # Shadowing builtins in test utilities
+  "ANN",     # No type annotations required in tests
+  "ARG004",  # Unused args in signal handlers
+  "DJ001",   # null=True on CharField for test models is fine
+  "DJ008",   # Test models don't need __str__
+  "N801",    # Test utilities don't need CapWords
+  "PLR0913", # Too many arguments in test fixtures
+  "PLR2004", # Magic values in tests are fine
+  "S101",    # assert in tests
+  "SIM117",  # Nested with for query assertions is clearer
+  "TRY301",  # Raise in tests is fine
 ]
 
 [tool.pytest.ini_options]
 django_find_project = false
-DJANGO_SETTINGS_MODULE = 'tests.django_settings'
-filterwarnings = [
-    'error',
+DJANGO_SETTINGS_MODULE = "tests.django_settings"
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+filterwarnings = ["error"]
+markers = [
+  "unit: marks tests as unit tests",
+  "integration: marks tests as integration tests",
 ]
 
 [tool.coverage.run]
+concurrency = ["thread"]
 branch = true
-source = ['dirtyfields']
+source = ["dirtyfields"]
+omit = ["*/__init__.py"]
 
 [tool.coverage.report]
-show_missing = true
-precision = 2
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+]
