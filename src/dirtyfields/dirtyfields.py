@@ -158,19 +158,20 @@ class _FileDiffDescriptor(FileDescriptor):
             original_save = file.save
             original_delete = file.delete
             field_name = self.field.name
+            inst = instance  # Capture for closure with narrowed type
 
             def tracked_save(name: str, content: File, save: bool = True) -> None:
                 old_name = file.name or ""
                 original_save(name, content, save=save)
                 new_name = file.name or ""
-                if not instance._state.adding:
-                    _track_file_change(instance, field_name, old_name, new_name)
+                if not inst._state.adding:
+                    _track_file_change(inst, field_name, old_name, new_name)
 
             def tracked_delete(save: bool = True) -> None:
                 old_name = file.name or ""
                 original_delete(save=save)
-                if not instance._state.adding:
-                    _track_file_change(instance, field_name, old_name, "")
+                if not inst._state.adding:
+                    _track_file_change(inst, field_name, old_name, "")
 
             file.save = tracked_save
             file.delete = tracked_delete
