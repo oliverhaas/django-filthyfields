@@ -284,5 +284,5 @@ The package version string.
 ```python
 >>> from dirtyfields import __version__
 >>> __version__
-'1.9.8b1'
+'1.9.8b2'
 ```

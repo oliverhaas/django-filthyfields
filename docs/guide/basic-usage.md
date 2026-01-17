@@ -2,7 +2,7 @@
 
 ## Core Methods
 
-### `is_dirty(check_relationship=False)`
+### `is_dirty(check_relationship=False, check_m2m=None)`
 
 Returns `True` if any tracked fields have been modified since the model was loaded or last saved.
 
@@ -18,8 +18,9 @@ True
 **Parameters:**
 
 - `check_relationship` (bool): If `True`, also checks foreign key relationships. Default: `False`.
+- `check_m2m` (dict | None): Dict of M2M field names to expected PK sets. Requires `ENABLE_M2M_CHECK=True`. Default: `None`.
 
-### `get_dirty_fields(check_relationship=False, verbose=False)`
+### `get_dirty_fields(check_relationship=False, check_m2m=None, verbose=False)`
 
 Returns a dictionary of dirty fields with their original values.
 
@@ -32,6 +33,7 @@ Returns a dictionary of dirty fields with their original values.
 **Parameters:**
 
 - `check_relationship` (bool): If `True`, includes foreign key changes. Default: `False`.
+- `check_m2m` (dict | None): Dict of M2M field names to expected PK sets. Requires `ENABLE_M2M_CHECK=True`. Default: `None`.
 - `verbose` (bool): If `True`, returns both old and new values. Default: `False`.
 
 ### `save_dirty_fields()`
