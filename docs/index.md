@@ -14,14 +14,10 @@ Dirty means that field in-memory and database values are different.
 
 ## Why This Fork?
 
-The original django-dirtyfields uses Django signals (`post_init`, `post_save`) to capture model state by making a full snapshot of the model at the start.
+The original django-dirtyfields captures model state by making a full snapshot of the model at the start.
 This means **every field value is copied on every model load**, regardless of whether you'll modify the instance.
 
-This fork uses **lazy descriptor-based tracking**:
-
-- Only stores original values of fields that **actually change**
-- No signal handlers means faster model instantiation
-- Best for workloads where most loaded instances aren't modified
+This fork uses **lazy descriptor-based tracking**, which for typical use-cases where one reads/writes fields at most once each has less overhead.
 
 ### Benchmark Results
 
@@ -30,37 +26,13 @@ Overhead vs plain Django models (10,000 instances, 20 fields each):
 | Scenario                           | filthyfields | dirtyfields |
 |------------------------------------|--------------|-------------|
 | `.only(1 field)` + read 1 field    | +7 ms        | +128 ms     |
-| Load 20 fields + read 20 fields    | +53 ms       | +225 ms     |
+| Fetch 20 fields + read 20 fields   | +53 ms       | +225 ms     |
 | `.only(1 field)` + write 1 field   | +10 ms       | +126 ms     |
-| Load 20 fields + write 20 fields   | +121 ms      | +227 ms     |
-
-**Key insight**: filthyfields is significantly faster across all scenarios because it
-avoids the `post_init` signal overhead that django-dirtyfields incurs on every model load.
-
-Run the benchmark yourself:
-
-```bash
-# Test filthyfields (this package)
-uv run python tests/benchmark.py
-
-# Test dirtyfields (upstream) for comparison
-uv venv --python 3.12 /tmp/bench-upstream
-source /tmp/bench-upstream/bin/activate
-pip install django django-dirtyfields
-python tests/benchmark.py
-```
-
-## Key Differences from django-dirtyfields
-
-- **Descriptor-based tracking**: Only stores original values of fields that actually change,
-  rather than capturing full model state on every load.
-- **Simpler implementation**: No signal handlers (post_init, post_save).
-- **F() expression support**: Properly tracks fields assigned with F() expressions.
-- **Modern Python only**: Requires Python 3.13+ and Django 5.0+.
+| Fetch 20 fields + write 20 fields  | +121 ms      | +227 ms     |
 
 ## Versioning
 
-This package follows the same version numbering as upstream django-dirtyfields to indicate API compatibility. For example, version 1.9.8 of django-filthyfields is API-compatible with django-dirtyfields 1.9.8. Pre-release suffixes (e.g., `b1`, `b2`) are used during development.
+This package follows the same version numbering as upstream django-dirtyfields to indicate API compatibility. For example, version 1.9.8 of django-filthyfields is API-compatible with django-dirtyfields 1.9.8. Pre-release suffixes (e.g., `b1`) are used during development, post-release suffixes (e.g. `post1`) for bug fork-only bugfixes.
 
 ## Compatibility
 
