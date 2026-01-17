@@ -536,10 +536,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#is_dirtycheck_relationshipfalse" class="md-nav__link">
+  <a href="#is_dirtycheck_relationshipfalse-check_m2mnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        is_dirty(check_relationship=False)
+        is_dirty(check_relationship=False, check_m2m=None)
       
     </span>
   </a>
@@ -547,10 +547,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#get_dirty_fieldscheck_relationshipfalse-verbosefalse" class="md-nav__link">
+  <a href="#get_dirty_fieldscheck_relationshipfalse-check_m2mnone-verbosefalse" class="md-nav__link">
     <span class="md-ellipsis">
       
-        get_dirty_fields(check_relationship=False, verbose=False)
+        get_dirty_fields(check_relationship=False, check_m2m=None, verbose=False)
       
     </span>
   </a>
@@ -828,10 +828,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#is_dirtycheck_relationshipfalse" class="md-nav__link">
+  <a href="#is_dirtycheck_relationshipfalse-check_m2mnone" class="md-nav__link">
     <span class="md-ellipsis">
       
-        is_dirty(check_relationship=False)
+        is_dirty(check_relationship=False, check_m2m=None)
       
     </span>
   </a>
@@ -839,10 +839,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#get_dirty_fieldscheck_relationshipfalse-verbosefalse" class="md-nav__link">
+  <a href="#get_dirty_fieldscheck_relationshipfalse-check_m2mnone-verbosefalse" class="md-nav__link">
     <span class="md-ellipsis">
       
-        get_dirty_fields(check_relationship=False, verbose=False)
+        get_dirty_fields(check_relationship=False, check_m2m=None, verbose=False)
       
     </span>
   </a>
@@ -942,7 +942,7 @@
 
 <h1 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h1>
 <h2 id="core-methods">Core Methods<a class="headerlink" href="#core-methods" title="Permanent link">&para;</a></h2>
-<h3 id="is_dirtycheck_relationshipfalse"><code>is_dirty(check_relationship=False)</code><a class="headerlink" href="#is_dirtycheck_relationshipfalse" title="Permanent link">&para;</a></h3>
+<h3 id="is_dirtycheck_relationshipfalse-check_m2mnone"><code>is_dirty(check_relationship=False, check_m2m=None)</code><a class="headerlink" href="#is_dirtycheck_relationshipfalse-check_m2mnone" title="Permanent link">&para;</a></h3>
 <p>Returns <code>True</code> if any tracked fields have been modified since the model was loaded or last saved.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">MyModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
@@ -954,8 +954,9 @@
 <p><strong>Parameters:</strong></p>
 <ul>
 <li><code>check_relationship</code> (bool): If <code>True</code>, also checks foreign key relationships. Default: <code>False</code>.</li>
+<li><code>check_m2m</code> (dict | None): Dict of M2M field names to expected PK sets. Requires <code>ENABLE_M2M_CHECK=True</code>. Default: <code>None</code>.</li>
 </ul>
-<h3 id="get_dirty_fieldscheck_relationshipfalse-verbosefalse"><code>get_dirty_fields(check_relationship=False, verbose=False)</code><a class="headerlink" href="#get_dirty_fieldscheck_relationshipfalse-verbosefalse" title="Permanent link">&para;</a></h3>
+<h3 id="get_dirty_fieldscheck_relationshipfalse-check_m2mnone-verbosefalse"><code>get_dirty_fields(check_relationship=False, check_m2m=None, verbose=False)</code><a class="headerlink" href="#get_dirty_fieldscheck_relationshipfalse-check_m2mnone-verbosefalse" title="Permanent link">&para;</a></h3>
 <p>Returns a dictionary of dirty fields with their original values.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;new name&quot;</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">()</span>
@@ -964,6 +965,7 @@
 <p><strong>Parameters:</strong></p>
 <ul>
 <li><code>check_relationship</code> (bool): If <code>True</code>, includes foreign key changes. Default: <code>False</code>.</li>
+<li><code>check_m2m</code> (dict | None): Dict of M2M field names to expected PK sets. Requires <code>ENABLE_M2M_CHECK=True</code>. Default: <code>None</code>.</li>
 <li><code>verbose</code> (bool): If <code>True</code>, returns both old and new values. Default: <code>False</code>.</li>
 </ul>
 <h3 id="save_dirty_fields"><code>save_dirty_fields()</code><a class="headerlink" href="#save_dirty_fields" title="Permanent link">&para;</a></h3>
