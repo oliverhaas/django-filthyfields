@@ -324,6 +324,34 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#why-this-fork" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why This Fork?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Why This Fork?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#benchmark-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benchmark Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#key-differences-from-django-dirtyfields" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -764,6 +792,34 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#why-this-fork" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why This Fork?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Why This Fork?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#benchmark-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benchmark Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#key-differences-from-django-dirtyfields" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -843,13 +899,56 @@
 <a href="https://github.com/oliverhaas/django-dirtyfields/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/oliverhaas/django-dirtyfields/actions/workflows/ci.yml/badge.svg" /></a></p>
 <p><strong>Tracking dirty fields on a Django model instance.</strong></p>
 <p>Dirty means that field in-memory and database values are different.</p>
+<div class="admonition info">
+<p class="admonition-title">Fork of django-dirtyfields</p>
 <p>This is a fork of <a href="https://github.com/romgar/django-dirtyfields">django-dirtyfields</a> with a
-completely rewritten "lazy" implementation. The goal is to eventually merge these improvements
-upstream if and once the implementation matures.</p>
+completely rewritten "lazy" descriptor-based implementation. The goal is to eventually merge
+these improvements upstream if and once the implementation matures.</p>
+</div>
+<h2 id="why-this-fork">Why This Fork?<a class="headerlink" href="#why-this-fork" title="Permanent link">&para;</a></h2>
+<p>The original django-dirtyfields uses Django signals (<code>post_init</code>, <code>post_save</code>) to capture model state.
+This means <strong>every field value is copied on every model load</strong>, regardless of whether you'll modify the instance.</p>
+<p>This fork uses <strong>lazy descriptor-based tracking</strong>:</p>
+<ul>
+<li>Only stores original values of fields that <strong>actually change</strong></li>
+<li>No signal handlers means faster model instantiation</li>
+<li>Best for workloads where most loaded instances aren't modified</li>
+</ul>
+<h3 id="benchmark-results">Benchmark Results<a class="headerlink" href="#benchmark-results" title="Permanent link">&para;</a></h3>
+<p>Overhead vs plain Django models (1000 instances, 10 fields each):</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Overhead</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Load from DB</td>
+<td>~50%</td>
+</tr>
+<tr>
+<td>Write 1 field</td>
+<td>~70%</td>
+</tr>
+<tr>
+<td>Write 10 fields</td>
+<td>~150%</td>
+</tr>
+<tr>
+<td>Read 10 fields</td>
+<td>~65%</td>
+</tr>
+</tbody>
+</table>
+<p>The overhead comes from custom descriptors. However, compared to signal-based django-dirtyfields,
+this approach avoids the cost of eagerly copying all field values on every model load.</p>
+<p>Run the benchmark yourself: <code>uv run python tests/benchmark.py</code></p>
 <h2 id="key-differences-from-django-dirtyfields">Key Differences from django-dirtyfields<a class="headerlink" href="#key-differences-from-django-dirtyfields" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Descriptor-based tracking</strong>: Only stores original values of fields that actually change,
-  rather than capturing full model state on every load. Significantly faster.</li>
+  rather than capturing full model state on every load.</li>
 <li><strong>Simpler implementation</strong>: No signal handlers (post_init, post_save).</li>
 <li><strong>F() expression support</strong>: Properly tracks fields assigned with F() expressions.</li>
 <li><strong>Modern Python only</strong>: Requires Python 3.13+ and Django 5.0+.</li>
