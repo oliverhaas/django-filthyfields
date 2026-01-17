@@ -111,6 +111,11 @@ unfixable = []
   "SIM117",  # Nested with for query assertions is clearer
   "TRY301",  # Raise in tests is fine
 ]
+"tests/benchmark*.py" = [
+  "E402", # Import order - Django setup required before imports
+  "T201", # print() is the output mechanism for benchmarks
+  "S105", # Hardcoded secret key is fine for benchmarks
+]
 
 [tool.pytest.ini_options]
 django_find_project = false
