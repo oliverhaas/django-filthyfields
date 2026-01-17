@@ -12,6 +12,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
+from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import models
 from django.db.models.base import ModelBase
@@ -58,10 +59,18 @@ def _normalize_value(value: Any) -> Any:
     return deepcopy(value)
 
 
-def _should_track_field(instance: models.Model, field_name: str) -> bool:
-    """Check if a field should be tracked based on FIELDS_TO_CHECK."""
+def _should_track_field(instance: models.Model, field_name: str, field_attname: str | None = None) -> bool:
+    """Check if a field should be tracked based on FIELDS_TO_CHECK.
+
+    For backward compatibility, accepts both field.name (e.g., 'fkey') and
+    field.attname (e.g., 'fkey_id') in FIELDS_TO_CHECK.
+    """
     fields_to_check = getattr(instance, "FIELDS_TO_CHECK", None)
-    return fields_to_check is None or field_name in fields_to_check
+    if fields_to_check is None:
+        return True
+    if field_name in fields_to_check:
+        return True
+    return field_attname is not None and field_attname in fields_to_check
 
 
 def _track_file_change(instance: models.Model, field_name: str, old_name: str, new_name: str) -> None:
@@ -100,6 +109,13 @@ class _DiffDescriptor(DeferredAttribute):
         self._is_relation = field.remote_field is not None
         self._field = field
 
+    def _values_equal(self, val1: Any, val2: Any) -> bool:
+        """Compare values using to_python for consistent type conversion."""
+        try:
+            return self._field.to_python(val1) == self._field.to_python(val2)
+        except (ValidationError, TypeError, ValueError):
+            return val1 == val2
+
     def __get__(self, instance: models.Model | None, cls: type | None = None) -> Any:
         if instance is None:
             return self
@@ -120,14 +136,16 @@ class _DiffDescriptor(DeferredAttribute):
 
         state = getattr(instance, "_state", None)
         should_track = (
-            state is not None and not state.adding and attname in d and _should_track_field(instance, field_name)
+            state is not None
+            and not state.adding
+            and attname in d
+            and _should_track_field(instance, field_name, attname)
         )
         old = d[attname] if should_track else None
 
         d[attname] = value
 
-        # Use simple equality here; compare_function is applied in get_dirty_fields()
-        if not should_track or value == old:
+        if not should_track or self._values_equal(value, old):
             return
 
         if self._is_relation and self._field.is_cached(instance):
@@ -142,7 +160,7 @@ class _DiffDescriptor(DeferredAttribute):
             return
 
         # Check if reverting to original value
-        if _normalize_value(value) != diff[field_name]:
+        if not self._values_equal(value, diff[field_name]):
             return
 
         del diff[field_name]
@@ -196,7 +214,10 @@ class _FileDiffDescriptor(FileDescriptor):
 
         state = getattr(instance, "_state", None)
         should_track = (
-            state is not None and not state.adding and attname in d and _should_track_field(instance, field_name)
+            state is not None
+            and not state.adding
+            and attname in d
+            and _should_track_field(instance, field_name, attname)
         )
 
         if should_track:
@@ -256,9 +277,6 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
     # Used to transform values before returning them in get_dirty_fields()
     normalise_function: NormaliseFunction | None = None
 
-    _was_dirty_fields: dict[str, Any] = {}
-    _was_dirty_fields_rel: dict[str, Any] = {}
-
     def _dirty_capture_was_dirty(self) -> None:
         """Capture current dirty state into _was_dirty_fields for post-save inspection."""
         self._was_dirty_fields = self.get_dirty_fields(check_relationship=False)
@@ -306,7 +324,11 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         fields_to_check = getattr(self, "FIELDS_TO_CHECK", None)
 
         for field in _get_m2m_fields(self.__class__):
-            if fields_to_check is not None and field.attname not in fields_to_check:
+            if (
+                fields_to_check is not None
+                and field.name not in fields_to_check
+                and field.attname not in fields_to_check
+            ):
                 continue
             result[field.attname] = {obj.pk for obj in getattr(self, field.attname).all()}
 
@@ -426,7 +448,11 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
                 continue
             if field.attname in deferred:
                 continue
-            if fields_to_check is not None and field.name not in fields_to_check:
+            if (
+                fields_to_check is not None
+                and field.name not in fields_to_check
+                and field.attname not in fields_to_check
+            ):
                 continue
 
             value = self.__dict__.get(field.attname)
@@ -443,7 +469,9 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
 
     def get_was_dirty_fields(self, check_relationship: bool = False) -> dict[str, Any]:
         """Get fields that were dirty before the last save."""
-        return self._was_dirty_fields_rel if check_relationship else self._was_dirty_fields
+        if check_relationship:
+            return getattr(self, "_was_dirty_fields_rel", {})
+        return getattr(self, "_was_dirty_fields", {})
 
     def save_dirty_fields(self) -> None:
         """Save only the dirty fields (optimization for partial updates)."""
