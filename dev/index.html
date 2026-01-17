@@ -363,10 +363,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#removed-features" class="md-nav__link">
+  <a href="#versioning" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Removed Features
+        Versioning
       
     </span>
   </a>
@@ -831,10 +831,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#removed-features" class="md-nav__link">
+  <a href="#versioning" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Removed Features
+        Versioning
       
     </span>
   </a>
@@ -902,7 +902,7 @@
 <div class="admonition info">
 <p class="admonition-title">Fork of django-dirtyfields</p>
 <p>This is a fork of <a href="https://github.com/romgar/django-dirtyfields">django-dirtyfields</a> with a
-completely rewritten "lazy" descriptor-based implementation. The goal is to eventually merge
+rewritten "lazy" descriptor-based internal implementation. The goal is to eventually merge
 these improvements upstream if and once the implementation matures.</p>
 </div>
 <h2 id="why-this-fork">Why This Fork?<a class="headerlink" href="#why-this-fork" title="Permanent link">&para;</a></h2>
@@ -967,12 +967,8 @@ avoids the <code>post_init</code> signal overhead that django-dirtyfields incurs
 <li><strong>F() expression support</strong>: Properly tracks fields assigned with F() expressions.</li>
 <li><strong>Modern Python only</strong>: Requires Python 3.13+ and Django 5.0+.</li>
 </ul>
-<h2 id="removed-features">Removed Features<a class="headerlink" href="#removed-features" title="Permanent link">&para;</a></h2>
-<p>The following features from django-dirtyfields are not currently supported (may be re-added if needed):</p>
-<ul>
-<li>M2M field tracking (<code>ENABLE_M2M_CHECK</code>)</li>
-<li>Custom <code>compare_function</code></li>
-</ul>
+<h2 id="versioning">Versioning<a class="headerlink" href="#versioning" title="Permanent link">&para;</a></h2>
+<p>This package follows the same version numbering as upstream django-dirtyfields to indicate API compatibility. For example, version 1.9.8 of django-filthyfields is API-compatible with django-dirtyfields 1.9.8. Pre-release suffixes (e.g., <code>b1</code>, <code>b2</code>) are used during development.</p>
 <h2 id="compatibility">Compatibility<a class="headerlink" href="#compatibility" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
