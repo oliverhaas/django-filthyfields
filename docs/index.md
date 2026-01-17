@@ -25,17 +25,17 @@ This fork uses **lazy descriptor-based tracking**:
 
 ### Benchmark Results
 
-Overhead vs plain Django models (1000 instances, 10 fields each):
+Overhead vs plain Django models (10,000 instances, 20 fields each):
 
-| Operation        | filthyfields | dirtyfields |
-|-----------------|--------------|-------------|
-| Load from DB    | ~50%         | ~400%       |
-| Write 1 field   | ~70%         | ~10%        |
-| Write 10 fields | ~150%        | ~10%        |
-| Read 10 fields  | ~65%         | ~0%         |
+| Scenario                           | filthyfields | dirtyfields |
+|------------------------------------|--------------|-------------|
+| `.only(1 field)` + read 1 field    | +7 ms        | +128 ms     |
+| Load 20 fields + read 20 fields    | +53 ms       | +225 ms     |
+| `.only(1 field)` + write 1 field   | +10 ms       | +126 ms     |
+| Load 20 fields + write 20 fields   | +121 ms      | +227 ms     |
 
-**Key insight**: filthyfields has lower load overhead but higher write overhead.
-This makes it ideal when you load many instances but only modify a few.
+**Key insight**: filthyfields is significantly faster across all scenarios because it
+avoids the `post_init` signal overhead that django-dirtyfields incurs on every model load.
 
 Run the benchmark yourself:
 
