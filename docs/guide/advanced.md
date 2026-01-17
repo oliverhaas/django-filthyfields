@@ -150,3 +150,82 @@ True
 >>> obj.get_dirty_fields()
 {'name': 'old name', 'other_field': 'original value'}
 ```
+
+## Many-to-Many Field Tracking
+
+M2M fields are not tracked by default because checking them requires additional database queries. To enable M2M tracking, set `ENABLE_M2M_CHECK = True`:
+
+```python
+class Article(DirtyFieldsMixin, models.Model):
+    ENABLE_M2M_CHECK = True
+
+    title = models.CharField(max_length=100)
+    tags = models.ManyToManyField(Tag)
+```
+
+Then use the `check_m2m` parameter to check if M2M relations have changed:
+
+```python
+>>> article = Article.objects.get(pk=1)
+>>> article.tags.all()
+<QuerySet [<Tag: python>, <Tag: django>]>
+
+# Pass expected PKs as a set
+>>> article.is_dirty(check_m2m={'tags': {1, 2}})
+False
+
+>>> article.tags.add(Tag.objects.get(pk=3))
+>>> article.is_dirty(check_m2m={'tags': {1, 2}})
+True
+
+>>> article.get_dirty_fields(check_m2m={'tags': {1, 2}})
+{'tags': {1, 2, 3}}  # Current DB state
+```
+
+!!! warning "Performance Impact"
+    M2M checking generates extra queries each time you check. Only enable it when you specifically need to track M2M changes, such as when processing forms with M2M fields.
+
+## Custom Comparison Functions
+
+The default comparison uses simple equality (`==`). For special cases like timezone-aware datetime comparisons, you can provide a custom comparison function:
+
+```python
+from dirtyfields import DirtyFieldsMixin, timezone_support_compare
+
+class MyModel(DirtyFieldsMixin, models.Model):
+    compare_function = (timezone_support_compare, {})
+
+    updated_at = models.DateTimeField()
+```
+
+The `compare_function` is a tuple of `(function, kwargs)`. The function receives `(new_value, old_value, **kwargs)` and returns `True` if values are equal.
+
+You can also write your own:
+
+```python
+def case_insensitive_compare(new_value, old_value):
+    if isinstance(new_value, str) and isinstance(old_value, str):
+        return new_value.lower() == old_value.lower()
+    return new_value == old_value
+
+class MyModel(DirtyFieldsMixin, models.Model):
+    compare_function = (case_insensitive_compare, {})
+```
+
+## Custom Normalisation Functions
+
+To transform values before they're returned by `get_dirty_fields()`, use a normalisation function:
+
+```python
+from datetime import datetime
+
+def normalise_for_json(value):
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return value
+
+class MyModel(DirtyFieldsMixin, models.Model):
+    normalise_function = (normalise_for_json, {})
+```
+
+This is useful when you need to serialize dirty field values, for example when logging changes to JSON.
