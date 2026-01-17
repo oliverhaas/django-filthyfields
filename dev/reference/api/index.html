@@ -726,10 +726,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#is_dirtycheck_relationshipfalse-check_m2mnone" class="md-nav__link">
+  <a href="#is_dirtycheck_relationshipfalse-check_m2mfalse" class="md-nav__link">
     <span class="md-ellipsis">
       
-        is_dirty(check_relationship=False, check_m2m=None)
+        is_dirty(check_relationship=False, check_m2m=False)
       
     </span>
   </a>
@@ -737,10 +737,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#get_dirty_fieldscheck_relationshipfalse-check_m2mnone-verbosefalse" class="md-nav__link">
+  <a href="#get_dirty_fieldscheck_relationshipfalse-check_m2mfalse-verbosefalse" class="md-nav__link">
     <span class="md-ellipsis">
       
-        get_dirty_fields(check_relationship=False, check_m2m=None, verbose=False)
+        get_dirty_fields(check_relationship=False, check_m2m=False, verbose=False)
       
     </span>
   </a>
@@ -748,10 +748,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#was_dirtycheck_relationshipfalse" class="md-nav__link">
+  <a href="#was_dirtycheck_relationshipfalse-check_m2mfalse" class="md-nav__link">
     <span class="md-ellipsis">
       
-        was_dirty(check_relationship=False)
+        was_dirty(check_relationship=False, check_m2m=False)
       
     </span>
   </a>
@@ -759,10 +759,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#get_was_dirty_fieldscheck_relationshipfalse" class="md-nav__link">
+  <a href="#get_was_dirty_fieldscheck_relationshipfalse-check_m2mfalse" class="md-nav__link">
     <span class="md-ellipsis">
       
-        get_was_dirty_fields(check_relationship=False)
+        get_was_dirty_fields(check_relationship=False, check_m2m=False)
       
     </span>
   </a>
@@ -1024,10 +1024,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#is_dirtycheck_relationshipfalse-check_m2mnone" class="md-nav__link">
+  <a href="#is_dirtycheck_relationshipfalse-check_m2mfalse" class="md-nav__link">
     <span class="md-ellipsis">
       
-        is_dirty(check_relationship=False, check_m2m=None)
+        is_dirty(check_relationship=False, check_m2m=False)
       
     </span>
   </a>
@@ -1035,10 +1035,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#get_dirty_fieldscheck_relationshipfalse-check_m2mnone-verbosefalse" class="md-nav__link">
+  <a href="#get_dirty_fieldscheck_relationshipfalse-check_m2mfalse-verbosefalse" class="md-nav__link">
     <span class="md-ellipsis">
       
-        get_dirty_fields(check_relationship=False, check_m2m=None, verbose=False)
+        get_dirty_fields(check_relationship=False, check_m2m=False, verbose=False)
       
     </span>
   </a>
@@ -1046,10 +1046,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#was_dirtycheck_relationshipfalse" class="md-nav__link">
+  <a href="#was_dirtycheck_relationshipfalse-check_m2mfalse" class="md-nav__link">
     <span class="md-ellipsis">
       
-        was_dirty(check_relationship=False)
+        was_dirty(check_relationship=False, check_m2m=False)
       
     </span>
   </a>
@@ -1057,10 +1057,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#get_was_dirty_fieldscheck_relationshipfalse" class="md-nav__link">
+  <a href="#get_was_dirty_fieldscheck_relationshipfalse-check_m2mfalse" class="md-nav__link">
     <span class="md-ellipsis">
       
-        get_was_dirty_fields(check_relationship=False)
+        get_was_dirty_fields(check_relationship=False, check_m2m=False)
       
     </span>
   </a>
@@ -1240,7 +1240,7 @@
 <p><strong>Default:</strong> <code>None</code> (returns values unchanged)</p>
 <hr />
 <h3 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">&para;</a></h3>
-<h4 id="is_dirtycheck_relationshipfalse-check_m2mnone"><code>is_dirty(check_relationship=False, check_m2m=None)</code><a class="headerlink" href="#is_dirtycheck_relationshipfalse-check_m2mnone" title="Permanent link">&para;</a></h4>
+<h4 id="is_dirtycheck_relationshipfalse-check_m2mfalse"><code>is_dirty(check_relationship=False, check_m2m=False)</code><a class="headerlink" href="#is_dirtycheck_relationshipfalse-check_m2mfalse" title="Permanent link">&para;</a></h4>
 <p>Check if the model instance has any unsaved changes.</p>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -1261,14 +1261,14 @@
 </tr>
 <tr>
 <td><code>check_m2m</code></td>
-<td><code>dict[str, set] \| None</code></td>
-<td><code>None</code></td>
-<td>Dict of M2M field names to expected PK sets (requires <code>ENABLE_M2M_CHECK=True</code>)</td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+<td>Include M2M fields in the check (requires <code>ENABLE_M2M_CHECK=True</code>)</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Returns:</strong> <code>bool</code> - <code>True</code> if any tracked fields have changed</p>
-<p><strong>Raises:</strong> <code>ValueError</code> if <code>check_m2m</code> is provided but <code>ENABLE_M2M_CHECK</code> is <code>False</code></p>
+<p><strong>Raises:</strong> <code>ValueError</code> if <code>check_m2m=True</code> but <code>ENABLE_M2M_CHECK</code> is <code>False</code></p>
 <p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">MyModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
@@ -1278,12 +1278,14 @@
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="kc">True</span>
 <a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
 <a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="c1"># M2M check (requires ENABLE_M2M_CHECK = True)</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">new_tag</span><span class="p">)</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">(</span><span class="n">check_m2m</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">}})</span>  <span class="c1"># Expected PKs</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="kc">True</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">(</span><span class="n">check_m2m</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Captures original state on first call</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="kc">False</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">new_tag</span><span class="p">)</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">(</span><span class="n">check_m2m</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="kc">True</span>
 </code></pre></div>
 <hr />
-<h4 id="get_dirty_fieldscheck_relationshipfalse-check_m2mnone-verbosefalse"><code>get_dirty_fields(check_relationship=False, check_m2m=None, verbose=False)</code><a class="headerlink" href="#get_dirty_fieldscheck_relationshipfalse-check_m2mnone-verbosefalse" title="Permanent link">&para;</a></h4>
+<h4 id="get_dirty_fieldscheck_relationshipfalse-check_m2mfalse-verbosefalse"><code>get_dirty_fields(check_relationship=False, check_m2m=False, verbose=False)</code><a class="headerlink" href="#get_dirty_fieldscheck_relationshipfalse-check_m2mfalse-verbosefalse" title="Permanent link">&para;</a></h4>
 <p>Get a dictionary of fields that have been modified.</p>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -1304,9 +1306,9 @@
 </tr>
 <tr>
 <td><code>check_m2m</code></td>
-<td><code>dict[str, set] \| None</code></td>
-<td><code>None</code></td>
-<td>Dict of M2M field names to expected PK sets (requires <code>ENABLE_M2M_CHECK=True</code>)</td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+<td>Include M2M fields (requires <code>ENABLE_M2M_CHECK=True</code>)</td>
 </tr>
 <tr>
 <td><code>verbose</code></td>
@@ -1317,7 +1319,7 @@
 </tbody>
 </table>
 <p><strong>Returns:</strong> <code>dict</code> - Dictionary mapping field names to original values (or to <code>{'saved': old, 'current': new}</code> if verbose)</p>
-<p><strong>Raises:</strong> <code>ValueError</code> if <code>check_m2m</code> is provided but <code>ENABLE_M2M_CHECK</code> is <code>False</code></p>
+<p><strong>Raises:</strong> <code>ValueError</code> if <code>check_m2m=True</code> but <code>ENABLE_M2M_CHECK</code> is <code>False</code></p>
 <p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;new&quot;</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">()</span>
@@ -1327,12 +1329,14 @@
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;saved&#39;</span><span class="p">:</span> <span class="s1">&#39;old&#39;</span><span class="p">,</span> <span class="s1">&#39;current&#39;</span><span class="p">:</span> <span class="s1">&#39;new&#39;</span><span class="p">}}</span>
 <a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
 <a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="c1"># M2M check (requires ENABLE_M2M_CHECK = True)</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">new_tag</span><span class="p">)</span>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">(</span><span class="n">check_m2m</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">}})</span>
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="p">{</span><span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">}}</span>  <span class="c1"># Returns current DB state if different from expected</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">(</span><span class="n">check_m2m</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Captures original state on first call</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="p">{}</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">new_tag</span><span class="p">)</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">(</span><span class="n">check_m2m</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="p">{</span><span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">}}</span>  <span class="c1"># Returns original state before changes</span>
 </code></pre></div>
 <hr />
-<h4 id="was_dirtycheck_relationshipfalse"><code>was_dirty(check_relationship=False)</code><a class="headerlink" href="#was_dirtycheck_relationshipfalse" title="Permanent link">&para;</a></h4>
+<h4 id="was_dirtycheck_relationshipfalse-check_m2mfalse"><code>was_dirty(check_relationship=False, check_m2m=False)</code><a class="headerlink" href="#was_dirtycheck_relationshipfalse-check_m2mfalse" title="Permanent link">&para;</a></h4>
 <p>Check if instance was dirty before the last save.</p>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -1351,17 +1355,30 @@
 <td><code>False</code></td>
 <td>Include foreign key fields</td>
 </tr>
+<tr>
+<td><code>check_m2m</code></td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+<td>Include M2M fields (requires <code>ENABLE_M2M_CHECK=True</code>)</td>
+</tr>
 </tbody>
 </table>
 <p><strong>Returns:</strong> <code>bool</code> - <code>True</code> if any tracked fields were dirty before the last save</p>
+<p><strong>Raises:</strong> <code>ValueError</code> if <code>check_m2m=True</code> but <code>ENABLE_M2M_CHECK</code> is <code>False</code></p>
 <p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;new&quot;</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">was_dirty</span><span class="p">()</span>
 <a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="kc">True</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1"># M2M check (requires ENABLE_M2M_CHECK = True)</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">new_tag</span><span class="p">)</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">was_dirty</span><span class="p">(</span><span class="n">check_m2m</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="kc">True</span>
 </code></pre></div>
 <hr />
-<h4 id="get_was_dirty_fieldscheck_relationshipfalse"><code>get_was_dirty_fields(check_relationship=False)</code><a class="headerlink" href="#get_was_dirty_fieldscheck_relationshipfalse" title="Permanent link">&para;</a></h4>
+<h4 id="get_was_dirty_fieldscheck_relationshipfalse-check_m2mfalse"><code>get_was_dirty_fields(check_relationship=False, check_m2m=False)</code><a class="headerlink" href="#get_was_dirty_fieldscheck_relationshipfalse-check_m2mfalse" title="Permanent link">&para;</a></h4>
 <p>Get fields that were dirty before the last save.</p>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -1380,14 +1397,27 @@
 <td><code>False</code></td>
 <td>Include foreign key fields</td>
 </tr>
+<tr>
+<td><code>check_m2m</code></td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+<td>Include M2M fields (requires <code>ENABLE_M2M_CHECK=True</code>)</td>
+</tr>
 </tbody>
 </table>
 <p><strong>Returns:</strong> <code>dict</code> - Dictionary mapping field names to original values from before the last save</p>
+<p><strong>Raises:</strong> <code>ValueError</code> if <code>check_m2m=True</code> but <code>ENABLE_M2M_CHECK</code> is <code>False</code></p>
 <p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;new&quot;</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 <a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_was_dirty_fields</span><span class="p">()</span>
 <a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;old&#39;</span><span class="p">}</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="c1"># M2M check (requires ENABLE_M2M_CHECK = True)</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">new_tag</span><span class="p">)</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_was_dirty_fields</span><span class="p">(</span><span class="n">check_m2m</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="p">{</span><span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">}}</span>  <span class="c1"># Original M2M state before changes</span>
 </code></pre></div>
 <hr />
 <h4 id="save_dirty_fields"><code>save_dirty_fields()</code><a class="headerlink" href="#save_dirty_fields" title="Permanent link">&para;</a></h4>
