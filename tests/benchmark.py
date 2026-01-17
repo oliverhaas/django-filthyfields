@@ -1,4 +1,4 @@
-"""Benchmark comparing django-filthyfields vs django-dirtyfields.
+"""Benchmark comparing plain Django, django-dirtyfields, and django-filthyfields.
 
 This benchmark measures performance overhead for:
 - Initialization: Loading model instances from the database
@@ -6,13 +6,14 @@ This benchmark measures performance overhead for:
 - Reads: Accessing field values on instances
 - Dirty checks: Calling is_dirty() and get_dirty_fields()
 
-Run with: uv run python tests/benchmark.py
+Run with django-filthyfields (this package):
+    uv run python tests/benchmark.py
 
-To compare with django-dirtyfields, create a separate virtualenv:
+Run with django-dirtyfields (upstream) for comparison:
     uv venv --python 3.12 /tmp/bench-upstream
     source /tmp/bench-upstream/bin/activate
     pip install django django-dirtyfields
-    # Then run the upstream benchmark section of this script
+    python tests/benchmark.py
 """
 
 import gc
@@ -40,6 +41,24 @@ from django.db import connection, models
 from dirtyfields import DirtyFieldsMixin
 
 
+def detect_package():
+    """Detect which dirty tracking package is installed."""
+    # django-filthyfields uses _DirtyMeta metaclass
+    # django-dirtyfields uses signals and _original_state
+    if type(DirtyFieldsMixin).__name__ == "_DirtyMeta":
+        return "filthyfields"
+    # Check if it's descriptor-based by looking at module
+    import importlib.util
+
+    if importlib.util.find_spec("dirtyfields.dirtyfields") is not None:
+        return "filthyfields"
+    return "dirtyfields"
+
+
+PACKAGE_NAME = detect_package()
+PACKAGE_LABEL = "Filthy" if PACKAGE_NAME == "filthyfields" else "Dirty"
+
+
 # Define test models
 class PlainModel(models.Model):
     """Plain Django model without dirty tracking (baseline)."""
@@ -59,8 +78,8 @@ class PlainModel(models.Model):
         app_label = "benchmark"
 
 
-class FilthyModel(DirtyFieldsMixin, models.Model):
-    """Model using django-filthyfields (descriptor-based)."""
+class DirtyModel(DirtyFieldsMixin, models.Model):
+    """Model using DirtyFieldsMixin (whichever package is installed)."""
 
     field1 = models.CharField(max_length=100, default="")
     field2 = models.CharField(max_length=100, default="")
@@ -141,11 +160,11 @@ def setup_database():
     """Create tables and populate with test data."""
     with connection.schema_editor() as schema_editor:
         schema_editor.create_model(PlainModel)
-        schema_editor.create_model(FilthyModel)
+        schema_editor.create_model(DirtyModel)
 
     # Create test instances
     n_instances = 1000
-    for model_cls in (PlainModel, FilthyModel):
+    for model_cls in (PlainModel, DirtyModel):
         model_cls.objects.bulk_create(
             [
                 model_cls(
@@ -210,22 +229,22 @@ def bench_read_plain():
         _ = inst.field10
 
 
-# Benchmark functions for filthy model
-def bench_init_filthy():
-    """Benchmark loading instances from DB (filthyfields)."""
-    list(FilthyModel.objects.all())
+# Benchmark functions for dirty model (whichever package is installed)
+def bench_init_dirty():
+    """Benchmark loading instances from DB (dirty tracking)."""
+    list(DirtyModel.objects.all())
 
 
-def bench_write_few_filthy():
-    """Benchmark writing 1 field per instance (filthyfields)."""
-    instances = list(FilthyModel.objects.all())
+def bench_write_few_dirty():
+    """Benchmark writing 1 field per instance (dirty tracking)."""
+    instances = list(DirtyModel.objects.all())
     for inst in instances:
         inst.field1 = "new_value"
 
 
-def bench_write_many_filthy():
-    """Benchmark writing all 10 fields per instance (filthyfields)."""
-    instances = list(FilthyModel.objects.all())
+def bench_write_many_dirty():
+    """Benchmark writing all 10 fields per instance (dirty tracking)."""
+    instances = list(DirtyModel.objects.all())
     for inst in instances:
         inst.field1 = "new"
         inst.field2 = "new"
@@ -239,9 +258,9 @@ def bench_write_many_filthy():
         inst.field10 = True
 
 
-def bench_read_filthy():
-    """Benchmark reading all fields per instance (filthyfields)."""
-    instances = list(FilthyModel.objects.all())
+def bench_read_dirty():
+    """Benchmark reading all fields per instance (dirty tracking)."""
+    instances = list(DirtyModel.objects.all())
     for inst in instances:
         _ = inst.field1
         _ = inst.field2
@@ -257,14 +276,14 @@ def bench_read_filthy():
 
 def bench_dirty_check_clean():
     """Benchmark is_dirty() on clean instances."""
-    instances = list(FilthyModel.objects.all())
+    instances = list(DirtyModel.objects.all())
     for inst in instances:
         inst.is_dirty()
 
 
 def bench_dirty_check_dirty():
     """Benchmark is_dirty() on dirty instances."""
-    instances = list(FilthyModel.objects.all())
+    instances = list(DirtyModel.objects.all())
     for inst in instances:
         inst.field1 = "changed"
     for inst in instances:
@@ -273,7 +292,7 @@ def bench_dirty_check_dirty():
 
 def bench_get_dirty_fields():
     """Benchmark get_dirty_fields() on dirty instances."""
-    instances = list(FilthyModel.objects.all())
+    instances = list(DirtyModel.objects.all())
     for inst in instances:
         inst.field1 = "changed"
         inst.field2 = "changed"
@@ -281,14 +300,14 @@ def bench_get_dirty_fields():
         inst.get_dirty_fields()
 
 
-def format_result(name, filthy_stats, plain_stats):
+def format_result(name, dirty_stats, plain_stats):
     """Format benchmark results for display."""
-    filthy_ms = filthy_stats["mean"] * 1000
+    dirty_ms = dirty_stats["mean"] * 1000
     plain_ms = plain_stats["mean"] * 1000
-    overhead_ms = filthy_ms - plain_ms
-    overhead_pct = ((filthy_ms / plain_ms) - 1) * 100 if plain_ms > 0 else 0
+    overhead_ms = dirty_ms - plain_ms
+    overhead_pct = ((dirty_ms / plain_ms) - 1) * 100 if plain_ms > 0 else 0
 
-    return f"{name:30} | {plain_ms:8.2f} ms | {filthy_ms:8.2f} ms | {overhead_ms:+7.2f} ms ({overhead_pct:+5.1f}%)"
+    return f"{name:30} | {plain_ms:8.2f} ms | {dirty_ms:8.2f} ms | {overhead_ms:+7.2f} ms ({overhead_pct:+5.1f}%)"
 
 
 def format_result_single(name, stats):
@@ -299,40 +318,45 @@ def format_result_single(name, stats):
 
 def main():
     print("=" * 80)
-    print("django-filthyfields Benchmark")
+    print(f"Dirty Field Tracking Benchmark - {PACKAGE_NAME}")
     print("=" * 80)
     print()
-    print("Comparing dirty field tracking overhead vs plain Django models.")
+    if PACKAGE_NAME == "filthyfields":
+        print("Testing: django-filthyfields (descriptor-based, lazy tracking)")
+    else:
+        print("Testing: django-dirtyfields (signal-based, eager state capture)")
+    print()
+    print("Comparing dirty tracking overhead vs plain Django models.")
     print("Each benchmark runs 10 iterations on 1000 model instances with 10 fields.")
     print()
 
     print("Setting up database...")
     setup_database()
-    print(f"Created {FilthyModel.objects.count()} test instances per model")
+    print(f"Created {DirtyModel.objects.count()} test instances per model")
     print()
 
     print("Running benchmarks...")
     print()
-    print(f"{'Operation':30} | {'Plain':>11} | {'Filthy':>11} | Overhead")
+    print(f"{'Operation':30} | {'Plain':>11} | {PACKAGE_LABEL:>11} | Overhead")
     print("-" * 80)
 
     # Initialization benchmark
-    plain, filthy = run_paired_benchmark(bench_init_plain, bench_init_filthy)
-    print(format_result("Load from DB", filthy, plain))
+    plain, dirty = run_paired_benchmark(bench_init_plain, bench_init_dirty)
+    print(format_result("Load from DB", dirty, plain))
 
     # Write benchmarks
-    plain, filthy = run_paired_benchmark(bench_write_few_plain, bench_write_few_filthy)
-    print(format_result("Write 1 field", filthy, plain))
+    plain, dirty = run_paired_benchmark(bench_write_few_plain, bench_write_few_dirty)
+    print(format_result("Write 1 field", dirty, plain))
 
-    plain, filthy = run_paired_benchmark(bench_write_many_plain, bench_write_many_filthy)
-    print(format_result("Write 10 fields", filthy, plain))
+    plain, dirty = run_paired_benchmark(bench_write_many_plain, bench_write_many_dirty)
+    print(format_result("Write 10 fields", dirty, plain))
 
     # Read benchmark
-    plain, filthy = run_paired_benchmark(bench_read_plain, bench_read_filthy)
-    print(format_result("Read 10 fields", filthy, plain))
+    plain, dirty = run_paired_benchmark(bench_read_plain, bench_read_dirty)
+    print(format_result("Read 10 fields", dirty, plain))
 
     print()
-    print("Dirty tracking operations (no plain equivalent):")
+    print("Dirty tracking operations:")
     print("-" * 80)
 
     stats = run_benchmark(bench_dirty_check_clean)
@@ -346,19 +370,28 @@ def main():
 
     print()
     print("=" * 80)
-    print("Summary")
+    print("Notes")
     print("=" * 80)
     print()
-    print("django-filthyfields uses lazy descriptor-based tracking.")
-    print("Overhead vs plain Django models comes from custom descriptors.")
-    print()
-    print("vs django-dirtyfields (signal-based, not shown):")
-    print("  - No post_init signal (faster instantiation)")
-    print("  - No eager state capture (only tracks fields that change)")
-    print("  - No post_save signal (state reset is inline)")
-    print()
-    print("Best for: always-on tracking without manual enable/disable,")
-    print("and workloads where most loaded instances aren't modified.")
+    if PACKAGE_NAME == "filthyfields":
+        print("django-filthyfields (this package) uses descriptor-based tracking:")
+        print("  - Overhead comes from custom descriptors on field access")
+        print("  - No post_init signal (no eager state capture on load)")
+        print("  - Only tracks fields that actually change")
+        print()
+        print("To compare with django-dirtyfields (signal-based), run:")
+        print("  uv venv --python 3.12 /tmp/bench-upstream")
+        print("  source /tmp/bench-upstream/bin/activate")
+        print("  pip install django django-dirtyfields")
+        print("  python tests/benchmark.py")
+    else:
+        print("django-dirtyfields (upstream) uses signal-based tracking:")
+        print("  - post_init signal captures all field values on every load")
+        print("  - post_save signal resets state after save")
+        print("  - Overhead is primarily on model instantiation")
+        print()
+        print("To compare with django-filthyfields (descriptor-based), run:")
+        print("  uv run python tests/benchmark.py")
     print()
 
 

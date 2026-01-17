@@ -112,9 +112,10 @@ unfixable = []
   "TRY301",  # Raise in tests is fine
 ]
 "tests/benchmark*.py" = [
-  "E402", # Import order - Django setup required before imports
-  "T201", # print() is the output mechanism for benchmarks
-  "S105", # Hardcoded secret key is fine for benchmarks
+  "E402",    # Import order - Django setup required before imports
+  "PLR0915", # main() has many statements - that's fine for a benchmark script
+  "S105",    # Hardcoded secret key is fine for benchmarks
+  "T201",    # print() is the output mechanism for benchmarks
 ]
 
 [tool.pytest.ini_options]

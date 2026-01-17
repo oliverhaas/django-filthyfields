@@ -14,7 +14,7 @@ Dirty means that field in-memory and database values are different.
 
 ## Why This Fork?
 
-The original django-dirtyfields uses Django signals (`post_init`, `post_save`) to capture model state.
+The original django-dirtyfields uses Django signals (`post_init`, `post_save`) to capture model state by making a full snapshot of the model at the start.
 This means **every field value is copied on every model load**, regardless of whether you'll modify the instance.
 
 This fork uses **lazy descriptor-based tracking**:
@@ -27,17 +27,28 @@ This fork uses **lazy descriptor-based tracking**:
 
 Overhead vs plain Django models (1000 instances, 10 fields each):
 
-| Operation        | Overhead |
-|-----------------|----------|
-| Load from DB    | ~50%     |
-| Write 1 field   | ~70%     |
-| Write 10 fields | ~150%    |
-| Read 10 fields  | ~65%     |
+| Operation        | filthyfields | dirtyfields |
+|-----------------|--------------|-------------|
+| Load from DB    | ~50%         | ~400%       |
+| Write 1 field   | ~70%         | ~10%        |
+| Write 10 fields | ~150%        | ~10%        |
+| Read 10 fields  | ~65%         | ~0%         |
 
-The overhead comes from custom descriptors. However, compared to signal-based django-dirtyfields,
-this approach avoids the cost of eagerly copying all field values on every model load.
+**Key insight**: filthyfields has lower load overhead but higher write overhead.
+This makes it ideal when you load many instances but only modify a few.
 
-Run the benchmark yourself: `uv run python tests/benchmark.py`
+Run the benchmark yourself:
+
+```bash
+# Test filthyfields (this package)
+uv run python tests/benchmark.py
+
+# Test dirtyfields (upstream) for comparison
+uv venv --python 3.12 /tmp/bench-upstream
+source /tmp/bench-upstream/bin/activate
+pip install django django-dirtyfields
+python tests/benchmark.py
+```
 
 ## Key Differences from django-dirtyfields
 
