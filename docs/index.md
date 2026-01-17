@@ -9,7 +9,7 @@ Dirty means that field in-memory and database values are different.
 
 !!! info "Fork of django-dirtyfields"
     This is a fork of [django-dirtyfields](https://github.com/romgar/django-dirtyfields) with a
-    rewritten "lazy" descriptor-based internal implementation. The goal is to eventually merge
+    rewritten "lazy" descriptor-based internal implementation and some additional small features. The goal is to eventually merge
     these improvements upstream if and once the implementation matures.
 
 ## Why This Fork?
