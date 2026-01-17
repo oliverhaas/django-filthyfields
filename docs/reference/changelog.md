@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.8b2] - 2026-01-17
+
 ### Added
 
-- Django 4.2 LTS and 6.0 support
+- Django 4.2 LTS, 5.2, and 6.0 support
 - Python 3.11 and 3.12 support
 - Python 3.14t (free-threaded) support
 
