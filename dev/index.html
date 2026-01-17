@@ -921,7 +921,7 @@ This means <strong>every field value is copied on every model load</strong>, reg
 </tbody>
 </table>
 <h2 id="versioning">Versioning<a class="headerlink" href="#versioning" title="Permanent link">&para;</a></h2>
-<p>This package follows the same version numbering as upstream django-dirtyfields to indicate API compatibility. For example, version 1.9.8 of django-filthyfields is API-compatible with django-dirtyfields 1.9.8. Pre-release suffixes (e.g., <code>b1</code>) are used during development, post-release suffixes (e.g. <code>post1</code>) for bug fork-only bugfixes.</p>
+<p>This package follows the same version numbering as upstream django-dirtyfields to indicate API compatibility. For example, version 1.9.8 of django-filthyfields is API-compatible with django-dirtyfields 1.9.8. Note that compatibility is one-way: code using django-dirtyfields can switch to django-filthyfields, but not vice versa, since filthyfields has additional features (e.g., <code>was_dirty()</code>). Pre-release suffixes (e.g., <code>b1</code>) are used during development, post-release suffixes (e.g. <code>post1</code>) for fork-only bugfixes.</p>
 <h2 id="compatibility">Compatibility<a class="headerlink" href="#compatibility" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -932,8 +932,16 @@ This means <strong>every field value is copied on every model load</strong>, reg
 </thead>
 <tbody>
 <tr>
-<td>5.0, 5.1, 5.2</td>
-<td>3.13, 3.14</td>
+<td>4.2</td>
+<td>3.11, 3.12</td>
+</tr>
+<tr>
+<td>5.2</td>
+<td>3.11, 3.12, 3.13, 3.14, 3.14t</td>
+</tr>
+<tr>
+<td>6.0</td>
+<td>3.12, 3.13, 3.14, 3.14t</td>
 </tr>
 </tbody>
 </table>
