@@ -9,7 +9,7 @@ from __future__ import annotations
 from copy import deepcopy
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from uuid import UUID
 
 from django.core.exceptions import ValidationError
@@ -116,7 +116,7 @@ class _DiffDescriptor(DeferredAttribute):
         except (ValidationError, TypeError, ValueError):
             return val1 == val2
 
-    def __get__(self, instance: models.Model | None, cls: type | None = None) -> Any:
+    def __get__(self, instance: models.Model | None, cls: type[models.Model] | None = None) -> Any:
         if instance is None:
             return self
         val = instance.__dict__.get(self._attname)
@@ -148,8 +148,8 @@ class _DiffDescriptor(DeferredAttribute):
         if not should_track or self._values_equal(value, old):
             return
 
-        if self._is_relation and self._field.is_cached(instance):
-            self._field.delete_cached_value(instance)
+        if self._is_relation and self._field.is_cached(instance):  # ty: ignore[possibly-missing-attribute]
+            self._field.delete_cached_value(instance)  # ty: ignore[possibly-missing-attribute]
 
         diff = d.setdefault("_state_diff", {})
 
@@ -171,7 +171,7 @@ class _DiffDescriptor(DeferredAttribute):
 class _FileDiffDescriptor(FileDescriptor):
     """Descriptor for file fields that tracks changes and returns tracking-aware FieldFile."""
 
-    def __get__(self, instance: models.Model | None, cls: type | None = None) -> Any:
+    def __get__(self, instance: models.Model | None, cls: type[models.Model] | None = None) -> Any:
         if instance is None:
             return self
 
@@ -179,28 +179,30 @@ class _FileDiffDescriptor(FileDescriptor):
 
         # Wrap the FieldFile's save and delete methods to track changes
         # Note: empty FieldFile is falsy, so we check 'is not None' instead of 'if file'
+        # We're monkey-patching the FieldFile at runtime to intercept save/delete
+        # ty doesn't understand that file is always FieldFile when instance is not None
         if file is not None and not getattr(file, "_dirty_wrapped", False):
-            original_save = file.save
-            original_delete = file.delete
+            original_save = file.save  # ty: ignore[possibly-missing-attribute]
+            original_delete = file.delete  # ty: ignore[possibly-missing-attribute]
             field_name = self.field.name
             inst = instance  # Capture for closure with narrowed type
 
-            def tracked_save(name: str, content: File, save: bool = True) -> None:
-                old_name = file.name or ""
+            def tracked_save(name: str, content: File[Any], save: bool = True) -> None:
+                old_name = file.name or ""  # ty: ignore[possibly-missing-attribute]
                 original_save(name, content, save=save)
-                new_name = file.name or ""
+                new_name = file.name or ""  # ty: ignore[possibly-missing-attribute]
                 if not inst._state.adding:
                     _track_file_change(inst, field_name, old_name, new_name)
 
             def tracked_delete(save: bool = True) -> None:
-                old_name = file.name or ""
+                old_name = file.name or ""  # ty: ignore[possibly-missing-attribute]
                 original_delete(save=save)
                 if not inst._state.adding:
                     _track_file_change(inst, field_name, old_name, "")
 
-            file.save = tracked_save
-            file.delete = tracked_delete
-            file._dirty_wrapped = True
+            file.save = tracked_save  # ty: ignore[invalid-assignment]
+            file.delete = tracked_delete  # ty: ignore[invalid-assignment]
+            file._dirty_wrapped = True  # ty: ignore[invalid-assignment]
 
         return file
 
@@ -255,7 +257,10 @@ class _DirtyMeta(ModelBase):
 
 def _get_m2m_fields(model_class: type[models.Model]) -> list[models.ManyToManyField[Any, Any]]:
     """Get M2M fields for a model class (excluding auto-created reverse relations)."""
-    return [f for f in model_class._meta.get_fields() if f.many_to_many and not f.auto_created]
+    return cast(
+        "list[models.ManyToManyField[Any, Any]]",
+        [f for f in model_class._meta.get_fields() if f.many_to_many and not f.auto_created],
+    )
 
 
 class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
@@ -306,11 +311,11 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         super().save(*args, **kwargs)
         self._dirty_reset_state()
 
-    def refresh_from_db(
+    def refresh_from_db(  # ty: ignore[invalid-method-override]
         self,
         using: str | None = None,
         fields: Iterable[str] | None = None,
-        from_queryset: models.QuerySet[Self, Self] | None = None,
+        from_queryset: models.QuerySet[Self] | None = None,
     ) -> None:
         super().refresh_from_db(using=using, fields=fields, from_queryset=from_queryset)
         self._dirty_reset_state(fields=fields)

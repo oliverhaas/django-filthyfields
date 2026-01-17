@@ -64,7 +64,7 @@ include = ["src/dirtyfields"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py311"
+target-version = "py314"
 extend-exclude = ["docs"]
 
 [tool.ruff.lint]
