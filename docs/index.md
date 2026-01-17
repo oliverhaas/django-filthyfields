@@ -32,13 +32,15 @@ Overhead vs plain Django models (10,000 instances, 20 fields each):
 
 ## Versioning
 
-This package follows the same version numbering as upstream django-dirtyfields to indicate API compatibility. For example, version 1.9.8 of django-filthyfields is API-compatible with django-dirtyfields 1.9.8. Pre-release suffixes (e.g., `b1`) are used during development, post-release suffixes (e.g. `post1`) for bug fork-only bugfixes.
+This package follows the same version numbering as upstream django-dirtyfields to indicate API compatibility. For example, version 1.9.8 of django-filthyfields is API-compatible with django-dirtyfields 1.9.8. Note that compatibility is one-way: code using django-dirtyfields can switch to django-filthyfields, but not vice versa, since filthyfields has additional features (e.g., `was_dirty()`). Pre-release suffixes (e.g., `b1`) are used during development, post-release suffixes (e.g. `post1`) for fork-only bugfixes.
 
 ## Compatibility
 
-| Django       | Python       |
-|--------------|--------------|
-| 5.0, 5.1, 5.2 | 3.13, 3.14   |
+| Django | Python                |
+|--------|-----------------------|
+| 4.2    | 3.11, 3.12            |
+| 5.2    | 3.11, 3.12, 3.13, 3.14, 3.14t |
+| 6.0    | 3.12, 3.13, 3.14, 3.14t |
 
 ## Quick Example
 

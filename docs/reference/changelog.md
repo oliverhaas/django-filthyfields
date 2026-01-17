@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Django 4.2 LTS and 6.0 support
+- Python 3.11 and 3.12 support
+- Python 3.14t (free-threaded) support
+
+### Changed
+
+- Minimum Python version is now 3.11 (from 3.13)
+- Minimum Django version is now 4.2 LTS (from 5.1)
+
 ## [1.9.8b1] - 2025-01-17
 
 ### Added

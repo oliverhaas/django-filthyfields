@@ -4,7 +4,7 @@ version = "1.9.8b1"
 description = "Tracking dirty fields on a Django model instance."
 readme = "README.md"
 license = "BSD-3-Clause"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 keywords = [
   "django",
   "filthyfields",
@@ -16,9 +16,9 @@ keywords = [
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Framework :: Django",
-  "Framework :: Django :: 5.0",
-  "Framework :: Django :: 5.1",
+  "Framework :: Django :: 4.2",
   "Framework :: Django :: 5.2",
+  "Framework :: Django :: 6.0",
   "Intended Audience :: Developers",
   "License :: OSI Approved :: BSD License",
   "Natural Language :: English",
@@ -26,11 +26,13 @@ classifiers = [
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dependencies = ["Django>=5.0"]
+dependencies = ["Django>=4.2"]
 
 [project.urls]
 Homepage = "https://github.com/oliverhaas/django-dirtyfields"
@@ -62,7 +64,7 @@ include = ["src/dirtyfields"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py313"
+target-version = "py311"
 extend-exclude = ["docs"]
 
 [tool.ruff.lint]
