@@ -915,40 +915,40 @@ This means <strong>every field value is copied on every model load</strong>, reg
 <li>Best for workloads where most loaded instances aren't modified</li>
 </ul>
 <h3 id="benchmark-results">Benchmark Results<a class="headerlink" href="#benchmark-results" title="Permanent link">&para;</a></h3>
-<p>Overhead vs plain Django models (1000 instances, 10 fields each):</p>
+<p>Overhead vs plain Django models (10,000 instances, 20 fields each):</p>
 <table>
 <thead>
 <tr>
-<th>Operation</th>
+<th>Scenario</th>
 <th>filthyfields</th>
 <th>dirtyfields</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Load from DB</td>
-<td>~50%</td>
-<td>~400%</td>
+<td><code>.only(1 field)</code> + read 1 field</td>
+<td>+7 ms</td>
+<td>+128 ms</td>
 </tr>
 <tr>
-<td>Write 1 field</td>
-<td>~70%</td>
-<td>~10%</td>
+<td>Load 20 fields + read 20 fields</td>
+<td>+53 ms</td>
+<td>+225 ms</td>
 </tr>
 <tr>
-<td>Write 10 fields</td>
-<td>~150%</td>
-<td>~10%</td>
+<td><code>.only(1 field)</code> + write 1 field</td>
+<td>+10 ms</td>
+<td>+126 ms</td>
 </tr>
 <tr>
-<td>Read 10 fields</td>
-<td>~65%</td>
-<td>~0%</td>
+<td>Load 20 fields + write 20 fields</td>
+<td>+121 ms</td>
+<td>+227 ms</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Key insight</strong>: filthyfields has lower load overhead but higher write overhead.
-This makes it ideal when you load many instances but only modify a few.</p>
+<p><strong>Key insight</strong>: filthyfields is significantly faster across all scenarios because it
+avoids the <code>post_init</code> signal overhead that django-dirtyfields incurs on every model load.</p>
 <p>Run the benchmark yourself:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Test filthyfields (this package)</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>tests/benchmark.py
