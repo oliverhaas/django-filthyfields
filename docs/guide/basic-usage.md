@@ -47,6 +47,45 @@ Saves only the fields that have been modified, rather than all fields.
 
 This can be more efficient than `save()` when you've only modified a few fields on a model with many fields.
 
+### `was_dirty(check_relationship=False)`
+
+Check if the instance was dirty before the last save. Useful in `post_save` signals or after saving to know what changed.
+
+```python
+>>> obj.name = "new name"
+>>> obj.save()
+>>> obj.is_dirty()
+False
+>>> obj.was_dirty()
+True
+```
+
+### `get_was_dirty_fields(check_relationship=False)`
+
+Get the fields that were dirty before the last save.
+
+```python
+>>> obj.name = "new name"
+>>> obj.save()
+>>> obj.get_was_dirty_fields()
+{'name': 'old name'}
+```
+
+This is particularly useful in signal handlers:
+
+```python
+from django.db.models.signals import post_save
+
+def my_handler(sender, instance, **kwargs):
+    if instance.was_dirty():
+        changed = instance.get_was_dirty_fields()
+        if 'status' in changed:
+            # Status changed from changed['status'] to instance.status
+            notify_status_change(instance)
+
+post_save.connect(my_handler, sender=MyModel)
+```
+
 ## Verbose Mode
 
 When `verbose=True`, `get_dirty_fields()` returns both old and new values:
