@@ -21,8 +21,11 @@ from django.db.models.fields.related_descriptors import ForeignKeyDeferredAttrib
 from django.db.models.query_utils import DeferredAttribute
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable, Iterable
     from typing import Self
+
+    CompareFunction = tuple[Callable[..., bool], dict[str, Any]]
+    NormaliseFunction = tuple[Callable[..., Any], dict[str, Any]]
 
 # Types that don't need deepcopy (immutable)
 _IMMUTABLE_TYPES = frozenset(
@@ -123,6 +126,7 @@ class _DiffDescriptor(DeferredAttribute):
 
         d[attname] = value
 
+        # Use simple equality here; compare_function is applied in get_dirty_fields()
         if not should_track or value == old:
             return
 
@@ -137,6 +141,7 @@ class _DiffDescriptor(DeferredAttribute):
                 d.setdefault("_state_diff_rel", set()).add(field_name)
             return
 
+        # Check if reverting to original value
         if _normalize_value(value) != diff[field_name]:
             return
 
@@ -227,6 +232,11 @@ class _DirtyMeta(ModelBase):
         return cls
 
 
+def _get_m2m_fields(model_class: type[models.Model]) -> list[models.ManyToManyField[Any, Any]]:
+    """Get M2M fields for a model class (excluding auto-created reverse relations)."""
+    return [f for f in model_class._meta.get_fields() if f.many_to_many and not f.auto_created]
+
+
 class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
     """Mixin for Django models with dirty field tracking via descriptors.
 
@@ -235,6 +245,16 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
 
     class Meta:
         abstract = True
+
+    # Set to True to enable M2M field tracking
+    ENABLE_M2M_CHECK = False
+
+    # Custom compare function: (callable, kwargs_dict) or None for default equality
+    compare_function: CompareFunction | None = None
+
+    # Custom normalise function: (callable, kwargs_dict) or None for no normalization
+    # Used to transform values before returning them in get_dirty_fields()
+    normalise_function: NormaliseFunction | None = None
 
     _was_dirty_fields: dict[str, Any] = {}
     _was_dirty_fields_rel: dict[str, Any] = {}
@@ -277,49 +297,110 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         super().refresh_from_db(using=using, fields=fields, from_queryset=from_queryset)
         self._dirty_reset_state(fields=fields)
 
-    def is_dirty(self, check_relationship: bool = False) -> bool:
+    def _as_dict_m2m(self) -> dict[str, set[Any]]:
+        """Get current M2M field values as a dict of sets of PKs."""
+        if not self.pk:
+            return {}
+
+        result = {}
+        fields_to_check = getattr(self, "FIELDS_TO_CHECK", None)
+
+        for field in _get_m2m_fields(self.__class__):
+            if fields_to_check is not None and field.attname not in fields_to_check:
+                continue
+            result[field.attname] = {obj.pk for obj in getattr(self, field.attname).all()}
+
+        return result
+
+    def is_dirty(self, check_relationship: bool = False, check_m2m: dict[str, set[Any]] | None = None) -> bool:
         """Check if instance has unsaved changes."""
         if self._state.adding:
             return True
         diff = self.__dict__.get("_state_diff")
         if not diff:
-            return False
-        if check_relationship:
+            has_field_changes = False
+        elif check_relationship:
+            has_field_changes = True
+        else:
+            rel = self.__dict__.get("_state_diff_rel") or set()
+            has_field_changes = any(k not in rel for k in diff)
+
+        if has_field_changes:
             return True
-        rel = self.__dict__.get("_state_diff_rel") or set()
-        return any(k not in rel for k in diff)
+
+        if check_m2m is not None:
+            if not self.ENABLE_M2M_CHECK:
+                raise ValueError("You can't check m2m fields if ENABLE_M2M_CHECK is set to False")
+            return self.get_dirty_fields(check_m2m=check_m2m) != {}
+
+        return False
 
     def get_dirty_fields(
         self,
         check_relationship: bool = False,
+        check_m2m: dict[str, set[Any]] | None = None,
         verbose: bool = False,
     ) -> dict[str, Any]:
         """Get fields that have changed since load from DB.
 
         Args:
             check_relationship: Include FK field changes
+            check_m2m: Dict of M2M field names to expected PK sets for comparison
             verbose: Return {"saved": old, "current": new} instead of just old value
 
         Returns:
             Dict mapping field names to original values (or verbose dicts)
         """
+        if check_m2m is not None and not self.ENABLE_M2M_CHECK:
+            raise ValueError("You can't check m2m fields if ENABLE_M2M_CHECK is set to False")
+
         if self._state.adding:
             current = self._get_current_values(check_relationship, self.pk is not None)
             if verbose:
-                return {k: {"saved": None, "current": v} for k, v in current.items()}
+                return {k: {"saved": None, "current": self._normalise_output_value(v)} for k, v in current.items()}
             return current
 
         diff = self.__dict__.get("_state_diff")
         if not diff:
-            return {}
-
-        if not check_relationship:
+            result = {}
+        elif not check_relationship:
             rel = self.__dict__.get("_state_diff_rel") or set()
-            diff = {k: v for k, v in diff.items() if k not in rel}
+            result = {k: v for k, v in diff.items() if k not in rel}
+        else:
+            result = dict(diff)
+
+        # Apply compare_function to filter out fields that are actually equal
+        compare_func = getattr(self, "compare_function", None)
+        if compare_func is not None and result:
+            func, kwargs = compare_func
+            result = {k: v for k, v in result.items() if not func(self._get_field_value_for_verbose(k), v, **kwargs)}
+
+        # M2M comparison: check if expected values match current DB state
+        if check_m2m is not None:
+            current_m2m = self._as_dict_m2m()
+            for field_name, expected_pks in check_m2m.items():
+                current_pks = current_m2m.get(field_name, set())
+                if current_pks != expected_pks:
+                    # M2M is dirty: return the current DB state as the "saved" value
+                    result[field_name] = current_pks
 
         if verbose:
-            return {k: {"saved": v, "current": self._get_field_value_for_verbose(k)} for k, v in diff.items()}
-        return dict(diff)
+            return {
+                k: {
+                    "saved": self._normalise_output_value(v),
+                    "current": self._normalise_output_value(self._get_field_value_for_verbose(k)),
+                }
+                for k, v in result.items()
+            }
+        return {k: self._normalise_output_value(v) for k, v in result.items()}
+
+    def _normalise_output_value(self, value: Any) -> Any:
+        """Apply normalise_function to a value if defined."""
+        normalise_func = getattr(self, "normalise_function", None)
+        if normalise_func is not None:
+            func, kwargs = normalise_func
+            return func(value, **kwargs)
+        return value
 
     def _get_field_value_for_verbose(self, field_name: str) -> Any:
         """Get current field value for verbose mode, normalizing file fields."""

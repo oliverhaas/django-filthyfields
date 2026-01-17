@@ -3,6 +3,7 @@ from django.db.models.signals import pre_save
 from django.utils import timezone as django_timezone
 
 from dirtyfields import DirtyFieldsMixin
+from dirtyfields.compare import timezone_support_compare
 
 
 class ModelTest(DirtyFieldsMixin, models.Model):
@@ -120,3 +121,47 @@ class ModelWithFieldsToCheck(DirtyFieldsMixin, models.Model):
 
     boolean1 = models.BooleanField(default=True)
     boolean2 = models.BooleanField(default=True)
+
+
+# M2M field tracking models
+class Many2ManyModelTest(DirtyFieldsMixin, models.Model):
+    m2m_field = models.ManyToManyField(ModelTest)
+    ENABLE_M2M_CHECK = True
+
+
+class Many2ManyWithoutMany2ManyModeEnabledModelTest(DirtyFieldsMixin, models.Model):
+    m2m_field = models.ManyToManyField(ModelTest, related_name="m2m_disabled")
+
+
+class M2MModelWithCustomPKOnM2MTest(DirtyFieldsMixin, models.Model):
+    m2m_field = models.ManyToManyField(ModelWithCustomPKTest)
+
+
+class ModelWithoutM2MCheckTest(DirtyFieldsMixin, models.Model):
+    characters = models.CharField(blank=True, max_length=80)
+    ENABLE_M2M_CHECK = False
+
+
+class ModelWithM2MAndSpecifiedFieldsTest(DirtyFieldsMixin, models.Model):
+    m2m1 = models.ManyToManyField(ModelTest, related_name="m2m1")
+    m2m2 = models.ManyToManyField(ModelTest, related_name="m2m2")
+    ENABLE_M2M_CHECK = True
+    FIELDS_TO_CHECK = ["m2m1"]
+
+
+# Compare function models (for timezone-aware datetime comparison)
+class DatetimeWithCompareModelTest(DirtyFieldsMixin, models.Model):
+    """Model with custom compare function for timezone-aware datetime fields."""
+
+    datetime_field = models.DateTimeField(default=django_timezone.now)
+    compare_function = (timezone_support_compare, {})
+
+
+class CurrentDatetimeModelTest(DirtyFieldsMixin, models.Model):
+    """Model with compare function that uses current timezone."""
+
+    datetime_field = models.DateTimeField(default=django_timezone.now)
+    compare_function = (
+        timezone_support_compare,
+        {"timezone_to_set": django_timezone.get_current_timezone()},
+    )

@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.8b1] - 2025-01-17
+
+### Added
+
+- Re-added M2M field tracking with `ENABLE_M2M_CHECK` class attribute
+- Re-added `check_m2m` parameter to `is_dirty()` and `get_dirty_fields()`
+- Re-added custom `compare_function` support for field value comparison
+- Re-added custom `normalise_function` support for output value transformation
+- Added `was_dirty()` and `get_was_dirty_fields()` methods
+- Added `raw_compare`, `normalise_value`, and `timezone_support_compare` utility functions
+
+### Changed
+
+- Version numbering now follows upstream django-dirtyfields for API compatibility indication
+
 ## [0.1.0a2] - 2025-01-16
 
 ### Changed
@@ -31,7 +46,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- M2M field tracking (`ENABLE_M2M_CHECK`) - may be re-added
-- Custom `compare_function` - may be re-added
 - Python < 3.13 support
 - Django < 5.0 support

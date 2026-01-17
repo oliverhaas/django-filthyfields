@@ -1,6 +1,6 @@
 [project]
 name = "django-filthyfields"
-version = "0.1.0a5"
+version = "1.9.8b1"
 description = "Tracking dirty fields on a Django model instance."
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -116,6 +116,11 @@ unfixable = []
   "PLR0915", # main() has many statements - that's fine for a benchmark script
   "S105",    # Hardcoded secret key is fine for benchmarks
   "T201",    # print() is the output mechanism for benchmarks
+]
+"tests/test_timezone_aware_fields.py" = [
+  "DTZ001", # Naive datetime is intentional for timezone testing
+  "DTZ005", # Naive datetime.now() is intentional for timezone testing
+  "UP017",  # timezone.utc used for test clarity
 ]
 
 [tool.pytest.ini_options]

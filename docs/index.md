@@ -9,7 +9,7 @@ Dirty means that field in-memory and database values are different.
 
 !!! info "Fork of django-dirtyfields"
     This is a fork of [django-dirtyfields](https://github.com/romgar/django-dirtyfields) with a
-    completely rewritten "lazy" descriptor-based implementation. The goal is to eventually merge
+    rewritten "lazy" descriptor-based internal implementation. The goal is to eventually merge
     these improvements upstream if and once the implementation matures.
 
 ## Why This Fork?
@@ -58,12 +58,9 @@ python tests/benchmark.py
 - **F() expression support**: Properly tracks fields assigned with F() expressions.
 - **Modern Python only**: Requires Python 3.13+ and Django 5.0+.
 
-## Removed Features
+## Versioning
 
-The following features from django-dirtyfields are not currently supported (may be re-added if needed):
-
-- M2M field tracking (`ENABLE_M2M_CHECK`)
-- Custom `compare_function`
+This package follows the same version numbering as upstream django-dirtyfields to indicate API compatibility. For example, version 1.9.8 of django-filthyfields is API-compatible with django-dirtyfields 1.9.8. Pre-release suffixes (e.g., `b1`, `b2`) are used during development.
 
 ## Compatibility
 
