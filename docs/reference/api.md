@@ -87,7 +87,7 @@ class MyModel(DirtyFieldsMixin, models.Model):
 
 ### Methods
 
-#### `is_dirty(check_relationship=False, check_m2m=None)`
+#### `is_dirty(check_relationship=False, check_m2m=False)`
 
 Check if the model instance has any unsaved changes.
 
@@ -96,11 +96,11 @@ Check if the model instance has any unsaved changes.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `check_relationship` | `bool` | `False` | Include foreign key fields in the check |
-| `check_m2m` | `dict[str, set] \| None` | `None` | Dict of M2M field names to expected PK sets (requires `ENABLE_M2M_CHECK=True`) |
+| `check_m2m` | `bool` | `False` | Include M2M fields in the check (requires `ENABLE_M2M_CHECK=True`) |
 
 **Returns:** `bool` - `True` if any tracked fields have changed
 
-**Raises:** `ValueError` if `check_m2m` is provided but `ENABLE_M2M_CHECK` is `False`
+**Raises:** `ValueError` if `check_m2m=True` but `ENABLE_M2M_CHECK` is `False`
 
 **Example:**
 
@@ -113,14 +113,16 @@ False
 True
 
 # M2M check (requires ENABLE_M2M_CHECK = True)
+>>> obj.is_dirty(check_m2m=True)  # Captures original state on first call
+False
 >>> obj.tags.add(new_tag)
->>> obj.is_dirty(check_m2m={'tags': {1, 2}})  # Expected PKs
+>>> obj.is_dirty(check_m2m=True)
 True
 ```
 
 ---
 
-#### `get_dirty_fields(check_relationship=False, check_m2m=None, verbose=False)`
+#### `get_dirty_fields(check_relationship=False, check_m2m=False, verbose=False)`
 
 Get a dictionary of fields that have been modified.
 
@@ -129,12 +131,12 @@ Get a dictionary of fields that have been modified.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `check_relationship` | `bool` | `False` | Include foreign key fields |
-| `check_m2m` | `dict[str, set] \| None` | `None` | Dict of M2M field names to expected PK sets (requires `ENABLE_M2M_CHECK=True`) |
+| `check_m2m` | `bool` | `False` | Include M2M fields (requires `ENABLE_M2M_CHECK=True`) |
 | `verbose` | `bool` | `False` | Return both old and new values |
 
 **Returns:** `dict` - Dictionary mapping field names to original values (or to `{'saved': old, 'current': new}` if verbose)
 
-**Raises:** `ValueError` if `check_m2m` is provided but `ENABLE_M2M_CHECK` is `False`
+**Raises:** `ValueError` if `check_m2m=True` but `ENABLE_M2M_CHECK` is `False`
 
 **Example:**
 
@@ -147,14 +149,16 @@ Get a dictionary of fields that have been modified.
 {'name': {'saved': 'old', 'current': 'new'}}
 
 # M2M check (requires ENABLE_M2M_CHECK = True)
+>>> obj.get_dirty_fields(check_m2m=True)  # Captures original state on first call
+{}
 >>> obj.tags.add(new_tag)
->>> obj.get_dirty_fields(check_m2m={'tags': {1, 2}})
-{'tags': {1, 2, 3}}  # Returns current DB state if different from expected
+>>> obj.get_dirty_fields(check_m2m=True)
+{'tags': {1, 2}}  # Returns original state before changes
 ```
 
 ---
 
-#### `was_dirty(check_relationship=False)`
+#### `was_dirty(check_relationship=False, check_m2m=False)`
 
 Check if instance was dirty before the last save.
 
@@ -163,8 +167,11 @@ Check if instance was dirty before the last save.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `check_relationship` | `bool` | `False` | Include foreign key fields |
+| `check_m2m` | `bool` | `False` | Include M2M fields (requires `ENABLE_M2M_CHECK=True`) |
 
 **Returns:** `bool` - `True` if any tracked fields were dirty before the last save
+
+**Raises:** `ValueError` if `check_m2m=True` but `ENABLE_M2M_CHECK` is `False`
 
 **Example:**
 
@@ -173,11 +180,17 @@ Check if instance was dirty before the last save.
 >>> obj.save()
 >>> obj.was_dirty()
 True
+
+# M2M check (requires ENABLE_M2M_CHECK = True)
+>>> obj.tags.add(new_tag)
+>>> obj.save()
+>>> obj.was_dirty(check_m2m=True)
+True
 ```
 
 ---
 
-#### `get_was_dirty_fields(check_relationship=False)`
+#### `get_was_dirty_fields(check_relationship=False, check_m2m=False)`
 
 Get fields that were dirty before the last save.
 
@@ -186,8 +199,11 @@ Get fields that were dirty before the last save.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `check_relationship` | `bool` | `False` | Include foreign key fields |
+| `check_m2m` | `bool` | `False` | Include M2M fields (requires `ENABLE_M2M_CHECK=True`) |
 
 **Returns:** `dict` - Dictionary mapping field names to original values from before the last save
+
+**Raises:** `ValueError` if `check_m2m=True` but `ENABLE_M2M_CHECK` is `False`
 
 **Example:**
 
@@ -196,6 +212,12 @@ Get fields that were dirty before the last save.
 >>> obj.save()
 >>> obj.get_was_dirty_fields()
 {'name': 'old'}
+
+# M2M check (requires ENABLE_M2M_CHECK = True)
+>>> obj.tags.add(new_tag)
+>>> obj.save()
+>>> obj.get_was_dirty_fields(check_m2m=True)
+{'tags': {1, 2}}  # Original M2M state before changes
 ```
 
 ---

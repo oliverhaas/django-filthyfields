@@ -286,6 +286,8 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         """Capture current dirty state into _was_dirty_fields for post-save inspection."""
         self._was_dirty_fields = self.get_dirty_fields(check_relationship=False)
         self._was_dirty_fields_rel = self.get_dirty_fields(check_relationship=True)
+        if self.ENABLE_M2M_CHECK:
+            self._was_dirty_fields_m2m = self._get_m2m_dirty_fields()
 
     def _dirty_reset_state(self, fields: Iterable[str] | None = None) -> None:
         """Reset dirty tracking state.
@@ -296,6 +298,9 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         if fields is None:
             self.__dict__.pop("_state_diff", None)
             self.__dict__.pop("_state_diff_rel", None)
+            # Reset M2M state by re-snapshotting current state
+            if self.ENABLE_M2M_CHECK and self.pk:
+                self._snapshot_m2m_state()
         else:
             diff = self.__dict__.get("_state_diff")
             if diff:
@@ -339,7 +344,34 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
 
         return result
 
-    def is_dirty(self, check_relationship: bool = False, check_m2m: dict[str, set[Any]] | None = None) -> bool:
+    def _snapshot_m2m_state(self) -> None:
+        """Capture current M2M state as the original state for dirty tracking."""
+        if not self.ENABLE_M2M_CHECK or not self.pk:
+            return
+        self._original_m2m_state = self._as_dict_m2m()
+
+    def _get_m2m_dirty_fields(self) -> dict[str, set[Any]]:
+        """Get M2M fields that have changed since the original snapshot."""
+        if not self.ENABLE_M2M_CHECK or not self.pk:
+            return {}
+
+        # Capture original state on first check (lazy initialization)
+        if not hasattr(self, "_original_m2m_state"):
+            self._snapshot_m2m_state()
+            return {}  # First check - nothing dirty yet
+
+        original = getattr(self, "_original_m2m_state", {})
+        current = self._as_dict_m2m()
+        result = {}
+
+        for field_name, original_pks in original.items():
+            current_pks = current.get(field_name, set())
+            if current_pks != original_pks:
+                result[field_name] = original_pks
+
+        return result
+
+    def is_dirty(self, check_relationship: bool = False, check_m2m: bool = False) -> bool:
         """Check if instance has unsaved changes."""
         if self._state.adding:
             return True
@@ -355,30 +387,30 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         if has_field_changes:
             return True
 
-        if check_m2m is not None:
+        if check_m2m:
             if not self.ENABLE_M2M_CHECK:
                 raise ValueError("You can't check m2m fields if ENABLE_M2M_CHECK is set to False")
-            return self.get_dirty_fields(check_m2m=check_m2m) != {}
+            return bool(self._get_m2m_dirty_fields())
 
         return False
 
     def get_dirty_fields(
         self,
         check_relationship: bool = False,
-        check_m2m: dict[str, set[Any]] | None = None,
+        check_m2m: bool = False,
         verbose: bool = False,
     ) -> dict[str, Any]:
         """Get fields that have changed since load from DB.
 
         Args:
             check_relationship: Include FK field changes
-            check_m2m: Dict of M2M field names to expected PK sets for comparison
+            check_m2m: Include M2M field changes (requires ENABLE_M2M_CHECK=True)
             verbose: Return {"saved": old, "current": new} instead of just old value
 
         Returns:
             Dict mapping field names to original values (or verbose dicts)
         """
-        if check_m2m is not None and not self.ENABLE_M2M_CHECK:
+        if check_m2m and not self.ENABLE_M2M_CHECK:
             raise ValueError("You can't check m2m fields if ENABLE_M2M_CHECK is set to False")
 
         if self._state.adding:
@@ -402,14 +434,10 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
             func, kwargs = compare_func
             result = {k: v for k, v in result.items() if not func(self._get_field_value_for_verbose(k), v, **kwargs)}
 
-        # M2M comparison: check if expected values match current DB state
-        if check_m2m is not None:
-            current_m2m = self._as_dict_m2m()
-            for field_name, expected_pks in check_m2m.items():
-                current_pks = current_m2m.get(field_name, set())
-                if current_pks != expected_pks:
-                    # M2M is dirty: return the current DB state as the "saved" value
-                    result[field_name] = current_pks
+        # M2M comparison: check against original snapshot
+        if check_m2m:
+            m2m_dirty = self._get_m2m_dirty_fields()
+            result.update(m2m_dirty)
 
         if verbose:
             return {
@@ -468,15 +496,24 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
 
         return result
 
-    def was_dirty(self, check_relationship: bool = False) -> bool:
+    def was_dirty(self, check_relationship: bool = False, check_m2m: bool = False) -> bool:
         """Check if instance was dirty before the last save."""
-        return bool(self.get_was_dirty_fields(check_relationship=check_relationship))
+        return bool(self.get_was_dirty_fields(check_relationship=check_relationship, check_m2m=check_m2m))
 
-    def get_was_dirty_fields(self, check_relationship: bool = False) -> dict[str, Any]:
+    def get_was_dirty_fields(self, check_relationship: bool = False, check_m2m: bool = False) -> dict[str, Any]:
         """Get fields that were dirty before the last save."""
+        if check_m2m and not self.ENABLE_M2M_CHECK:
+            raise ValueError("You can't check m2m fields if ENABLE_M2M_CHECK is set to False")
+
         if check_relationship:
-            return getattr(self, "_was_dirty_fields_rel", {})
-        return getattr(self, "_was_dirty_fields", {})
+            result = dict(getattr(self, "_was_dirty_fields_rel", {}))
+        else:
+            result = dict(getattr(self, "_was_dirty_fields", {}))
+
+        if check_m2m:
+            result.update(getattr(self, "_was_dirty_fields_m2m", {}))
+
+        return result
 
     def save_dirty_fields(self) -> None:
         """Save only the dirty fields (optimization for partial updates)."""

@@ -12,21 +12,50 @@ from .models import (
 
 @pytest.mark.django_db
 def test_dirty_fields_on_m2m():
+    """Test M2M dirty field tracking with eager snapshot."""
     tm = Many2ManyModelTest.objects.create()
     tm2 = ModelTest.objects.create()
+    tm3 = ModelTest.objects.create()
+
+    # First check captures the original state (empty)
+    assert tm.get_dirty_fields(check_m2m=True) == {}
+
+    # Add an M2M relation - should now be dirty
     tm.m2m_field.add(tm2)
+    assert tm.get_dirty_fields(check_m2m=True) == {"m2m_field": set()}
 
-    assert tm._as_dict_m2m() == {"m2m_field": {tm2.id}}
+    # After save, M2M state is re-snapshotted
+    tm.save()
+    assert tm.get_dirty_fields(check_m2m=True) == {}
 
-    # m2m check should be explicit: you have to give the values you want to compare with db state.
-    # This first assertion means that m2m_field has one element of id tm2 in the database.
-    assert tm.get_dirty_fields(check_m2m={"m2m_field": {tm2.id}}) == {}
+    # Add another relation - dirty again
+    tm.m2m_field.add(tm3)
+    assert tm.get_dirty_fields(check_m2m=True) == {"m2m_field": {tm2.id}}
 
-    # This second assertion means that I'm expecting a m2m_field that is related to an element with id 0
-    # As it differs, we return the previous saved elements.
-    assert tm.get_dirty_fields(check_m2m={"m2m_field": {0}}) == {"m2m_field": {tm2.id}}
+    # Remove original - still dirty (different from saved state)
+    tm.m2m_field.remove(tm2)
+    assert tm.get_dirty_fields(check_m2m=True) == {"m2m_field": {tm2.id}}
 
-    assert tm.get_dirty_fields(check_m2m={"m2m_field": {0, tm2.id}}) == {"m2m_field": {tm2.id}}
+
+@pytest.mark.django_db
+def test_m2m_was_dirty_after_save():
+    """Test that was_dirty works correctly for M2M fields."""
+    tm = Many2ManyModelTest.objects.create()
+    tm2 = ModelTest.objects.create()
+
+    # Capture initial state
+    assert tm.get_dirty_fields(check_m2m=True) == {}
+
+    # Make changes
+    tm.m2m_field.add(tm2)
+    assert tm.is_dirty(check_m2m=True)
+    assert tm.get_dirty_fields(check_m2m=True) == {"m2m_field": set()}
+
+    # Save and check was_dirty
+    tm.save()
+    assert not tm.is_dirty(check_m2m=True)
+    assert tm.was_dirty(check_m2m=True)
+    assert tm.get_was_dirty_fields(check_m2m=True) == {"m2m_field": set()}
 
 
 @pytest.mark.django_db
@@ -36,7 +65,7 @@ def test_dirty_fields_on_m2m_not_possible_if_not_enabled():
     tm.m2m_field.add(tm2)
 
     with pytest.raises(ValueError, match="ENABLE_M2M_CHECK"):
-        tm.get_dirty_fields(check_m2m={"m2m_field": {tm2.id}})
+        tm.get_dirty_fields(check_m2m=True)
 
 
 @pytest.mark.django_db
@@ -55,4 +84,22 @@ def test_m2m_disabled_does_not_allow_to_check_m2m_fields():
     tm = ModelWithoutM2MCheckTest.objects.create()
 
     with pytest.raises(ValueError, match="ENABLE_M2M_CHECK"):
-        tm.get_dirty_fields(check_m2m={"dummy": True})
+        tm.get_dirty_fields(check_m2m=True)
+
+
+@pytest.mark.django_db
+def test_m2m_is_dirty():
+    """Test is_dirty with M2M fields."""
+    tm = Many2ManyModelTest.objects.create()
+    tm2 = ModelTest.objects.create()
+
+    # First check - not dirty
+    assert not tm.is_dirty(check_m2m=True)
+
+    # Add M2M relation - now dirty
+    tm.m2m_field.add(tm2)
+    assert tm.is_dirty(check_m2m=True)
+
+    # Save - no longer dirty
+    tm.save()
+    assert not tm.is_dirty(check_m2m=True)

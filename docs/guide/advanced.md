@@ -163,27 +163,39 @@ class Article(DirtyFieldsMixin, models.Model):
     tags = models.ManyToManyField(Tag)
 ```
 
-Then use the `check_m2m` parameter to check if M2M relations have changed:
+Then use `check_m2m=True` to include M2M fields in dirty checks:
 
 ```python
 >>> article = Article.objects.get(pk=1)
 >>> article.tags.all()
 <QuerySet [<Tag: python>, <Tag: django>]>
 
-# Pass expected PKs as a set
->>> article.is_dirty(check_m2m={'tags': {1, 2}})
+# First check captures the original state
+>>> article.is_dirty(check_m2m=True)
 False
 
+# Add a new tag
 >>> article.tags.add(Tag.objects.get(pk=3))
->>> article.is_dirty(check_m2m={'tags': {1, 2}})
+>>> article.is_dirty(check_m2m=True)
 True
 
->>> article.get_dirty_fields(check_m2m={'tags': {1, 2}})
-{'tags': {1, 2, 3}}  # Current DB state
+>>> article.get_dirty_fields(check_m2m=True)
+{'tags': {1, 2}}  # Original state before changes
+
+# After save, state is re-captured
+>>> article.save()
+>>> article.is_dirty(check_m2m=True)
+False
+
+# was_dirty works for M2M too
+>>> article.was_dirty(check_m2m=True)
+True
+>>> article.get_was_dirty_fields(check_m2m=True)
+{'tags': {1, 2}}  # What it was before save
 ```
 
 !!! warning "Performance Impact"
-    M2M checking generates extra queries each time you check. Only enable it when you specifically need to track M2M changes, such as when processing forms with M2M fields.
+    M2M checking generates extra queries each time you check. The original M2M state is captured on the first `check_m2m=True` call and re-captured after each save. Only enable it when you specifically need to track M2M changes.
 
 ## Custom Comparison Functions
 
