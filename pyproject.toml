@@ -2,7 +2,7 @@
 name = "django-filthyfields"
 version = "0.1.0a5"
 description = "Tracking dirty fields on a Django model instance."
-readme = "README.rst"
+readme = "README.md"
 license = "BSD-3-Clause"
 requires-python = ">=3.13"
 keywords = [
