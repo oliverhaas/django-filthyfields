@@ -130,20 +130,32 @@ class _DiffDescriptor(DeferredAttribute):
 
         d = instance.__dict__
         attname = self._attname
+
+        # Fast path: check if we should track at all
+        try:
+            state = instance._state
+            if state.adding or attname not in d:
+                d[attname] = value
+                return
+        except AttributeError:
+            d[attname] = value
+            return
+
+        # Check FIELDS_TO_CHECK (cached at instance level for speed)
         field_name = self._field_name
+        fields_to_check = d.get("_fields_to_check_cache")
+        if fields_to_check is None:
+            fields_to_check = getattr(instance, "FIELDS_TO_CHECK", None)
+            d["_fields_to_check_cache"] = fields_to_check  # Cache for future
 
-        state = getattr(instance, "_state", None)
-        should_track = (
-            state is not None
-            and not state.adding
-            and attname in d
-            and _should_track_field(instance, field_name, attname)
-        )
-        old = d[attname] if should_track else None
+        if fields_to_check is not None and field_name not in fields_to_check and attname not in fields_to_check:
+            d[attname] = value
+            return
 
+        old = d[attname]
         d[attname] = value
 
-        if not should_track or self._values_equal(value, old):
+        if self._values_equal(value, old):
             return
 
         if self._is_relation and self._field.is_cached(instance):  # ty: ignore[possibly-missing-attribute]
@@ -158,12 +170,10 @@ class _DiffDescriptor(DeferredAttribute):
             return
 
         # Check if reverting to original value
-        if not self._values_equal(value, diff[field_name]):
-            return
-
-        del diff[field_name]
-        if self._is_relation and (rel := d.get("_state_diff_rel")):
-            rel.discard(field_name)
+        if self._values_equal(value, diff[field_name]):
+            del diff[field_name]
+            if self._is_relation and (rel := d.get("_state_diff_rel")):
+                rel.discard(field_name)
 
 
 class _FileDiffDescriptor(FileDescriptor):
