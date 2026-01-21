@@ -28,6 +28,15 @@ if TYPE_CHECKING:
     CompareFunction = tuple[Callable[..., bool], dict[str, Any]]
     NormaliseFunction = tuple[Callable[..., Any], dict[str, Any]]
 
+# Try to import Cython-optimized __set__ implementation
+try:
+    from dirtyfields._fast_set import fast_set as _fast_set
+
+    _USE_CYTHON_SET = True
+except ImportError:
+    _fast_set = None  # type: ignore[assignment, misc]
+    _USE_CYTHON_SET = False
+
 # Types that don't need deepcopy (immutable)
 _IMMUTABLE_TYPES = frozenset(
     (
@@ -128,10 +137,24 @@ class _DiffDescriptor(DeferredAttribute):
         except KeyError:
             return super().__get__(instance, cls)
 
-    def __set__(self, instance: models.Model | None, value: Any) -> None:
+    def __set__(self, instance: models.Model | None, value: Any) -> None:  # noqa: PLR0911
         if instance is None:
             return
 
+        # Try Cython fast path if available
+        if _USE_CYTHON_SET:
+            _fast_set(
+                instance,
+                value,
+                self._attname,
+                self._field_name,
+                self._is_relation,
+                self._field,
+                _normalize_value,
+            )
+            return
+
+        # Pure Python fallback
         d = instance.__dict__
         attname = self._attname
 
