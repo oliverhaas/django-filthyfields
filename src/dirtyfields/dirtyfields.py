@@ -48,14 +48,24 @@ _IMMUTABLE_TYPES = frozenset(
 )
 
 
-def _normalize_value(value: Any) -> Any:
+def _normalize_value(value: Any) -> Any:  # noqa: PLR0911
     """Normalize a field value for storage in the diff dict."""
+    if value is None or type(value) in _IMMUTABLE_TYPES:
+        return value
     if isinstance(value, File):
         return value.name
     if isinstance(value, memoryview):
         return bytes(value)
-    if value is None or type(value) in _IMMUTABLE_TYPES:
-        return value
+    # Fast path for simple dicts/lists (common for JSONField)
+    # Use shallow copy if all values are immutable, otherwise deepcopy
+    if isinstance(value, dict):
+        if all(type(v) in _IMMUTABLE_TYPES or v is None for v in value.values()):
+            return value.copy()
+        return deepcopy(value)
+    if isinstance(value, (list, tuple)):
+        if all(type(v) in _IMMUTABLE_TYPES or v is None for v in value):
+            return list(value) if isinstance(value, list) else value
+        return deepcopy(value)
     return deepcopy(value)
 
 
