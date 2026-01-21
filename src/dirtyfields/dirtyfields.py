@@ -119,12 +119,10 @@ class _DiffDescriptor(DeferredAttribute):
     def __get__(self, instance: models.Model | None, cls: type[models.Model] | None = None) -> Any:
         if instance is None:
             return self
-        val = instance.__dict__.get(self._attname)
-        if val is not None:
-            return val
-        if self._attname in instance.__dict__:
-            return None
-        return super().__get__(instance, cls)
+        try:
+            return instance.__dict__[self._attname]
+        except KeyError:
+            return super().__get__(instance, cls)
 
     def __set__(self, instance: models.Model | None, value: Any) -> None:
         if instance is None:
