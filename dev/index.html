@@ -888,11 +888,12 @@ these improvements upstream if and once the implementation matures.</p>
 This means <strong>every field value is copied on every model load</strong>, regardless of whether you'll modify the instance.</p>
 <p>This fork uses <strong>lazy descriptor-based tracking</strong>, which for typical use-cases where one reads/writes fields at most once each has less overhead.</p>
 <h3 id="benchmark-results">Benchmark Results<a class="headerlink" href="#benchmark-results" title="Permanent link">&para;</a></h3>
-<p>Overhead vs plain Django models (10,000 instances, 20 fields each):</p>
+<p>Performance comparison on Python 3.14 (10,000 instances, 20 fields each):</p>
 <table>
 <thead>
 <tr>
 <th>Scenario</th>
+<th>Plain</th>
 <th>filthyfields</th>
 <th>dirtyfields</th>
 </tr>
@@ -900,26 +901,43 @@ This means <strong>every field value is copied on every model load</strong>, reg
 <tbody>
 <tr>
 <td><code>.only(1 field)</code> + read 1 field</td>
-<td>+7 ms</td>
-<td>+128 ms</td>
+<td>35 ms</td>
+<td>41 ms (+6)</td>
+<td>151 ms (+116)</td>
 </tr>
 <tr>
-<td>Fetch 20 fields + read 20 fields</td>
-<td>+53 ms</td>
-<td>+225 ms</td>
+<td>Load 20 fields + read 20 fields</td>
+<td>58 ms</td>
+<td>110 ms (+52)</td>
+<td>244 ms (+186)</td>
 </tr>
 <tr>
 <td><code>.only(1 field)</code> + write 1 field</td>
-<td>+10 ms</td>
-<td>+126 ms</td>
+<td>35 ms</td>
+<td>47 ms (+12)</td>
+<td>153 ms (+118)</td>
 </tr>
 <tr>
-<td>Fetch 20 fields + write 20 fields</td>
-<td>+121 ms</td>
-<td>+227 ms</td>
+<td>Load 20 fields + write 20 fields</td>
+<td>55 ms</td>
+<td>202 ms (+147)</td>
+<td>244 ms (+189)</td>
+</tr>
+<tr>
+<td><code>.only(1 field)</code> + read+write 1 field</td>
+<td>35 ms</td>
+<td>47 ms (+12)</td>
+<td>152 ms (+117)</td>
+</tr>
+<tr>
+<td>Load 20 fields + read+write 20 fields</td>
+<td>60 ms</td>
+<td>223 ms (+163)</td>
+<td>243 ms (+183)</td>
 </tr>
 </tbody>
 </table>
+<p>Run the benchmark yourself: <code>uv run python tests/benchmark.py --compare</code></p>
 <h2 id="versioning">Versioning<a class="headerlink" href="#versioning" title="Permanent link">&para;</a></h2>
 <p>This package follows the same version numbering as upstream django-dirtyfields to indicate API compatibility. For example, version 1.9.8 of django-filthyfields is API-compatible with django-dirtyfields 1.9.8. </p>
 <p>Note that compatibility is one-way: code using django-dirtyfields can switch to django-filthyfields, but not vice versa, since filthyfields has additional features (e.g., <code>was_dirty()</code>). </p>
