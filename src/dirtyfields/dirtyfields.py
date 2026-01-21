@@ -111,6 +111,10 @@ class _DiffDescriptor(DeferredAttribute):
 
     def _values_equal(self, val1: Any, val2: Any) -> bool:
         """Compare values using to_python for consistent type conversion."""
+        # Fast path: same type and value, no conversion needed
+        if type(val1) is type(val2):
+            return val1 == val2
+        # Slow path: different types, need to_python for normalization
         try:
             return self._field.to_python(val1) == self._field.to_python(val2)
         except (ValidationError, TypeError, ValueError):
