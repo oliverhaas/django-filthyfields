@@ -27,6 +27,7 @@ import subprocess
 import sys
 import time
 from contextlib import contextmanager
+from datetime import UTC
 from pathlib import Path
 
 # Add project root to path so Django can find settings
@@ -136,8 +137,8 @@ def run_comparison(python_version: str | None = None):
     print("Overhead Comparison (lower is better)")
     print("=" * 100)
     print()
-    print(f"{'Scenario':40} | {'Filthy':>12} | {'Dirty':>12} | {'Improvement':>12}")
-    print("-" * 100)
+    print(f"{'Scenario':40} | {'Base':>12} | {'Filthy':>12} | {'Dirty':>12} | {'Improvement':>12}")
+    print("-" * 115)
 
     for key, name in scenarios:
         plain_ms = filthy_data["results"][key]["plain_ms"]
@@ -148,7 +149,9 @@ def run_comparison(python_version: str | None = None):
         dirty_overhead = dirty_ms - plain_ms
 
         improvement = dirty_overhead / filthy_overhead if filthy_overhead > 0 else float("inf")
-        print(f"{name:40} | {filthy_overhead:>+9.1f} ms | {dirty_overhead:>+9.1f} ms | {improvement:>10.1f}x")
+        print(
+            f"{name:40} | {plain_ms:>9.1f} ms | {filthy_overhead:>+9.1f} ms | {dirty_overhead:>+9.1f} ms | {improvement:>10.1f}x",
+        )
 
     print()
 
@@ -191,30 +194,38 @@ def run_single_benchmark(json_output: bool = False):
     PACKAGE_LABEL = "Filthy" if PACKAGE_NAME == "filthyfields" else "Dirty"
     N_INSTANCES = 10000
 
-    # Define test models with 20 fields
+    # Define test models with 20 diverse fields
     class PlainModel(models.Model):
         """Plain Django model without dirty tracking (baseline)."""
 
-        f01 = models.CharField(max_length=100, default="")
-        f02 = models.CharField(max_length=100, default="")
-        f03 = models.CharField(max_length=100, default="")
-        f04 = models.CharField(max_length=100, default="")
-        f05 = models.CharField(max_length=100, default="")
-        f06 = models.CharField(max_length=100, default="")
-        f07 = models.CharField(max_length=100, default="")
-        f08 = models.CharField(max_length=100, default="")
-        f09 = models.CharField(max_length=100, default="")
-        f10 = models.CharField(max_length=100, default="")
-        f11 = models.IntegerField(default=0)
-        f12 = models.IntegerField(default=0)
-        f13 = models.IntegerField(default=0)
-        f14 = models.IntegerField(default=0)
-        f15 = models.IntegerField(default=0)
-        f16 = models.BooleanField(default=False)
-        f17 = models.BooleanField(default=False)
-        f18 = models.BooleanField(default=False)
-        f19 = models.BooleanField(default=False)
-        f20 = models.BooleanField(default=False)
+        # CharField (4 fields)
+        char1 = models.CharField(max_length=100, default="")
+        char2 = models.CharField(max_length=100, default="")
+        char3 = models.CharField(max_length=100, default="")
+        char4 = models.CharField(max_length=100, default="")
+        # TextField (2 fields)
+        text1 = models.TextField(default="")
+        text2 = models.TextField(default="")
+        # IntegerField (3 fields)
+        int1 = models.IntegerField(default=0)
+        int2 = models.IntegerField(default=0)
+        int3 = models.IntegerField(default=0)
+        # FloatField (2 fields)
+        float1 = models.FloatField(default=0.0)
+        float2 = models.FloatField(default=0.0)
+        # DecimalField (2 fields)
+        decimal1 = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+        decimal2 = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+        # BooleanField (3 fields)
+        bool1 = models.BooleanField(default=False)
+        bool2 = models.BooleanField(default=False)
+        bool3 = models.BooleanField(default=False)
+        # DateTimeField (2 fields)
+        datetime1 = models.DateTimeField(null=True, default=None)
+        datetime2 = models.DateTimeField(null=True, default=None)
+        # JSONField (2 fields)
+        json1 = models.JSONField(default=dict)
+        json2 = models.JSONField(default=dict)
 
         class Meta:
             app_label = "benchmark"
@@ -222,26 +233,34 @@ def run_single_benchmark(json_output: bool = False):
     class DirtyModel(DirtyFieldsMixin, models.Model):
         """Model using DirtyFieldsMixin (whichever package is installed)."""
 
-        f01 = models.CharField(max_length=100, default="")
-        f02 = models.CharField(max_length=100, default="")
-        f03 = models.CharField(max_length=100, default="")
-        f04 = models.CharField(max_length=100, default="")
-        f05 = models.CharField(max_length=100, default="")
-        f06 = models.CharField(max_length=100, default="")
-        f07 = models.CharField(max_length=100, default="")
-        f08 = models.CharField(max_length=100, default="")
-        f09 = models.CharField(max_length=100, default="")
-        f10 = models.CharField(max_length=100, default="")
-        f11 = models.IntegerField(default=0)
-        f12 = models.IntegerField(default=0)
-        f13 = models.IntegerField(default=0)
-        f14 = models.IntegerField(default=0)
-        f15 = models.IntegerField(default=0)
-        f16 = models.BooleanField(default=False)
-        f17 = models.BooleanField(default=False)
-        f18 = models.BooleanField(default=False)
-        f19 = models.BooleanField(default=False)
-        f20 = models.BooleanField(default=False)
+        # CharField (4 fields)
+        char1 = models.CharField(max_length=100, default="")
+        char2 = models.CharField(max_length=100, default="")
+        char3 = models.CharField(max_length=100, default="")
+        char4 = models.CharField(max_length=100, default="")
+        # TextField (2 fields)
+        text1 = models.TextField(default="")
+        text2 = models.TextField(default="")
+        # IntegerField (3 fields)
+        int1 = models.IntegerField(default=0)
+        int2 = models.IntegerField(default=0)
+        int3 = models.IntegerField(default=0)
+        # FloatField (2 fields)
+        float1 = models.FloatField(default=0.0)
+        float2 = models.FloatField(default=0.0)
+        # DecimalField (2 fields)
+        decimal1 = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+        decimal2 = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+        # BooleanField (3 fields)
+        bool1 = models.BooleanField(default=False)
+        bool2 = models.BooleanField(default=False)
+        bool3 = models.BooleanField(default=False)
+        # DateTimeField (2 fields)
+        datetime1 = models.DateTimeField(null=True, default=None)
+        datetime2 = models.DateTimeField(null=True, default=None)
+        # JSONField (2 fields)
+        json1 = models.JSONField(default=dict)
+        json2 = models.JSONField(default=dict)
 
         class Meta:
             app_label = "benchmark"
@@ -284,35 +303,40 @@ def run_single_benchmark(json_output: bool = False):
 
     def setup_database():
         """Create tables and populate with test data."""
+        from datetime import datetime
+        from decimal import Decimal
+
         with connection.schema_editor() as schema_editor:
             schema_editor.create_model(PlainModel)
             schema_editor.create_model(DirtyModel)
+
+        base_dt = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
 
         # Create test instances
         for model_cls in (PlainModel, DirtyModel):
             model_cls.objects.bulk_create(
                 [
                     model_cls(
-                        f01=f"val{i}",
-                        f02=f"val{i}",
-                        f03=f"val{i}",
-                        f04=f"val{i}",
-                        f05=f"val{i}",
-                        f06=f"val{i}",
-                        f07=f"val{i}",
-                        f08=f"val{i}",
-                        f09=f"val{i}",
-                        f10=f"val{i}",
-                        f11=i,
-                        f12=i,
-                        f13=i,
-                        f14=i,
-                        f15=i,
-                        f16=i % 2 == 0,
-                        f17=i % 3 == 0,
-                        f18=i % 5 == 0,
-                        f19=i % 7 == 0,
-                        f20=i % 11 == 0,
+                        char1=f"val{i}",
+                        char2=f"val{i}",
+                        char3=f"val{i}",
+                        char4=f"val{i}",
+                        text1=f"long text value {i}",
+                        text2=f"another text {i}",
+                        int1=i,
+                        int2=i * 2,
+                        int3=i * 3,
+                        float1=float(i) * 1.5,
+                        float2=float(i) * 2.5,
+                        decimal1=Decimal(f"{i}.99"),
+                        decimal2=Decimal(f"{i * 2}.50"),
+                        bool1=i % 2 == 0,
+                        bool2=i % 3 == 0,
+                        bool3=i % 5 == 0,
+                        datetime1=base_dt,
+                        datetime2=base_dt,
+                        json1={"key": i},
+                        json2={"nested": {"value": i}},
                     )
                     for i in range(N_INSTANCES)
                 ],
@@ -320,225 +344,241 @@ def run_single_benchmark(json_output: bool = False):
 
     # Scenario 1: Load with .only(1 field), read that field
     def bench_only1_read1_plain():
-        instances = list(PlainModel.objects.only("f01"))
+        instances = list(PlainModel.objects.only("char1"))
         for inst in instances:
-            _ = inst.f01
+            _ = inst.char1
 
     def bench_only1_read1_dirty():
-        instances = list(DirtyModel.objects.only("f01"))
+        instances = list(DirtyModel.objects.only("char1"))
         for inst in instances:
-            _ = inst.f01
+            _ = inst.char1
 
     # Scenario 2: Load all 20 fields, read all 20 fields
     def bench_all_read20_plain():
         instances = list(PlainModel.objects.all())
         for inst in instances:
-            _ = inst.f01
-            _ = inst.f02
-            _ = inst.f03
-            _ = inst.f04
-            _ = inst.f05
-            _ = inst.f06
-            _ = inst.f07
-            _ = inst.f08
-            _ = inst.f09
-            _ = inst.f10
-            _ = inst.f11
-            _ = inst.f12
-            _ = inst.f13
-            _ = inst.f14
-            _ = inst.f15
-            _ = inst.f16
-            _ = inst.f17
-            _ = inst.f18
-            _ = inst.f19
-            _ = inst.f20
+            _ = inst.char1
+            _ = inst.char2
+            _ = inst.char3
+            _ = inst.char4
+            _ = inst.text1
+            _ = inst.text2
+            _ = inst.int1
+            _ = inst.int2
+            _ = inst.int3
+            _ = inst.float1
+            _ = inst.float2
+            _ = inst.decimal1
+            _ = inst.decimal2
+            _ = inst.bool1
+            _ = inst.bool2
+            _ = inst.bool3
+            _ = inst.datetime1
+            _ = inst.datetime2
+            _ = inst.json1
+            _ = inst.json2
 
     def bench_all_read20_dirty():
         instances = list(DirtyModel.objects.all())
         for inst in instances:
-            _ = inst.f01
-            _ = inst.f02
-            _ = inst.f03
-            _ = inst.f04
-            _ = inst.f05
-            _ = inst.f06
-            _ = inst.f07
-            _ = inst.f08
-            _ = inst.f09
-            _ = inst.f10
-            _ = inst.f11
-            _ = inst.f12
-            _ = inst.f13
-            _ = inst.f14
-            _ = inst.f15
-            _ = inst.f16
-            _ = inst.f17
-            _ = inst.f18
-            _ = inst.f19
-            _ = inst.f20
+            _ = inst.char1
+            _ = inst.char2
+            _ = inst.char3
+            _ = inst.char4
+            _ = inst.text1
+            _ = inst.text2
+            _ = inst.int1
+            _ = inst.int2
+            _ = inst.int3
+            _ = inst.float1
+            _ = inst.float2
+            _ = inst.decimal1
+            _ = inst.decimal2
+            _ = inst.bool1
+            _ = inst.bool2
+            _ = inst.bool3
+            _ = inst.datetime1
+            _ = inst.datetime2
+            _ = inst.json1
+            _ = inst.json2
 
     # Scenario 3: Load with .only(1 field), write that field
     def bench_only1_write1_plain():
-        instances = list(PlainModel.objects.only("f01"))
+        instances = list(PlainModel.objects.only("char1"))
         for inst in instances:
-            inst.f01 = "changed"
+            inst.char1 = "changed"
 
     def bench_only1_write1_dirty():
-        instances = list(DirtyModel.objects.only("f01"))
+        instances = list(DirtyModel.objects.only("char1"))
         for inst in instances:
-            inst.f01 = "changed"
+            inst.char1 = "changed"
 
     # Scenario 4: Load all 20 fields, write all 20 fields
     def bench_all_write20_plain():
+        from datetime import datetime
+        from decimal import Decimal
+
+        new_dt = datetime(2025, 6, 15, 10, 30, 0, tzinfo=UTC)
         instances = list(PlainModel.objects.all())
         for inst in instances:
-            inst.f01 = "new"
-            inst.f02 = "new"
-            inst.f03 = "new"
-            inst.f04 = "new"
-            inst.f05 = "new"
-            inst.f06 = "new"
-            inst.f07 = "new"
-            inst.f08 = "new"
-            inst.f09 = "new"
-            inst.f10 = "new"
-            inst.f11 = 999
-            inst.f12 = 999
-            inst.f13 = 999
-            inst.f14 = 999
-            inst.f15 = 999
-            inst.f16 = True
-            inst.f17 = True
-            inst.f18 = True
-            inst.f19 = True
-            inst.f20 = True
+            inst.char1 = "new"
+            inst.char2 = "new"
+            inst.char3 = "new"
+            inst.char4 = "new"
+            inst.text1 = "new long text"
+            inst.text2 = "new text"
+            inst.int1 = 999
+            inst.int2 = 999
+            inst.int3 = 999
+            inst.float1 = 99.9
+            inst.float2 = 99.9
+            inst.decimal1 = Decimal("99.99")
+            inst.decimal2 = Decimal("99.99")
+            inst.bool1 = True
+            inst.bool2 = True
+            inst.bool3 = True
+            inst.datetime1 = new_dt
+            inst.datetime2 = new_dt
+            inst.json1 = {"new": True}
+            inst.json2 = {"new": True}
 
     def bench_all_write20_dirty():
+        from datetime import datetime
+        from decimal import Decimal
+
+        new_dt = datetime(2025, 6, 15, 10, 30, 0, tzinfo=UTC)
         instances = list(DirtyModel.objects.all())
         for inst in instances:
-            inst.f01 = "new"
-            inst.f02 = "new"
-            inst.f03 = "new"
-            inst.f04 = "new"
-            inst.f05 = "new"
-            inst.f06 = "new"
-            inst.f07 = "new"
-            inst.f08 = "new"
-            inst.f09 = "new"
-            inst.f10 = "new"
-            inst.f11 = 999
-            inst.f12 = 999
-            inst.f13 = 999
-            inst.f14 = 999
-            inst.f15 = 999
-            inst.f16 = True
-            inst.f17 = True
-            inst.f18 = True
-            inst.f19 = True
-            inst.f20 = True
+            inst.char1 = "new"
+            inst.char2 = "new"
+            inst.char3 = "new"
+            inst.char4 = "new"
+            inst.text1 = "new long text"
+            inst.text2 = "new text"
+            inst.int1 = 999
+            inst.int2 = 999
+            inst.int3 = 999
+            inst.float1 = 99.9
+            inst.float2 = 99.9
+            inst.decimal1 = Decimal("99.99")
+            inst.decimal2 = Decimal("99.99")
+            inst.bool1 = True
+            inst.bool2 = True
+            inst.bool3 = True
+            inst.datetime1 = new_dt
+            inst.datetime2 = new_dt
+            inst.json1 = {"new": True}
+            inst.json2 = {"new": True}
 
     # Scenario 5: Load with .only(1 field), read+write that field
     def bench_only1_readwrite1_plain():
-        instances = list(PlainModel.objects.only("f01"))
+        instances = list(PlainModel.objects.only("char1"))
         for inst in instances:
-            _ = inst.f01
-            inst.f01 = "changed"
+            _ = inst.char1
+            inst.char1 = "changed"
 
     def bench_only1_readwrite1_dirty():
-        instances = list(DirtyModel.objects.only("f01"))
+        instances = list(DirtyModel.objects.only("char1"))
         for inst in instances:
-            _ = inst.f01
-            inst.f01 = "changed"
+            _ = inst.char1
+            inst.char1 = "changed"
 
     # Scenario 6: Load all 20 fields, read+write all 20 fields
     def bench_all_readwrite20_plain():
+        from datetime import datetime
+        from decimal import Decimal
+
+        new_dt = datetime(2025, 6, 15, 10, 30, 0, tzinfo=UTC)
         instances = list(PlainModel.objects.all())
         for inst in instances:
-            _ = inst.f01
-            _ = inst.f02
-            _ = inst.f03
-            _ = inst.f04
-            _ = inst.f05
-            _ = inst.f06
-            _ = inst.f07
-            _ = inst.f08
-            _ = inst.f09
-            _ = inst.f10
-            _ = inst.f11
-            _ = inst.f12
-            _ = inst.f13
-            _ = inst.f14
-            _ = inst.f15
-            _ = inst.f16
-            _ = inst.f17
-            _ = inst.f18
-            _ = inst.f19
-            _ = inst.f20
-            inst.f01 = "new"
-            inst.f02 = "new"
-            inst.f03 = "new"
-            inst.f04 = "new"
-            inst.f05 = "new"
-            inst.f06 = "new"
-            inst.f07 = "new"
-            inst.f08 = "new"
-            inst.f09 = "new"
-            inst.f10 = "new"
-            inst.f11 = 999
-            inst.f12 = 999
-            inst.f13 = 999
-            inst.f14 = 999
-            inst.f15 = 999
-            inst.f16 = True
-            inst.f17 = True
-            inst.f18 = True
-            inst.f19 = True
-            inst.f20 = True
+            _ = inst.char1
+            _ = inst.char2
+            _ = inst.char3
+            _ = inst.char4
+            _ = inst.text1
+            _ = inst.text2
+            _ = inst.int1
+            _ = inst.int2
+            _ = inst.int3
+            _ = inst.float1
+            _ = inst.float2
+            _ = inst.decimal1
+            _ = inst.decimal2
+            _ = inst.bool1
+            _ = inst.bool2
+            _ = inst.bool3
+            _ = inst.datetime1
+            _ = inst.datetime2
+            _ = inst.json1
+            _ = inst.json2
+            inst.char1 = "new"
+            inst.char2 = "new"
+            inst.char3 = "new"
+            inst.char4 = "new"
+            inst.text1 = "new long text"
+            inst.text2 = "new text"
+            inst.int1 = 999
+            inst.int2 = 999
+            inst.int3 = 999
+            inst.float1 = 99.9
+            inst.float2 = 99.9
+            inst.decimal1 = Decimal("99.99")
+            inst.decimal2 = Decimal("99.99")
+            inst.bool1 = True
+            inst.bool2 = True
+            inst.bool3 = True
+            inst.datetime1 = new_dt
+            inst.datetime2 = new_dt
+            inst.json1 = {"new": True}
+            inst.json2 = {"new": True}
 
     def bench_all_readwrite20_dirty():
+        from datetime import datetime
+        from decimal import Decimal
+
+        new_dt = datetime(2025, 6, 15, 10, 30, 0, tzinfo=UTC)
         instances = list(DirtyModel.objects.all())
         for inst in instances:
-            _ = inst.f01
-            _ = inst.f02
-            _ = inst.f03
-            _ = inst.f04
-            _ = inst.f05
-            _ = inst.f06
-            _ = inst.f07
-            _ = inst.f08
-            _ = inst.f09
-            _ = inst.f10
-            _ = inst.f11
-            _ = inst.f12
-            _ = inst.f13
-            _ = inst.f14
-            _ = inst.f15
-            _ = inst.f16
-            _ = inst.f17
-            _ = inst.f18
-            _ = inst.f19
-            _ = inst.f20
-            inst.f01 = "new"
-            inst.f02 = "new"
-            inst.f03 = "new"
-            inst.f04 = "new"
-            inst.f05 = "new"
-            inst.f06 = "new"
-            inst.f07 = "new"
-            inst.f08 = "new"
-            inst.f09 = "new"
-            inst.f10 = "new"
-            inst.f11 = 999
-            inst.f12 = 999
-            inst.f13 = 999
-            inst.f14 = 999
-            inst.f15 = 999
-            inst.f16 = True
-            inst.f17 = True
-            inst.f18 = True
-            inst.f19 = True
-            inst.f20 = True
+            _ = inst.char1
+            _ = inst.char2
+            _ = inst.char3
+            _ = inst.char4
+            _ = inst.text1
+            _ = inst.text2
+            _ = inst.int1
+            _ = inst.int2
+            _ = inst.int3
+            _ = inst.float1
+            _ = inst.float2
+            _ = inst.decimal1
+            _ = inst.decimal2
+            _ = inst.bool1
+            _ = inst.bool2
+            _ = inst.bool3
+            _ = inst.datetime1
+            _ = inst.datetime2
+            _ = inst.json1
+            _ = inst.json2
+            inst.char1 = "new"
+            inst.char2 = "new"
+            inst.char3 = "new"
+            inst.char4 = "new"
+            inst.text1 = "new long text"
+            inst.text2 = "new text"
+            inst.int1 = 999
+            inst.int2 = 999
+            inst.int3 = 999
+            inst.float1 = 99.9
+            inst.float2 = 99.9
+            inst.decimal1 = Decimal("99.99")
+            inst.decimal2 = Decimal("99.99")
+            inst.bool1 = True
+            inst.bool2 = True
+            inst.bool3 = True
+            inst.datetime1 = new_dt
+            inst.datetime2 = new_dt
+            inst.json1 = {"new": True}
+            inst.json2 = {"new": True}
 
     def format_result(name, dirty_stats, plain_stats):
         """Format benchmark results for display."""
