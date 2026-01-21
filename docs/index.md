@@ -21,14 +21,18 @@ This fork uses **lazy descriptor-based tracking**, which for typical use-cases w
 
 ### Benchmark Results
 
-Overhead vs plain Django models (10,000 instances, 20 fields each):
+Performance comparison on Python 3.14 (10,000 instances, 20 fields each):
 
-| Scenario                           | filthyfields | dirtyfields |
-|------------------------------------|--------------|-------------|
-| `.only(1 field)` + read 1 field    | +7 ms        | +128 ms     |
-| Fetch 20 fields + read 20 fields   | +53 ms       | +225 ms     |
-| `.only(1 field)` + write 1 field   | +10 ms       | +126 ms     |
-| Fetch 20 fields + write 20 fields  | +121 ms      | +227 ms     |
+| Scenario                              | Plain   | filthyfields | dirtyfields |
+|---------------------------------------|---------|--------------|-------------|
+| `.only(1 field)` + read 1 field       | 35 ms   | 41 ms (+6)   | 151 ms (+116) |
+| Load 20 fields + read 20 fields       | 58 ms   | 110 ms (+52) | 244 ms (+186) |
+| `.only(1 field)` + write 1 field      | 35 ms   | 47 ms (+12)  | 153 ms (+118) |
+| Load 20 fields + write 20 fields      | 55 ms   | 202 ms (+147)| 244 ms (+189) |
+| `.only(1 field)` + read+write 1 field | 35 ms   | 47 ms (+12)  | 152 ms (+117) |
+| Load 20 fields + read+write 20 fields | 60 ms   | 223 ms (+163)| 243 ms (+183) |
+
+Run the benchmark yourself: `uv run python tests/benchmark.py --compare`
 
 ## Versioning
 
