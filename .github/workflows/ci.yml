@@ -28,6 +28,9 @@ jobs:
       - name: Run ty check
         run: uv run ty check src/
 
+      - name: Run mypy check
+        run: uv run mypy src/
+
   test:
     runs-on: ubuntu-latest
     strategy:

@@ -9,13 +9,13 @@ Scenarios tested:
 6. Load 10k rows (20 fields), read+write all 20 fields
 
 Run with django-filthyfields (this package):
-    uv run python tests/benchmark.py
+    uv run python benchmarks/benchmark.py
 
 Run comparison between both implementations:
-    uv run python tests/benchmark.py --compare
+    uv run python benchmarks/benchmark.py --compare
 
 Run with JSON output:
-    uv run python tests/benchmark.py --json
+    uv run python benchmarks/benchmark.py --json
 """
 
 import argparse
@@ -50,7 +50,7 @@ def run_comparison(python_version: str | None = None):
     filthy_cmd = ["uv", "run"]
     if python_version:
         filthy_cmd.extend(["--python", python_version])
-    filthy_cmd.extend(["python", "tests/benchmark.py", "--json"])
+    filthy_cmd.extend(["python", "benchmarks/benchmark.py", "--json"])
 
     filthy_result = subprocess.run(  # noqa: S603
         filthy_cmd,
@@ -89,7 +89,7 @@ def run_comparison(python_version: str | None = None):
     print("Running upstream django-dirtyfields benchmark...")
     upstream_python = upstream_venv / "bin" / "python"
     upstream_result = subprocess.run(  # noqa: S603
-        [str(upstream_python), "tests/benchmark.py", "--json"],
+        [str(upstream_python), "benchmarks/benchmark.py", "--json"],
         capture_output=True,
         text=True,
         cwd=project_root,
@@ -166,7 +166,7 @@ def run_single_benchmark(json_output: bool = False):
         sys.path.insert(0, str(project_root / "src"))
 
     # Setup Django before importing models
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.benchmark_settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "benchmarks.settings")
 
     import django
 
@@ -686,7 +686,7 @@ def run_single_benchmark(json_output: bool = False):
             print("  - Only tracks fields that actually change")
             print()
             print("To compare with django-dirtyfields, run:")
-            print("  uv run python tests/benchmark.py --compare")
+            print("  uv run python benchmarks/benchmark.py --compare")
         else:
             print("django-dirtyfields uses signal-based tracking:")
             print("  - post_init signal copies ALL field values on every model load")
@@ -694,7 +694,7 @@ def run_single_benchmark(json_output: bool = False):
             print("  - post_save signal resets state after save")
             print()
             print("To compare with django-filthyfields, run:")
-            print("  uv run python tests/benchmark.py --compare")
+            print("  uv run python benchmarks/benchmark.py --compare")
         print()
 
 

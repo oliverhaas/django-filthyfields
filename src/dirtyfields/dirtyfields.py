@@ -123,12 +123,12 @@ class _DiffDescriptor(DeferredAttribute):
         """Compare values using to_python for consistent type conversion."""
         # Fast path: same type and value, no conversion needed
         if type(val1) is type(val2):
-            return val1 == val2
+            return bool(val1 == val2)
         # Slow path: different types, need to_python for normalization
         try:
-            return self._field.to_python(val1) == self._field.to_python(val2)
+            return bool(self._field.to_python(val1) == self._field.to_python(val2))
         except (ValidationError, TypeError, ValueError):
-            return val1 == val2
+            return bool(val1 == val2)
 
     def __get__(self, instance: models.Model | None, cls: type[models.Model] | None = None) -> Any:
         if instance is None:
@@ -172,8 +172,8 @@ class _DiffDescriptor(DeferredAttribute):
         if self._values_equal(value, old):
             return
 
-        if self._is_relation and self._field.is_cached(instance):  # ty: ignore[possibly-missing-attribute]
-            self._field.delete_cached_value(instance)  # ty: ignore[possibly-missing-attribute]
+        if self._is_relation and self._field.is_cached(instance):  # type: ignore[attr-defined]
+            self._field.delete_cached_value(instance)  # type: ignore[attr-defined]
 
         diff = d.setdefault("_state_diff", {})
 
@@ -202,29 +202,29 @@ class _FileDiffDescriptor(FileDescriptor):
         # Wrap the FieldFile's save and delete methods to track changes
         # Note: empty FieldFile is falsy, so we check 'is not None' instead of 'if file'
         # We're monkey-patching the FieldFile at runtime to intercept save/delete
-        # ty doesn't understand that file is always FieldFile when instance is not None
+        # Type checkers don't understand that file is always FieldFile when instance is not None
         if file is not None and not getattr(file, "_dirty_wrapped", False):
-            original_save = file.save  # ty: ignore[possibly-missing-attribute]
-            original_delete = file.delete  # ty: ignore[possibly-missing-attribute]
+            original_save = file.save  # type: ignore[union-attr]
+            original_delete = file.delete  # type: ignore[union-attr]
             field_name = self.field.name
             inst = instance  # Capture for closure with narrowed type
 
             def tracked_save(name: str, content: File[Any], save: bool = True) -> None:
-                old_name = file.name or ""  # ty: ignore[possibly-missing-attribute]
+                old_name = file.name or ""  # type: ignore[union-attr]
                 original_save(name, content, save=save)
-                new_name = file.name or ""  # ty: ignore[possibly-missing-attribute]
+                new_name = file.name or ""  # type: ignore[union-attr]
                 if not inst._state.adding:
                     _track_file_change(inst, field_name, old_name, new_name)
 
             def tracked_delete(save: bool = True) -> None:
-                old_name = file.name or ""  # ty: ignore[possibly-missing-attribute]
+                old_name = file.name or ""  # type: ignore[union-attr]
                 original_delete(save=save)
                 if not inst._state.adding:
                     _track_file_change(inst, field_name, old_name, "")
 
-            file.save = tracked_save  # ty: ignore[invalid-assignment]
-            file.delete = tracked_delete  # ty: ignore[invalid-assignment]
-            file._dirty_wrapped = True  # ty: ignore[invalid-assignment]
+            file.save = tracked_save  # type: ignore[method-assign,union-attr]
+            file.delete = tracked_delete  # type: ignore[method-assign,union-attr]
+            file._dirty_wrapped = True  # type: ignore[union-attr]
 
         return file
 
@@ -246,10 +246,10 @@ class _FileDiffDescriptor(FileDescriptor):
 
         if should_track:
             old = d[attname]
-            old_normalized = old.name if isinstance(old, File) else (old or "")
-            new_normalized = value.name if isinstance(value, File) else (value or "")
+            old_normalized = (old.name or "") if isinstance(old, File) else (old or "")
+            new_normalized = (value.name or "") if isinstance(value, File) else (value or "")
 
-            _track_file_change(instance, field_name, old_normalized, new_normalized)
+            _track_file_change(instance, field_name, str(old_normalized), str(new_normalized))
 
         super().__set__(instance, value)
 
