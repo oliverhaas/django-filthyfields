@@ -3,6 +3,7 @@ import pytest
 from django.db import DatabaseError, transaction
 
 import dirtyfields
+from dirtyfields import capture_dirty_state, reset_dirty_state
 from tests.models import (
     FileFieldModel,
     ModelTest,
@@ -456,3 +457,83 @@ def test_both_fields_to_check_and_exclude_raises_error():
     # Changing a field should trigger the error on descriptor access
     with pytest.raises(ValueError, match="Cannot use both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE"):
         tm.boolean1 = False
+
+
+# Bulk operation helper tests
+
+
+@pytest.mark.django_db
+def test_capture_and_reset_dirty_state_with_bulk_update():
+    """Test capture_dirty_state and reset_dirty_state with bulk_update."""
+    # Create some instances
+    instances = [ModelTest.objects.create(characters=f"obj{i}") for i in range(3)]
+
+    # Modify them
+    for i, obj in enumerate(instances):
+        obj.characters = f"modified{i}"
+
+    # Verify they're dirty
+    assert all(obj.is_dirty() for obj in instances)
+
+    # Capture dirty state before bulk update
+    capture_dirty_state(instances)
+
+    # Perform bulk update
+    ModelTest.objects.bulk_update(instances, ["characters"])
+
+    # Reset dirty state after bulk update
+    reset_dirty_state(instances)
+
+    # Verify they're no longer dirty
+    assert all(not obj.is_dirty() for obj in instances)
+
+    # Verify was_dirty works
+    assert all(obj.was_dirty() for obj in instances)
+    assert all(obj.get_was_dirty_fields() == {"characters": f"obj{i}"} for i, obj in enumerate(instances))
+
+
+@pytest.mark.django_db
+def test_reset_dirty_state_with_specific_fields():
+    """Test reset_dirty_state with specific fields only."""
+    tm = ModelTest.objects.create(boolean=True, characters="original")
+
+    # Modify both fields
+    tm.boolean = False
+    tm.characters = "modified"
+
+    assert tm.get_dirty_fields() == {"boolean": True, "characters": "original"}
+
+    # Reset only the characters field
+    reset_dirty_state([tm], fields=["characters"])
+
+    # boolean should still be dirty, characters should not
+    assert tm.get_dirty_fields() == {"boolean": True}
+
+
+@pytest.mark.django_db
+def test_capture_dirty_state_empty_list():
+    """Test capture_dirty_state with empty list doesn't error."""
+    capture_dirty_state([])  # Should not raise
+
+
+@pytest.mark.django_db
+def test_reset_dirty_state_empty_list():
+    """Test reset_dirty_state with empty list doesn't error."""
+    reset_dirty_state([])  # Should not raise
+
+
+@pytest.mark.django_db
+def test_bulk_helpers_with_generator():
+    """Test that bulk helpers work with generators/iterables."""
+    instances = [ModelTest.objects.create(characters=f"obj{i}") for i in range(3)]
+
+    for obj in instances:
+        obj.characters = "modified"
+
+    # Use generator expression
+    capture_dirty_state(obj for obj in instances)
+    ModelTest.objects.bulk_update(instances, ["characters"])
+    reset_dirty_state(obj for obj in instances)
+
+    # Verify reset worked (note: generators are exhausted, so we check instances directly)
+    assert all(not obj.is_dirty() for obj in instances)

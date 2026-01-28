@@ -323,6 +323,68 @@ class MyModel(DirtyFieldsMixin, models.Model):
 
 ---
 
+## Bulk Operation Helpers
+
+These functions help track dirty state when using bulk operations like `bulk_update()`, which bypass the model's `save()` method.
+
+### `capture_dirty_state(instances)`
+
+Capture current dirty state for multiple instances before a bulk operation.
+
+Call this before `bulk_update()` to preserve the dirty state for later inspection via `was_dirty()` / `get_was_dirty_fields()`.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `instances` | `Iterable[DirtyFieldsMixin]` | Model instances to capture state for |
+
+**Returns:** `None`
+
+---
+
+### `reset_dirty_state(instances, fields=None)`
+
+Reset dirty tracking state for multiple instances after a bulk operation.
+
+Call this after `bulk_update()` to clear the dirty state, indicating that changes have been persisted.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `instances` | `Iterable[DirtyFieldsMixin]` | - | Model instances to reset state for |
+| `fields` | `Iterable[str] \| None` | `None` | If provided, only reset these specific fields. Otherwise reset all. |
+
+**Returns:** `None`
+
+**Example:**
+
+```python
+from dirtyfields import capture_dirty_state, reset_dirty_state
+
+# Modify instances
+instances = list(MyModel.objects.filter(status='pending'))
+for obj in instances:
+    obj.status = 'processed'
+
+# Capture state before bulk update
+capture_dirty_state(instances)
+
+# Perform bulk update
+MyModel.objects.bulk_update(instances, ['status'])
+
+# Reset state after bulk update
+reset_dirty_state(instances)
+
+# Now you can check what was changed
+for obj in instances:
+    if obj.was_dirty():
+        print(f"Object {obj.pk} had changes: {obj.get_was_dirty_fields()}")
+```
+
+---
+
 ## Module Info
 
 ### `__version__`

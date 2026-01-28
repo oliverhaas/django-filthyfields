@@ -74,7 +74,7 @@ Roadmap and improvement tracker for the django-filthyfields package.
 
 ### High Priority
 
-- [ ] **Bulk operations**: Add tests for `bulk_create()`, `bulk_update()`, `QuerySet.update()`.
+- [x] **Bulk operations** (2026-01-28): Added `capture_dirty_state()` and `reset_dirty_state()` helper functions for bulk operations. `QuerySet.update()` bypasses models entirely (documented limitation).
 
 - [ ] **Custom storage backends**: Test file field tracking with custom storage classes (S3, etc).
 

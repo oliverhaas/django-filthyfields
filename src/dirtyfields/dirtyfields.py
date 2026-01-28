@@ -585,3 +585,57 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         else:
             dirty_fields = self.get_dirty_fields(check_relationship=True)
             self.save(update_fields=dirty_fields.keys())
+
+
+# Standalone helper functions for bulk operations
+
+
+def capture_dirty_state(instances: Iterable[DirtyFieldsMixin]) -> None:
+    """Capture current dirty state for multiple instances before a bulk operation.
+
+    Call this before bulk_update() or similar operations to preserve the
+    dirty state for later inspection via was_dirty() / get_was_dirty_fields().
+
+    Args:
+        instances: Iterable of model instances with DirtyFieldsMixin
+
+    Example:
+        >>> instances = list(MyModel.objects.filter(status='pending'))
+        >>> for obj in instances:
+        ...     obj.status = 'processed'
+        >>> capture_dirty_state(instances)
+        >>> MyModel.objects.bulk_update(instances, ['status'])
+        >>> reset_dirty_state(instances)
+        >>> instances[0].was_dirty()
+        True
+    """
+    for instance in instances:
+        instance._dirty_capture_was_dirty()
+
+
+def reset_dirty_state(
+    instances: Iterable[DirtyFieldsMixin],
+    fields: Iterable[str] | None = None,
+) -> None:
+    """Reset dirty tracking state for multiple instances after a bulk operation.
+
+    Call this after bulk_update() or similar operations to clear the dirty
+    state, indicating that changes have been persisted.
+
+    Args:
+        instances: Iterable of model instances with DirtyFieldsMixin
+        fields: If provided, only reset these specific fields. Otherwise reset all.
+
+    Example:
+        >>> instances = list(MyModel.objects.filter(status='pending'))
+        >>> for obj in instances:
+        ...     obj.status = 'processed'
+        >>> capture_dirty_state(instances)
+        >>> MyModel.objects.bulk_update(instances, ['status'])
+        >>> reset_dirty_state(instances)
+        >>> instances[0].is_dirty()
+        False
+    """
+    field_list = list(fields) if fields is not None else None
+    for instance in instances:
+        instance._dirty_reset_state(fields=field_list)

@@ -124,6 +124,39 @@ obj.status = 'completed'
 obj.save_dirty_fields()  # Only updates 'status'
 ```
 
+### Bulk Operations
+
+Django's `bulk_update()` and `bulk_create()` bypass the model's `save()` method, so dirty tracking doesn't happen automatically. Use the helper functions to manually manage dirty state:
+
+```python
+from dirtyfields import capture_dirty_state, reset_dirty_state
+
+# Modify multiple instances
+instances = list(MyModel.objects.filter(status='pending'))
+for obj in instances:
+    obj.status = 'processed'
+
+# Capture dirty state before bulk operation
+capture_dirty_state(instances)
+
+# Perform bulk update (bypasses save())
+MyModel.objects.bulk_update(instances, ['status'])
+
+# Reset dirty state after bulk operation
+reset_dirty_state(instances)
+
+# Now instances are clean, but was_dirty() still works
+for obj in instances:
+    print(f"{obj.pk} was dirty: {obj.was_dirty()}")
+```
+
+You can also reset only specific fields:
+
+```python
+# Only reset the 'status' field, keep other fields dirty
+reset_dirty_state(instances, fields=['status'])
+```
+
 ## Transaction Limitations
 
 !!! warning "Rollback Behavior"
