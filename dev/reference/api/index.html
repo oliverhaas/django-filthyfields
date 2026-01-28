@@ -852,6 +852,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#bulk-operation-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bulk Operation Helpers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bulk Operation Helpers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#capture_dirty_stateinstances" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        capture_dirty_state(instances)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset_dirty_stateinstances-fieldsnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reset_dirty_state(instances, fields=None)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#module-info" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1149,6 +1188,45 @@
     <span class="md-ellipsis">
       
         timezone_support_compare(new_value, old_value, timezone_to_set=UTC)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bulk-operation-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bulk Operation Helpers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bulk Operation Helpers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#capture_dirty_stateinstances" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        capture_dirty_state(instances)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset_dirty_stateinstances-fieldsnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reset_dirty_state(instances, fields=None)
       
     </span>
   </a>
@@ -1533,12 +1611,88 @@
 <a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="n">updated_at</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">()</span>
 </code></pre></div>
 <hr />
+<h2 id="bulk-operation-helpers">Bulk Operation Helpers<a class="headerlink" href="#bulk-operation-helpers" title="Permanent link">&para;</a></h2>
+<p>These functions help track dirty state when using bulk operations like <code>bulk_update()</code>, which bypass the model's <code>save()</code> method.</p>
+<h3 id="capture_dirty_stateinstances"><code>capture_dirty_state(instances)</code><a class="headerlink" href="#capture_dirty_stateinstances" title="Permanent link">&para;</a></h3>
+<p>Capture current dirty state for multiple instances before a bulk operation.</p>
+<p>Call this before <code>bulk_update()</code> to preserve the dirty state for later inspection via <code>was_dirty()</code> / <code>get_was_dirty_fields()</code>.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>instances</code></td>
+<td><code>Iterable[DirtyFieldsMixin]</code></td>
+<td>Model instances to capture state for</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>None</code></p>
+<hr />
+<h3 id="reset_dirty_stateinstances-fieldsnone"><code>reset_dirty_state(instances, fields=None)</code><a class="headerlink" href="#reset_dirty_stateinstances-fieldsnone" title="Permanent link">&para;</a></h3>
+<p>Reset dirty tracking state for multiple instances after a bulk operation.</p>
+<p>Call this after <code>bulk_update()</code> to clear the dirty state, indicating that changes have been persisted.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>instances</code></td>
+<td><code>Iterable[DirtyFieldsMixin]</code></td>
+<td>-</td>
+<td>Model instances to reset state for</td>
+</tr>
+<tr>
+<td><code>fields</code></td>
+<td><code>Iterable[str] \| None</code></td>
+<td><code>None</code></td>
+<td>If provided, only reset these specific fields. Otherwise reset all.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>None</code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dirtyfields</span><span class="w"> </span><span class="kn">import</span> <span class="n">capture_dirty_state</span><span class="p">,</span> <span class="n">reset_dirty_state</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="c1"># Modify instances</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="n">instances</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">MyModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="s1">&#39;pending&#39;</span><span class="p">))</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">instances</span><span class="p">:</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="n">obj</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;processed&#39;</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="c1"># Capture state before bulk update</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="n">capture_dirty_state</span><span class="p">(</span><span class="n">instances</span><span class="p">)</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="c1"># Perform bulk update</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="n">MyModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">bulk_update</span><span class="p">(</span><span class="n">instances</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">])</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="c1"># Reset state after bulk update</span>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="n">reset_dirty_state</span><span class="p">(</span><span class="n">instances</span><span class="p">)</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="c1"># Now you can check what was changed</span>
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">instances</span><span class="p">:</span>
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>    <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">was_dirty</span><span class="p">():</span>
+<a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Object </span><span class="si">{</span><span class="n">obj</span><span class="o">.</span><span class="n">pk</span><span class="si">}</span><span class="s2"> had changes: </span><span class="si">{</span><span class="n">obj</span><span class="o">.</span><span class="n">get_was_dirty_fields</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
 <h2 id="module-info">Module Info<a class="headerlink" href="#module-info" title="Permanent link">&para;</a></h2>
 <h3 id="__version__"><code>__version__</code><a class="headerlink" href="#__version__" title="Permanent link">&para;</a></h3>
 <p>The package version string.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span><span class="w"> </span><span class="nn">dirtyfields</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">__version__</span>
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="s1">&#39;1.0.0&#39;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span><span class="w"> </span><span class="nn">dirtyfields</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">__version__</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="s1">&#39;1.0.0&#39;</span>
 </code></pre></div>
 
 
