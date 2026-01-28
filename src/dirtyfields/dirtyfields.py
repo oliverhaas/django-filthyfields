@@ -48,7 +48,7 @@ _IMMUTABLE_TYPES = frozenset(
 )
 
 
-def _normalize_value(value: Any) -> Any:  # noqa: PLR0911
+def _normalize_value(value: Any) -> Any:
     """Normalize a field value for storage in the diff dict."""
     if value is None or type(value) in _IMMUTABLE_TYPES:
         return value
@@ -70,17 +70,31 @@ def _normalize_value(value: Any) -> Any:  # noqa: PLR0911
 
 
 def _should_track_field(instance: models.Model, field_name: str, field_attname: str | None = None) -> bool:
-    """Check if a field should be tracked based on FIELDS_TO_CHECK.
+    """Check if a field should be tracked based on FIELDS_TO_CHECK or FIELDS_TO_CHECK_EXCLUDE.
 
     For backward compatibility, accepts both field.name (e.g., 'fkey') and
-    field.attname (e.g., 'fkey_id') in FIELDS_TO_CHECK.
+    field.attname (e.g., 'fkey_id') in FIELDS_TO_CHECK/FIELDS_TO_CHECK_EXCLUDE.
+
+    FIELDS_TO_CHECK: Only track fields in this list (whitelist)
+    FIELDS_TO_CHECK_EXCLUDE: Track all fields EXCEPT those in this list (blacklist)
     """
     fields_to_check = getattr(instance, "FIELDS_TO_CHECK", None)
-    if fields_to_check is None:
-        return True
-    if field_name in fields_to_check:
-        return True
-    return field_attname is not None and field_attname in fields_to_check
+    fields_to_exclude = getattr(instance, "FIELDS_TO_CHECK_EXCLUDE", None)
+
+    if fields_to_check is not None and fields_to_exclude is not None:
+        raise ValueError("Cannot use both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE on the same model")
+
+    if fields_to_check is not None:
+        if field_name in fields_to_check:
+            return True
+        return field_attname is not None and field_attname in fields_to_check
+
+    if fields_to_exclude is not None:
+        if field_name in fields_to_exclude:
+            return False
+        return not (field_attname is not None and field_attname in fields_to_exclude)
+
+    return True
 
 
 def _track_file_change(instance: models.Model, field_name: str, old_name: str, new_name: str) -> None:
@@ -155,14 +169,27 @@ class _DiffDescriptor(DeferredAttribute):
             d[attname] = value
             return
 
-        # Check FIELDS_TO_CHECK (cached at instance level for speed)
+        # Check FIELDS_TO_CHECK / FIELDS_TO_CHECK_EXCLUDE (cached at instance level for speed)
         field_name = self._field_name
-        fields_to_check = d.get("_fields_to_check_cache")
-        if fields_to_check is None:
+        cache_key = "_fields_check_cache"
+        cache = d.get(cache_key)
+        if cache is None:
             fields_to_check = getattr(instance, "FIELDS_TO_CHECK", None)
-            d["_fields_to_check_cache"] = fields_to_check  # Cache for future
+            fields_to_exclude = getattr(instance, "FIELDS_TO_CHECK_EXCLUDE", None)
+            if fields_to_check is not None and fields_to_exclude is not None:
+                raise ValueError("Cannot use both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE on the same model")
+            cache = (fields_to_check, fields_to_exclude)
+            d[cache_key] = cache
 
+        fields_to_check, fields_to_exclude = cache
+
+        # FIELDS_TO_CHECK: whitelist - only track if in list
         if fields_to_check is not None and field_name not in fields_to_check and attname not in fields_to_check:
+            d[attname] = value
+            return
+
+        # FIELDS_TO_CHECK_EXCLUDE: blacklist - don't track if in list
+        if fields_to_exclude is not None and (field_name in fields_to_exclude or attname in fields_to_exclude):
             d[attname] = value
             return
 
@@ -354,12 +381,19 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
 
         result = {}
         fields_to_check = getattr(self, "FIELDS_TO_CHECK", None)
+        fields_to_exclude = getattr(self, "FIELDS_TO_CHECK_EXCLUDE", None)
 
         for field in _get_m2m_fields(self.__class__):
+            # FIELDS_TO_CHECK: whitelist - only track if in list
             if (
                 fields_to_check is not None
                 and field.name not in fields_to_check
                 and field.attname not in fields_to_check
+            ):
+                continue
+            # FIELDS_TO_CHECK_EXCLUDE: blacklist - don't track if in list
+            if fields_to_exclude is not None and (
+                field.name in fields_to_exclude or field.attname in fields_to_exclude
             ):
                 continue
             result[field.attname] = {obj.pk for obj in getattr(self, field.attname).all()}
@@ -495,6 +529,7 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         result = {}
         deferred = self.get_deferred_fields()
         fields_to_check = getattr(self, "FIELDS_TO_CHECK", None)
+        fields_to_exclude = getattr(self, "FIELDS_TO_CHECK_EXCLUDE", None)
 
         for field in self._meta.concrete_fields:
             if field.primary_key and not include_pk:
@@ -503,10 +538,16 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
                 continue
             if field.attname in deferred:
                 continue
+            # FIELDS_TO_CHECK: whitelist - only track if in list
             if (
                 fields_to_check is not None
                 and field.name not in fields_to_check
                 and field.attname not in fields_to_check
+            ):
+                continue
+            # FIELDS_TO_CHECK_EXCLUDE: blacklist - don't track if in list
+            if fields_to_exclude is not None and (
+                field.name in fields_to_exclude or field.attname in fields_to_exclude
             ):
                 continue
 

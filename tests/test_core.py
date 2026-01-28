@@ -6,7 +6,9 @@ import dirtyfields
 from tests.models import (
     FileFieldModel,
     ModelTest,
+    ModelWithBothFieldsConfig,
     ModelWithFieldsToCheck,
+    ModelWithFieldsToCheckExclude,
     ModelWithForeignKeyTest,
     ModelWithOneToOneFieldTest,
     OrdinaryModelTest,
@@ -388,3 +390,69 @@ def test_fields_to_check_revert():
     tm.boolean1 = True
     assert tm.get_dirty_fields() == {}
     assert not tm.is_dirty()
+
+
+# FIELDS_TO_CHECK_EXCLUDE tests
+
+
+@pytest.mark.django_db
+def test_fields_to_check_exclude():
+    """Test FIELDS_TO_CHECK_EXCLUDE excludes specific fields from tracking."""
+    tm = ModelWithFieldsToCheckExclude.objects.create()
+    assert tm.get_dirty_fields() == {}
+
+    # Change both fields
+    tm.boolean1 = False
+    tm.boolean2 = False
+
+    # Only boolean1 should be tracked (boolean2 is in FIELDS_TO_CHECK_EXCLUDE)
+    assert tm.get_dirty_fields() == {"boolean1": True}
+    assert tm.is_dirty()
+
+
+@pytest.mark.django_db
+def test_fields_to_check_exclude_on_new_instance():
+    """Test FIELDS_TO_CHECK_EXCLUDE with new unsaved instances."""
+    tm = ModelWithFieldsToCheckExclude()
+
+    # Only boolean1 should be reported as dirty (boolean2 is excluded)
+    dirty = tm.get_dirty_fields()
+    assert "boolean1" in dirty
+    assert "boolean2" not in dirty
+
+
+@pytest.mark.django_db
+def test_fields_to_check_exclude_revert():
+    """Test reverting a tracked field clears dirty state with FIELDS_TO_CHECK_EXCLUDE."""
+    tm = ModelWithFieldsToCheckExclude.objects.create()
+
+    tm.boolean1 = False
+    assert tm.get_dirty_fields() == {"boolean1": True}
+
+    # Revert to original
+    tm.boolean1 = True
+    assert tm.get_dirty_fields() == {}
+    assert not tm.is_dirty()
+
+
+@pytest.mark.django_db
+def test_fields_to_check_exclude_excluded_field_not_dirty():
+    """Test that changes to excluded fields are not tracked."""
+    tm = ModelWithFieldsToCheckExclude.objects.create()
+
+    # Change only the excluded field
+    tm.boolean2 = False
+
+    # No fields should be dirty
+    assert tm.get_dirty_fields() == {}
+    assert not tm.is_dirty()
+
+
+@pytest.mark.django_db
+def test_both_fields_to_check_and_exclude_raises_error():
+    """Test that using both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE raises ValueError."""
+    tm = ModelWithBothFieldsConfig.objects.create()
+
+    # Changing a field should trigger the error on descriptor access
+    with pytest.raises(ValueError, match="Cannot use both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE"):
+        tm.boolean1 = False

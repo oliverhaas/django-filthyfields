@@ -2,6 +2,8 @@
 
 ## Limiting Tracked Fields
 
+### Including Specific Fields (Whitelist)
+
 Use `FIELDS_TO_CHECK` to only track specific fields:
 
 ```python
@@ -22,6 +24,34 @@ False  # Not tracked!
 ```
 
 This is useful when you only care about changes to specific fields, or want to improve performance by not tracking large fields.
+
+### Excluding Specific Fields (Blacklist)
+
+Use `FIELDS_TO_CHECK_EXCLUDE` to track all fields except the specified ones:
+
+```python
+class MyModel(DirtyFieldsMixin, models.Model):
+    FIELDS_TO_CHECK_EXCLUDE = ['updated_at', 'last_login']
+
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    updated_at = models.DateTimeField(auto_now=True)
+    last_login = models.DateTimeField(null=True)
+
+>>> obj.name = "changed"
+>>> obj.is_dirty()
+True  # 'name' is tracked
+
+>>> obj2 = MyModel.objects.get(pk=2)
+>>> obj2.updated_at = timezone.now()
+>>> obj2.is_dirty()
+False  # 'updated_at' is excluded!
+```
+
+This is more convenient than `FIELDS_TO_CHECK` when you want to track most fields but exclude a few (e.g., auto-updated timestamps).
+
+!!! warning "Cannot Use Both"
+    You cannot use both `FIELDS_TO_CHECK` and `FIELDS_TO_CHECK_EXCLUDE` on the same model. Attempting to do so will raise a `ValueError`.
 
 ## Model Inheritance
 

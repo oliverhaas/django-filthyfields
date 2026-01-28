@@ -14,13 +14,15 @@ Roadmap and improvement tracker for the django-filthyfields package.
 
 ## Features
 
-### High Priority
+### Completed
 
-- [ ] **FIELDS_TO_CHECK_EXCLUDE**: Add alternative to `FIELDS_TO_CHECK` that excludes specified fields instead of including. More convenient when you want to track most fields except a few.
+- [x] **FIELDS_TO_CHECK_EXCLUDE** (2026-01-28): Add alternative to `FIELDS_TO_CHECK` that excludes specified fields instead of including. More convenient when you want to track most fields except a few.
   ```python
   class MyModel(DirtyFieldsMixin, models.Model):
       FIELDS_TO_CHECK_EXCLUDE = ['updated_at', 'last_login']  # Track everything except these
   ```
+
+### High Priority
 
 ### Medium Priority
 

@@ -15,7 +15,7 @@ class MyModel(DirtyFieldsMixin, models.Model):
 
 #### `FIELDS_TO_CHECK`
 
-Optional list of field names to track. If not set, all fields are tracked.
+Optional list of field names to track (whitelist). If not set, all fields are tracked.
 
 ```python
 class MyModel(DirtyFieldsMixin, models.Model):
@@ -29,6 +29,32 @@ class MyModel(DirtyFieldsMixin, models.Model):
 **Type:** `list[str] | None`
 
 **Default:** `None` (track all fields)
+
+!!! note "Mutual Exclusion"
+    Cannot be used together with `FIELDS_TO_CHECK_EXCLUDE`. Using both will raise a `ValueError`.
+
+---
+
+#### `FIELDS_TO_CHECK_EXCLUDE`
+
+Optional list of field names to exclude from tracking (blacklist). All other fields are tracked.
+
+```python
+class MyModel(DirtyFieldsMixin, models.Model):
+    FIELDS_TO_CHECK_EXCLUDE = ['updated_at', 'last_login']
+
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    updated_at = models.DateTimeField(auto_now=True)  # Not tracked
+    last_login = models.DateTimeField(null=True)  # Not tracked
+```
+
+**Type:** `list[str] | None`
+
+**Default:** `None` (track all fields)
+
+!!! note "Mutual Exclusion"
+    Cannot be used together with `FIELDS_TO_CHECK`. Using both will raise a `ValueError`.
 
 ---
 

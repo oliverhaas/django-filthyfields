@@ -130,6 +130,10 @@ unfixable = []
   "DTZ005", # Naive datetime.now() is intentional for timezone testing
   "UP017",  # timezone.utc used for test clarity
 ]
+"src/dirtyfields/dirtyfields.py" = [
+  "PLR0911", # Many return statements in descriptor __set__ is inherent to the tracking logic
+  "PLR0912", # Many branches in descriptor __set__ is inherent to the tracking logic
+]
 
 [tool.pytest.ini_options]
 django_find_project = false

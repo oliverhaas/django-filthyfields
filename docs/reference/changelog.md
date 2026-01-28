@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `FIELDS_TO_CHECK_EXCLUDE` class attribute for blacklist-style field filtering (alternative to `FIELDS_TO_CHECK`)
+
 ## [1.9.8b2] - 2026-01-17
 
 ### Added
