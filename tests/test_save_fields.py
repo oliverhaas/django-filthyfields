@@ -1,5 +1,7 @@
+import django
 import pytest
-from django.db.models import F
+from django.db.models import F, Value
+from django.db.models.functions import Concat
 
 from tests.models import (
     ExpressionModelTest,
@@ -110,3 +112,69 @@ def test_f_objects_tracked():
     # After refresh, we can track changes
     tm.counter = 10
     assert tm.get_dirty_fields() == {"counter": 1}
+
+
+@pytest.mark.skipif(django.VERSION < (6, 0), reason="tests Django 6.0+ F() auto-refresh behavior")
+@pytest.mark.django_db
+def test_f_objects_auto_refresh_django6():
+    """In Django 6.0+, F() assignments are auto-refreshed after save().
+
+    https://docs.djangoproject.com/en/dev/ref/models/expressions/#f-assignments-are-refreshed-after-model-save
+    """
+    tm = ExpressionModelTest.objects.create(counter=0)
+    assert tm.counter == 0
+    assert tm.get_dirty_fields() == {}
+
+    tm.counter = F("counter") + 1
+    # Descriptor tracks the assignment
+    assert tm.get_dirty_fields() == {"counter": 0}
+
+    tm.save()
+    # Django 6.0 auto-refreshes F() fields after save - no manual refresh needed
+    assert tm.counter == 1
+    assert tm.get_dirty_fields() == {}
+
+    # Normal tracking works
+    tm.counter = 10
+    assert tm.get_dirty_fields() == {"counter": 1}
+
+
+@pytest.mark.skipif(django.VERSION < (6, 0), reason="tests Django 6.0+ F() auto-refresh behavior")
+@pytest.mark.django_db
+def test_f_objects_with_update_fields_django6():
+    """F() with update_fields specified - Django 6.0+ behavior."""
+    tm = ExpressionModelTest.objects.create(counter=0)
+    assert tm.get_dirty_fields() == {}
+
+    tm.counter = F("counter") + 1
+    assert tm.get_dirty_fields() == {"counter": 0}
+
+    tm.save(update_fields={"counter"})
+    # Auto-refresh happens even with update_fields in Django 6.0+
+    assert tm.counter == 1
+    assert tm.get_dirty_fields() == {}
+
+    tm.counter = 10
+    assert tm.get_dirty_fields() == {"counter": 1}
+
+
+@pytest.mark.skipif(django.VERSION < (6, 0), reason="tests Django 6.0+ F() behavior")
+@pytest.mark.django_db
+def test_concat_expression_django6():
+    """Test Concat F() expression with Django 6.0+ auto-refresh."""
+    tm = ModelTest.objects.create(boolean=True, characters="abc")
+    assert tm.get_dirty_fields() == {}
+
+    # Set characters to a Concat expression
+    tm.characters = Concat(F("characters"), Value("def"))
+    # Descriptor tracks the assignment (old value was "abc")
+    assert tm.get_dirty_fields() == {"characters": "abc"}
+
+    # Save - Django 6.0 auto-refreshes F() fields
+    tm.save()
+    assert tm.characters == "abcdef"
+    assert tm.get_dirty_fields() == {}
+
+    # Normal tracking works after save
+    tm.characters = "xyz"
+    assert tm.get_dirty_fields() == {"characters": "abcdef"}

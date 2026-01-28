@@ -4,11 +4,11 @@ Roadmap and improvement tracker for the django-filthyfields package.
 
 ## Upstream Sync
 
-- [ ] **Check upstream django-dirtyfields releases**: Review recent releases at https://github.com/romgar/django-dirtyfields for:
-  - New tests that could improve our coverage
-  - Bug fixes we may have missed
-  - New features worth porting
-  - Last synced: v1.9.8 (2025-11-17)
+- [x] **Synced with upstream v1.9.9** (2026-01-28):
+  - Added Django 6.0 F() expression tests (auto-refresh behavior)
+  - Fixed flaky timezone tests (use deterministic timedelta instead of now())
+  - JSONField cleanup was already done in our fork
+  - Last synced: v1.9.9 (2026-01-22)
 
 ---
 
