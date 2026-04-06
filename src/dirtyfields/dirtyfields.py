@@ -379,6 +379,15 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         super().refresh_from_db(using=using, fields=fields, from_queryset=from_queryset)
         self._dirty_reset_state(fields=fields)
 
+    async def arefresh_from_db(  # ty: ignore[invalid-method-override]
+        self,
+        using: str | None = None,
+        fields: Iterable[str] | None = None,
+        from_queryset: models.QuerySet[Self] | None = None,
+    ) -> None:
+        await super().arefresh_from_db(using=using, fields=fields, from_queryset=from_queryset)
+        self._dirty_reset_state(fields=fields)
+
     def _as_dict_m2m(self) -> dict[str, set[Any]]:
         """Get current M2M field values as a dict of sets of PKs."""
         if not self.pk:
