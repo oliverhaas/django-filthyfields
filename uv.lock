@@ -322,7 +322,7 @@ dev = [
     { name = "mypy", specifier = "==1.16.1" },
     { name = "pre-commit", specifier = "==4.5.1" },
     { name = "pytest", specifier = "==9.0.2" },
-    { name = "pytest-asyncio" },
+    { name = "pytest-asyncio", specifier = "==1.3.0" },
     { name = "pytest-cov", specifier = "==7.0.0" },
     { name = "pytest-django", specifier = "==4.11.1" },
     { name = "pytest-xdist", specifier = "==3.8.0" },
