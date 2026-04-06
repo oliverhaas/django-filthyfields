@@ -365,6 +365,11 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         super().save(*args, **kwargs)
         self._dirty_reset_state()
 
+    async def asave(self, *args: Any, **kwargs: Any) -> None:
+        self._dirty_capture_was_dirty()
+        await super().asave(*args, **kwargs)
+        self._dirty_reset_state()
+
     def refresh_from_db(  # ty: ignore[invalid-method-override]
         self,
         using: str | None = None,
