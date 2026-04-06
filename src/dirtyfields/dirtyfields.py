@@ -365,6 +365,11 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         super().save(*args, **kwargs)
         self._dirty_reset_state()
 
+    async def asave(self, *args: Any, **kwargs: Any) -> None:
+        self._dirty_capture_was_dirty()
+        await super().asave(*args, **kwargs)
+        self._dirty_reset_state()
+
     def refresh_from_db(  # ty: ignore[invalid-method-override]
         self,
         using: str | None = None,
@@ -372,6 +377,15 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         from_queryset: models.QuerySet[Self] | None = None,
     ) -> None:
         super().refresh_from_db(using=using, fields=fields, from_queryset=from_queryset)
+        self._dirty_reset_state(fields=fields)
+
+    async def arefresh_from_db(  # ty: ignore[invalid-method-override]
+        self,
+        using: str | None = None,
+        fields: Iterable[str] | None = None,
+        from_queryset: models.QuerySet[Self] | None = None,
+    ) -> None:
+        await super().arefresh_from_db(using=using, fields=fields, from_queryset=from_queryset)
         self._dirty_reset_state(fields=fields)
 
     def _as_dict_m2m(self) -> dict[str, set[Any]]:
