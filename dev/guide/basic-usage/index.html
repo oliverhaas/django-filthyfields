@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -536,10 +536,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#is_dirtycheck_relationshipfalse-check_m2mnone" class="md-nav__link">
+  <a href="#is_dirtycheck_relationshipfalse-check_m2mfalse" class="md-nav__link">
     <span class="md-ellipsis">
       
-        is_dirty(check_relationship=False, check_m2m=None)
+        is_dirty(check_relationship=False, check_m2m=False)
       
     </span>
   </a>
@@ -547,10 +547,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#get_dirty_fieldscheck_relationshipfalse-check_m2mnone-verbosefalse" class="md-nav__link">
+  <a href="#get_dirty_fieldscheck_relationshipfalse-check_m2mfalse-verbosefalse" class="md-nav__link">
     <span class="md-ellipsis">
       
-        get_dirty_fields(check_relationship=False, check_m2m=None, verbose=False)
+        get_dirty_fields(check_relationship=False, check_m2m=False, verbose=False)
       
     </span>
   </a>
@@ -592,6 +592,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async Support
+      
+    </span>
+  </a>
   
 </li>
       
@@ -850,10 +861,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#is_dirtycheck_relationshipfalse-check_m2mnone" class="md-nav__link">
+  <a href="#is_dirtycheck_relationshipfalse-check_m2mfalse" class="md-nav__link">
     <span class="md-ellipsis">
       
-        is_dirty(check_relationship=False, check_m2m=None)
+        is_dirty(check_relationship=False, check_m2m=False)
       
     </span>
   </a>
@@ -861,10 +872,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#get_dirty_fieldscheck_relationshipfalse-check_m2mnone-verbosefalse" class="md-nav__link">
+  <a href="#get_dirty_fieldscheck_relationshipfalse-check_m2mfalse-verbosefalse" class="md-nav__link">
     <span class="md-ellipsis">
       
-        get_dirty_fields(check_relationship=False, check_m2m=None, verbose=False)
+        get_dirty_fields(check_relationship=False, check_m2m=False, verbose=False)
       
     </span>
   </a>
@@ -906,6 +917,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async Support
+      
+    </span>
+  </a>
   
 </li>
       
@@ -986,7 +1008,7 @@
 
 <h1 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h1>
 <h2 id="core-methods">Core Methods<a class="headerlink" href="#core-methods" title="Permanent link">&para;</a></h2>
-<h3 id="is_dirtycheck_relationshipfalse-check_m2mnone"><code>is_dirty(check_relationship=False, check_m2m=None)</code><a class="headerlink" href="#is_dirtycheck_relationshipfalse-check_m2mnone" title="Permanent link">&para;</a></h3>
+<h3 id="is_dirtycheck_relationshipfalse-check_m2mfalse"><code>is_dirty(check_relationship=False, check_m2m=False)</code><a class="headerlink" href="#is_dirtycheck_relationshipfalse-check_m2mfalse" title="Permanent link">&para;</a></h3>
 <p>Returns <code>True</code> if any tracked fields have been modified since the model was loaded or last saved.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">MyModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
@@ -998,9 +1020,9 @@
 <p><strong>Parameters:</strong></p>
 <ul>
 <li><code>check_relationship</code> (bool): If <code>True</code>, also checks foreign key relationships. Default: <code>False</code>.</li>
-<li><code>check_m2m</code> (dict | None): Dict of M2M field names to expected PK sets. Requires <code>ENABLE_M2M_CHECK=True</code>. Default: <code>None</code>.</li>
+<li><code>check_m2m</code> (bool): If <code>True</code>, also checks M2M relationships. Requires <code>ENABLE_M2M_CHECK=True</code>. Default: <code>False</code>.</li>
 </ul>
-<h3 id="get_dirty_fieldscheck_relationshipfalse-check_m2mnone-verbosefalse"><code>get_dirty_fields(check_relationship=False, check_m2m=None, verbose=False)</code><a class="headerlink" href="#get_dirty_fieldscheck_relationshipfalse-check_m2mnone-verbosefalse" title="Permanent link">&para;</a></h3>
+<h3 id="get_dirty_fieldscheck_relationshipfalse-check_m2mfalse-verbosefalse"><code>get_dirty_fields(check_relationship=False, check_m2m=False, verbose=False)</code><a class="headerlink" href="#get_dirty_fieldscheck_relationshipfalse-check_m2mfalse-verbosefalse" title="Permanent link">&para;</a></h3>
 <p>Returns a dictionary of dirty fields with their original values.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;new name&quot;</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">()</span>
@@ -1009,7 +1031,7 @@
 <p><strong>Parameters:</strong></p>
 <ul>
 <li><code>check_relationship</code> (bool): If <code>True</code>, includes foreign key changes. Default: <code>False</code>.</li>
-<li><code>check_m2m</code> (dict | None): Dict of M2M field names to expected PK sets. Requires <code>ENABLE_M2M_CHECK=True</code>. Default: <code>None</code>.</li>
+<li><code>check_m2m</code> (bool): If <code>True</code>, includes M2M changes. Requires <code>ENABLE_M2M_CHECK=True</code>. Default: <code>False</code>.</li>
 <li><code>verbose</code> (bool): If <code>True</code>, returns both old and new values. Default: <code>False</code>.</li>
 </ul>
 <h3 id="save_dirty_fields"><code>save_dirty_fields()</code><a class="headerlink" href="#save_dirty_fields" title="Permanent link">&para;</a></h3>
@@ -1046,56 +1068,62 @@
 <a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
 <a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="n">post_save</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">my_handler</span><span class="p">,</span> <span class="n">sender</span><span class="o">=</span><span class="n">MyModel</span><span class="p">)</span>
 </code></pre></div>
+<h2 id="async-support">Async Support<a class="headerlink" href="#async-support" title="Permanent link">&para;</a></h2>
+<p><code>asave()</code> and <code>arefresh_from_db()</code> are supported and behave the same way as their sync counterparts:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">await</span> <span class="n">obj</span><span class="o">.</span><span class="n">asave</span><span class="p">()</span>              <span class="c1"># captures was_dirty, saves, then resets dirty state</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">await</span> <span class="n">obj</span><span class="o">.</span><span class="n">arefresh_from_db</span><span class="p">()</span>   <span class="c1"># reloads from DB and resets dirty state</span>
+</code></pre></div>
+<p>All check methods (<code>is_dirty()</code>, <code>get_dirty_fields()</code>, <code>was_dirty()</code>, <code>get_was_dirty_fields()</code>) are plain synchronous calls on the in-memory instance and are safe to call from async code.</p>
 <h2 id="verbose-mode">Verbose Mode<a class="headerlink" href="#verbose-mode" title="Permanent link">&para;</a></h2>
 <p>When <code>verbose=True</code>, <code>get_dirty_fields()</code> returns both old and new values:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;new name&quot;</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;saved&#39;</span><span class="p">:</span> <span class="s1">&#39;old name&#39;</span><span class="p">,</span> <span class="s1">&#39;current&#39;</span><span class="p">:</span> <span class="s1">&#39;new name&#39;</span><span class="p">}}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;new name&quot;</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;saved&#39;</span><span class="p">:</span> <span class="s1">&#39;old name&#39;</span><span class="p">,</span> <span class="s1">&#39;current&#39;</span><span class="p">:</span> <span class="s1">&#39;new name&#39;</span><span class="p">}}</span>
 </code></pre></div>
 <h2 id="tracking-foreign-keys">Tracking Foreign Keys<a class="headerlink" href="#tracking-foreign-keys" title="Permanent link">&para;</a></h2>
 <p>By default, foreign key changes are not tracked. Use <code>check_relationship=True</code> to include them:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Article</span><span class="p">(</span><span class="n">DirtyFieldsMixin</span><span class="p">,</span> <span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>    <span class="n">title</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    <span class="n">author</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Author</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">article</span><span class="o">.</span><span class="n">author</span> <span class="o">=</span> <span class="n">new_author</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">article</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>  <span class="c1"># False - FK not tracked by default</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">article</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">(</span><span class="n">check_relationship</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># True</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">article</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">(</span><span class="n">check_relationship</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="p">{</span><span class="s1">&#39;author&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">Author</span><span class="p">:</span> <span class="n">old_author</span><span class="o">&gt;</span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Article</span><span class="p">(</span><span class="n">DirtyFieldsMixin</span><span class="p">,</span> <span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="n">title</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    <span class="n">author</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Author</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">article</span><span class="o">.</span><span class="n">author</span> <span class="o">=</span> <span class="n">new_author</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">article</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>  <span class="c1"># False - FK not tracked by default</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">article</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">(</span><span class="n">check_relationship</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># True</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">article</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">(</span><span class="n">check_relationship</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="p">{</span><span class="s1">&#39;author&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">Author</span><span class="p">:</span> <span class="n">old_author</span><span class="o">&gt;</span><span class="p">}</span>
 </code></pre></div>
 <h2 id="file-fields">File Fields<a class="headerlink" href="#file-fields" title="Permanent link">&para;</a></h2>
 <p>File fields (including <code>ImageField</code>) are fully supported, including tracking changes via <code>.save()</code> and <code>.delete()</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Document</span><span class="p">(</span><span class="n">DirtyFieldsMixin</span><span class="p">,</span> <span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="n">file</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FileField</span><span class="p">(</span><span class="n">upload_to</span><span class="o">=</span><span class="s1">&#39;docs/&#39;</span><span class="p">)</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">doc</span> <span class="o">=</span> <span class="n">Document</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">doc</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;new.txt&#39;</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>  <span class="c1"># Tracked!</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">doc</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="kc">True</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">doc</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>  <span class="c1"># Also tracked!</span>
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">doc</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
-<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="kc">True</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Document</span><span class="p">(</span><span class="n">DirtyFieldsMixin</span><span class="p">,</span> <span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    <span class="n">file</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FileField</span><span class="p">(</span><span class="n">upload_to</span><span class="o">=</span><span class="s1">&#39;docs/&#39;</span><span class="p">)</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">doc</span> <span class="o">=</span> <span class="n">Document</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">doc</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;new.txt&#39;</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>  <span class="c1"># Tracked!</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">doc</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="kc">True</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">doc</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>  <span class="c1"># Also tracked!</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">doc</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="kc">True</span>
 </code></pre></div>
 <h2 id="f-expressions">F() Expressions<a class="headerlink" href="#f-expressions" title="Permanent link">&para;</a></h2>
 <p>Fields assigned with <code>F()</code> expressions are properly tracked:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.db.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="n">F</span><span class="p">(</span><span class="s1">&#39;count&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="kc">True</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">()</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="p">{</span><span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>  <span class="c1"># Original value before F() expression</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.db.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="n">F</span><span class="p">(</span><span class="s1">&#39;count&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="kc">True</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">()</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="p">{</span><span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>  <span class="c1"># Original value before F() expression</span>
 </code></pre></div>
 <h2 id="new-unsaved-models">New (Unsaved) Models<a class="headerlink" href="#new-unsaved-models" title="Permanent link">&para;</a></h2>
 <p>New model instances that haven't been saved are always considered dirty:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kc">True</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="kc">False</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="kc">True</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="kc">False</span>
 </code></pre></div>
 
 
