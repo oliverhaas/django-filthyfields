@@ -72,27 +72,21 @@ def _normalize_value(value: Any) -> Any:
 def _should_track_field(instance: models.Model, field_name: str, field_attname: str | None = None) -> bool:
     """Check if a field should be tracked based on FIELDS_TO_CHECK or FIELDS_TO_CHECK_EXCLUDE.
 
-    For backward compatibility, accepts both field.name (e.g., 'fkey') and
-    field.attname (e.g., 'fkey_id') in FIELDS_TO_CHECK/FIELDS_TO_CHECK_EXCLUDE.
+    Accepts both field.name (e.g., 'fkey') and field.attname (e.g., 'fkey_id').
 
     FIELDS_TO_CHECK: Only track fields in this list (whitelist)
     FIELDS_TO_CHECK_EXCLUDE: Track all fields EXCEPT those in this list (blacklist)
+
+    Mutual-exclusion validation lives on the assignment path (_DiffDescriptor.__set__);
+    this helper does not raise.
     """
     fields_to_check = getattr(instance, "FIELDS_TO_CHECK", None)
-    fields_to_exclude = getattr(instance, "FIELDS_TO_CHECK_EXCLUDE", None)
-
-    if fields_to_check is not None and fields_to_exclude is not None:
-        raise ValueError("Cannot use both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE on the same model")
-
     if fields_to_check is not None:
-        if field_name in fields_to_check:
-            return True
-        return field_attname is not None and field_attname in fields_to_check
+        return field_name in fields_to_check or (field_attname is not None and field_attname in fields_to_check)
 
+    fields_to_exclude = getattr(instance, "FIELDS_TO_CHECK_EXCLUDE", None)
     if fields_to_exclude is not None:
-        if field_name in fields_to_exclude:
-            return False
-        return not (field_attname is not None and field_attname in fields_to_exclude)
+        return field_name not in fields_to_exclude and (field_attname is None or field_attname not in fields_to_exclude)
 
     return True
 
@@ -141,7 +135,7 @@ class _DiffDescriptor(DeferredAttribute):
         # Slow path: different types, need to_python for normalization
         try:
             return bool(self._field.to_python(val1) == self._field.to_python(val2))
-        except (ValidationError, TypeError, ValueError):
+        except ValidationError, TypeError, ValueError:
             return bool(val1 == val2)
 
     def __get__(self, instance: models.Model | None, cls: type[models.Model] | None = None) -> Any:
@@ -199,8 +193,8 @@ class _DiffDescriptor(DeferredAttribute):
         if self._values_equal(value, old):
             return
 
-        if self._is_relation and self._field.is_cached(instance):  # type: ignore[attr-defined]
-            self._field.delete_cached_value(instance)  # type: ignore[attr-defined]
+        if self._is_relation and self._field.is_cached(instance):  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+            self._field.delete_cached_value(instance)  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
 
         diff = d.setdefault("_state_diff", {})
 
@@ -231,27 +225,27 @@ class _FileDiffDescriptor(FileDescriptor):
         # We're monkey-patching the FieldFile at runtime to intercept save/delete
         # Type checkers don't understand that file is always FieldFile when instance is not None
         if file is not None and not getattr(file, "_dirty_wrapped", False):
-            original_save = file.save  # type: ignore[union-attr]
-            original_delete = file.delete  # type: ignore[union-attr]
+            original_save = file.save  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
+            original_delete = file.delete  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
             field_name = self.field.name
             inst = instance  # Capture for closure with narrowed type
 
             def tracked_save(name: str, content: File[Any], save: bool = True) -> None:
-                old_name = file.name or ""  # type: ignore[union-attr]
+                old_name = file.name or ""  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
                 original_save(name, content, save=save)
-                new_name = file.name or ""  # type: ignore[union-attr]
+                new_name = file.name or ""  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
                 if not inst._state.adding:
                     _track_file_change(inst, field_name, old_name, new_name)
 
             def tracked_delete(save: bool = True) -> None:
-                old_name = file.name or ""  # type: ignore[union-attr]
+                old_name = file.name or ""  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
                 original_delete(save=save)
                 if not inst._state.adding:
                     _track_file_change(inst, field_name, old_name, "")
 
-            file.save = tracked_save  # type: ignore[method-assign,union-attr]
-            file.delete = tracked_delete  # type: ignore[method-assign,union-attr]
-            file._dirty_wrapped = True  # type: ignore[union-attr]
+            file.save = tracked_save  # type: ignore[method-assign,union-attr]  # ty: ignore[invalid-assignment]
+            file.delete = tracked_delete  # type: ignore[method-assign,union-attr]  # ty: ignore[invalid-assignment]
+            file._dirty_wrapped = True  # type: ignore[union-attr]  # ty: ignore[invalid-assignment]
 
         return file
 
@@ -293,8 +287,8 @@ class _DirtyMeta(ModelBase):
     ) -> type:
         cls = super().__new__(mcs, name, bases, namespace, **kwargs)
 
-        if hasattr(cls, "_meta") and not cls._meta.abstract:
-            for field in cls._meta.concrete_fields:
+        if hasattr(cls, "_meta") and not cls._meta.abstract:  # ty: ignore[unresolved-attribute]
+            for field in cls._meta.concrete_fields:  # ty: ignore[unresolved-attribute]
                 attr = getattr(cls, field.attname, None)
                 if type(attr) in (DeferredAttribute, ForeignKeyDeferredAttribute):
                     setattr(cls, field.attname, _DiffDescriptor(field))
@@ -393,26 +387,11 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         if not self.pk:
             return {}
 
-        result = {}
-        fields_to_check = getattr(self, "FIELDS_TO_CHECK", None)
-        fields_to_exclude = getattr(self, "FIELDS_TO_CHECK_EXCLUDE", None)
-
-        for field in _get_m2m_fields(self.__class__):
-            # FIELDS_TO_CHECK: whitelist - only track if in list
-            if (
-                fields_to_check is not None
-                and field.name not in fields_to_check
-                and field.attname not in fields_to_check
-            ):
-                continue
-            # FIELDS_TO_CHECK_EXCLUDE: blacklist - don't track if in list
-            if fields_to_exclude is not None and (
-                field.name in fields_to_exclude or field.attname in fields_to_exclude
-            ):
-                continue
-            result[field.attname] = {obj.pk for obj in getattr(self, field.attname).all()}
-
-        return result
+        return {
+            field.attname: {obj.pk for obj in getattr(self, field.attname).all()}
+            for field in _get_m2m_fields(self.__class__)
+            if _should_track_field(self, field.name, field.attname)
+        }
 
     def _snapshot_m2m_state(self) -> None:
         """Capture current M2M state as the original state for dirty tracking."""
@@ -542,8 +521,6 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         """Get current field values (for new instances)."""
         result = {}
         deferred = self.get_deferred_fields()
-        fields_to_check = getattr(self, "FIELDS_TO_CHECK", None)
-        fields_to_exclude = getattr(self, "FIELDS_TO_CHECK_EXCLUDE", None)
 
         for field in self._meta.concrete_fields:
             if field.primary_key and not include_pk:
@@ -552,17 +529,7 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
                 continue
             if field.attname in deferred:
                 continue
-            # FIELDS_TO_CHECK: whitelist - only track if in list
-            if (
-                fields_to_check is not None
-                and field.name not in fields_to_check
-                and field.attname not in fields_to_check
-            ):
-                continue
-            # FIELDS_TO_CHECK_EXCLUDE: blacklist - don't track if in list
-            if fields_to_exclude is not None and (
-                field.name in fields_to_exclude or field.attname in fields_to_exclude
-            ):
+            if not _should_track_field(self, field.name, field.attname):
                 continue
 
             value = self.__dict__.get(field.attname)

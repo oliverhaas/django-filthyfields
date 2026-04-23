@@ -2,7 +2,7 @@
 
 ## Core Methods
 
-### `is_dirty(check_relationship=False, check_m2m=None)`
+### `is_dirty(check_relationship=False, check_m2m=False)`
 
 Returns `True` if any tracked fields have been modified since the model was loaded or last saved.
 
@@ -18,9 +18,9 @@ True
 **Parameters:**
 
 - `check_relationship` (bool): If `True`, also checks foreign key relationships. Default: `False`.
-- `check_m2m` (dict | None): Dict of M2M field names to expected PK sets. Requires `ENABLE_M2M_CHECK=True`. Default: `None`.
+- `check_m2m` (bool): If `True`, also checks M2M relationships. Requires `ENABLE_M2M_CHECK=True`. Default: `False`.
 
-### `get_dirty_fields(check_relationship=False, check_m2m=None, verbose=False)`
+### `get_dirty_fields(check_relationship=False, check_m2m=False, verbose=False)`
 
 Returns a dictionary of dirty fields with their original values.
 
@@ -33,7 +33,7 @@ Returns a dictionary of dirty fields with their original values.
 **Parameters:**
 
 - `check_relationship` (bool): If `True`, includes foreign key changes. Default: `False`.
-- `check_m2m` (dict | None): Dict of M2M field names to expected PK sets. Requires `ENABLE_M2M_CHECK=True`. Default: `None`.
+- `check_m2m` (bool): If `True`, includes M2M changes. Requires `ENABLE_M2M_CHECK=True`. Default: `False`.
 - `verbose` (bool): If `True`, returns both old and new values. Default: `False`.
 
 ### `save_dirty_fields()`
@@ -85,6 +85,17 @@ def my_handler(sender, instance, **kwargs):
 
 post_save.connect(my_handler, sender=MyModel)
 ```
+
+## Async Support
+
+`asave()` and `arefresh_from_db()` are supported and behave the same way as their sync counterparts:
+
+```python
+await obj.asave()              # captures was_dirty, saves, then resets dirty state
+await obj.arefresh_from_db()   # reloads from DB and resets dirty state
+```
+
+All check methods (`is_dirty()`, `get_dirty_fields()`, `was_dirty()`, `get_was_dirty_fields()`) are plain synchronous calls on the in-memory instance and are safe to call from async code.
 
 ## Verbose Mode
 

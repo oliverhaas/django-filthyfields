@@ -267,6 +267,33 @@ Save only the fields that have been modified.
 
 ---
 
+#### `asave(*args, **kwargs)` *(async)*
+
+Async equivalent of `Model.save()` with dirty tracking. Captures dirty state into `_was_dirty_fields`, calls `super().asave()`, then resets the dirty state.
+
+**Example:**
+
+```python
+obj.name = "changed"
+await obj.asave()
+obj.is_dirty()      # False
+obj.was_dirty()     # True
+```
+
+---
+
+#### `refresh_from_db(using=None, fields=None, from_queryset=None)`
+
+Override of `Model.refresh_from_db()` that also resets the dirty state. If `fields` is provided, only those fields have their dirty state reset.
+
+---
+
+#### `arefresh_from_db(using=None, fields=None, from_queryset=None)` *(async)*
+
+Async equivalent of `refresh_from_db()`.
+
+---
+
 ## Utility Functions
 
 ### `raw_compare(new_value, old_value)`
@@ -389,10 +416,10 @@ for obj in instances:
 
 ### `__version__`
 
-The package version string.
+The package version string, read from installed package metadata.
 
 ```python
 >>> from dirtyfields import __version__
 >>> __version__
-'1.0.0'
+'1.9.8b5'
 ```

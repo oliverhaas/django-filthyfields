@@ -5,12 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.9.8b5] - 2026-04-23
+
+### Changed
+
+- Dropped support for Python 3.11, 3.12, 3.13; Python 3.14+ required
+- Dropped support for Django 4.2 and 5.2; Django 6.0+ required
+- Development status bumped to Beta
+- Bumped dev dependencies (mypy, ruff, ty, pytest-django, pytest-cov, pre-commit, mkdocs-material, mike, hatchling) and `django-stubs` 5.2.8 → 6.0.3
+
+### Fixed
+
+- Documentation: `check_m2m` parameter on `is_dirty()` and `get_dirty_fields()` is a `bool`, not a dict
+- Documentation: benchmark invocation path
+- Documentation: `__version__` example now reflects actual version format
+- Documentation: added async methods (`asave()`, `arefresh_from_db()`) and bulk helpers to the guide and API reference
+
+### Removed
+
+- `SECURITY.md` and `.github/ISSUE_TEMPLATE/` (GitHub issues disabled on this fork)
+
+## [1.9.8b4] - 2026-04-06
 
 ### Added
 
+- Async support: `asave()` and `arefresh_from_db()` overrides for dirty-tracking in async code paths
 - `FIELDS_TO_CHECK_EXCLUDE` class attribute for blacklist-style field filtering (alternative to `FIELDS_TO_CHECK`)
-- `capture_dirty_state()` and `reset_dirty_state()` helper functions for bulk operations
+- `capture_dirty_state()` and `reset_dirty_state()` helper functions for bulk operations (`bulk_update()` and similar)
+
+### Changed
+
+- Tests synced with upstream django-dirtyfields v1.9.9 (F() expression auto-refresh behavior on Django 6.0, deterministic timezone tests)
+
+## [1.9.8b3] - 2026-01-22
+
+### Changed
+
+- Performance: `__get__` uses try/except for faster dict access
+- Performance: `__set__` has early returns and caches `FIELDS_TO_CHECK` per instance
+- Performance: `_values_equal` has a fast path for same-type comparisons
+- Performance: `_normalize_value` uses shallow copy for simple dicts/lists (common for JSONField)
+- Benchmarks diversified across DateTime, Decimal, JSON, Float, and Text fields
 
 ## [1.9.8b2] - 2026-01-17
 
