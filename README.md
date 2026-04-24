@@ -6,7 +6,8 @@
 Tracking dirty fields on a Django model instance.
 Dirty means that field in-memory and database values are different.
 
-This is an exploratory fork of [django-dirtyfields](https://github.com/romgar/django-dirtyfields) with a
-rewritten "lazy" descriptor-based internal implementation.
+Started as a fork of [django-dirtyfields](https://github.com/romgar/django-dirtyfields) with a
+rewritten "lazy" descriptor-based internal implementation, and has since diverged with its
+own feature set and release cadence.
 
 See the [documentation](https://oliverhaas.github.io/django-dirtyfields/) for more information.

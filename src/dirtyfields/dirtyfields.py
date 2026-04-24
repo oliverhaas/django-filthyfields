@@ -34,8 +34,11 @@ def _should_track_field(instance: models.Model, field_name: str, field_attname: 
     FIELDS_TO_CHECK: Only track fields in this list (whitelist)
     FIELDS_TO_CHECK_EXCLUDE: Track all fields EXCEPT those in this list (blacklist)
 
-    Mutual-exclusion validation lives on the assignment path (_DiffDescriptor.__set__);
-    this helper does not raise.
+    Mutual-exclusion validation lives on the assignment path (`DiffDescriptor.__set__`)
+    so it fires on the first field write on an already-loaded instance. This helper
+    is called from read paths (`_as_dict_m2m`, `_get_current_values`, `_track_file_change`)
+    where raising would trip up `Model.__init__` before the user ever writes a field,
+    so it deliberately does not raise.
     """
     fields_to_check = getattr(instance, "FIELDS_TO_CHECK", None)
     if fields_to_check is not None:

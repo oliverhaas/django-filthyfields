@@ -416,10 +416,9 @@ for obj in instances:
 
 ### `__version__`
 
-The package version string, read from installed package metadata.
+The package version string. Read at import time from installed package metadata via `importlib.metadata.version("django-filthyfields")`, so it always reflects the version pip/uv resolved to.
 
 ```python
 >>> from dirtyfields import __version__
->>> __version__
-'1.9.8b5'
+>>> __version__  # e.g. '1.9.8b6'
 ```
