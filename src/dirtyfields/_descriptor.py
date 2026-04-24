@@ -1,3 +1,5 @@
+# cython: freethreading_compatible=True
+# ruff: noqa: ERA001
 """Diff descriptor for dirty-field tracking.
 
 This module is written in Cython *pure-Python mode* — a regular ``.py`` file
