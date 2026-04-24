@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.8b6] - 2026-04-24
+
+### Added
+
+- Compiled wheels (`cp314`, `cp314t`); ~50% less `__get__` overhead on the compiled path.
+- Free-threaded Python 3.14t support.
+
+### Changed
+
+- Build backend: `hatchling` → `setuptools`.
+- File-field tracking now uses an `attr_class` subclass instead of monkey-patching `FieldFile.save` / `.delete`.
+
 ## [1.9.8b5] - 2026-04-23
 
 ### Changed
