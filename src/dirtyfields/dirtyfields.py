@@ -12,7 +12,7 @@ from django.core.files import File
 from django.db import models
 from django.db.models.base import ModelBase
 from django.db.models.expressions import BaseExpression, Combinable
-from django.db.models.fields.files import FileDescriptor
+from django.db.models.fields.files import FieldFile, FileDescriptor
 from django.db.models.fields.related_descriptors import ForeignKeyDeferredAttribute
 from django.db.models.query_utils import DeferredAttribute
 
@@ -68,43 +68,58 @@ def _track_file_change(instance: models.Model, field_name: str, old_name: str, n
         del diff[field_name]
 
 
+class _TrackingFieldFileMixin:
+    """Mixin for ``FieldFile`` subclasses that records ``save()`` / ``delete()``
+    into the instance's dirty-diff.
+
+    Installed per-field by replacing ``field.attr_class`` with a subclass
+    ``(self, base_attr_class)`` at metaclass time. No monkey-patching.
+    """
+
+    def save(self, name: str, content: File[Any], save: bool = True) -> None:
+        old_name = self.name or ""  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+        super().save(name, content, save=save)  # type: ignore[misc]  # ty: ignore[unresolved-attribute]
+        new_name = self.name or ""  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+        instance = self.instance  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+        if not instance._state.adding:
+            _track_file_change(instance, self.field.name, old_name, new_name)  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+
+    def delete(self, save: bool = True) -> None:
+        old_name = self.name or ""  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+        super().delete(save=save)  # type: ignore[misc]  # ty: ignore[unresolved-attribute]
+        instance = self.instance  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+        if not instance._state.adding:
+            _track_file_change(instance, self.field.name, old_name, "")  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+
+
+_TRACKING_ATTR_CLASS_CACHE: dict[type[FieldFile], type[FieldFile]] = {}
+
+
+def _wrap_attr_class(base: type[FieldFile]) -> type[FieldFile]:
+    """Return a ``(_TrackingFieldFileMixin, base)`` subclass, cached per base.
+
+    ``base`` is whatever ``attr_class`` the field has — typically ``FieldFile``
+    for ``FileField`` or ``ImageFieldFile`` for ``ImageField``; layering via a
+    synthesized subclass preserves any base-specific behaviour (e.g. image
+    dimension handling).
+    """
+    if issubclass(base, _TrackingFieldFileMixin):
+        return base
+    cached = _TRACKING_ATTR_CLASS_CACHE.get(base)
+    if cached is not None:
+        return cached
+    wrapped = cast(
+        "type[FieldFile]",
+        type(f"Tracking{base.__name__}", (_TrackingFieldFileMixin, base), {}),
+    )
+    _TRACKING_ATTR_CLASS_CACHE[base] = wrapped
+    return wrapped
+
+
 class _FileDiffDescriptor(FileDescriptor):
-    """Descriptor for file fields that tracks changes and returns tracking-aware FieldFile."""
-
-    def __get__(self, instance: models.Model | None, cls: type[models.Model] | None = None) -> Any:
-        if instance is None:
-            return self
-
-        file = super().__get__(instance, cls)
-
-        # Wrap the FieldFile's save and delete methods to track changes
-        # Note: empty FieldFile is falsy, so we check 'is not None' instead of 'if file'
-        # We're monkey-patching the FieldFile at runtime to intercept save/delete
-        # Type checkers don't understand that file is always FieldFile when instance is not None
-        if file is not None and not getattr(file, "_dirty_wrapped", False):
-            original_save = file.save  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
-            original_delete = file.delete  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
-            field_name = self.field.name
-            inst = instance  # Capture for closure with narrowed type
-
-            def tracked_save(name: str, content: File[Any], save: bool = True) -> None:
-                old_name = file.name or ""  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
-                original_save(name, content, save=save)
-                new_name = file.name or ""  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
-                if not inst._state.adding:
-                    _track_file_change(inst, field_name, old_name, new_name)
-
-            def tracked_delete(save: bool = True) -> None:
-                old_name = file.name or ""  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
-                original_delete(save=save)
-                if not inst._state.adding:
-                    _track_file_change(inst, field_name, old_name, "")
-
-            file.save = tracked_save  # type: ignore[method-assign,union-attr]  # ty: ignore[invalid-assignment]
-            file.delete = tracked_delete  # type: ignore[method-assign,union-attr]  # ty: ignore[invalid-assignment]
-            file._dirty_wrapped = True  # type: ignore[union-attr]  # ty: ignore[invalid-assignment]
-
-        return file
+    """Tracks file-field attribute assignments. Reads go through Django's own
+    ``FileDescriptor.__get__`` which produces the tracking ``FieldFile``
+    subclass we install via ``field.attr_class``."""
 
     def __set__(self, instance: models.Model | None, value: Any) -> None:
         if instance is None:
@@ -150,6 +165,7 @@ class _DirtyMeta(ModelBase):
                 if type(attr) in (DeferredAttribute, ForeignKeyDeferredAttribute):
                     setattr(cls, field.attname, DiffDescriptor(field, attr))
                 elif isinstance(attr, FileDescriptor):
+                    field.attr_class = _wrap_attr_class(field.attr_class)
                     setattr(cls, field.attname, _FileDiffDescriptor(field))
 
         return cls
