@@ -50,5 +50,5 @@ site/
 docs/superpowers/
 
 # Cython build artifacts
-src/dirtyfields/_fast_set.c
-src/dirtyfields/_fast_set.html
+src/dirtyfields/*.c
+src/dirtyfields/*.html

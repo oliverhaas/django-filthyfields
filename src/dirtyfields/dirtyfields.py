@@ -6,13 +6,8 @@ capturing full model state upfront. Significantly faster than the signal-based a
 
 from __future__ import annotations
 
-from copy import deepcopy
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
 from typing import TYPE_CHECKING, Any, cast
-from uuid import UUID
 
-from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db import models
 from django.db.models.base import ModelBase
@@ -21,61 +16,14 @@ from django.db.models.fields.files import FileDescriptor
 from django.db.models.fields.related_descriptors import ForeignKeyDeferredAttribute
 from django.db.models.query_utils import DeferredAttribute
 
+from dirtyfields._descriptor import DiffDescriptor, _normalize_value
+
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
     from typing import Self
 
     CompareFunction = tuple[Callable[..., bool], dict[str, Any]]
     NormaliseFunction = tuple[Callable[..., Any], dict[str, Any]]
-
-# Try to import Cython-optimized __set__ implementation
-try:
-    from dirtyfields._fast_set import fast_set as _fast_set
-
-    _USE_CYTHON_SET = True
-except ImportError:
-    _fast_set = None  # type: ignore[assignment]  # ty: ignore[invalid-assignment]
-    _USE_CYTHON_SET = False
-
-# Types that don't need deepcopy (immutable)
-_IMMUTABLE_TYPES = frozenset(
-    (
-        int,
-        float,
-        complex,
-        str,
-        bool,
-        bytes,
-        range,
-        Decimal,
-        UUID,
-        date,
-        datetime,
-        time,
-        timedelta,
-    ),
-)
-
-
-def _normalize_value(value: Any) -> Any:
-    """Normalize a field value for storage in the diff dict."""
-    if value is None or type(value) in _IMMUTABLE_TYPES:
-        return value
-    if isinstance(value, File):
-        return value.name
-    if isinstance(value, memoryview):
-        return bytes(value)
-    # Fast path for simple dicts/lists (common for JSONField)
-    # Use shallow copy if all values are immutable, otherwise deepcopy
-    if isinstance(value, dict):
-        if all(type(v) in _IMMUTABLE_TYPES or v is None for v in value.values()):
-            return value.copy()
-        return deepcopy(value)
-    if isinstance(value, (list, tuple)):
-        if all(type(v) in _IMMUTABLE_TYPES or v is None for v in value):
-            return list(value) if isinstance(value, list) else value
-        return deepcopy(value)
-    return deepcopy(value)
 
 
 def _should_track_field(instance: models.Model, field_name: str, field_attname: str | None = None) -> bool:
@@ -118,120 +66,6 @@ def _track_file_change(instance: models.Model, field_name: str, old_name: str, n
     # Check if reverting to original
     if new_name == diff[field_name]:
         del diff[field_name]
-
-
-class _DiffDescriptor(DeferredAttribute):
-    """Descriptor that tracks field changes on __set__.
-
-    When a field value changes, stores the original value in instance._state_diff.
-    Only tracks the first change per field (original value).
-    """
-
-    __slots__ = ("_attname", "_field", "_field_name", "_is_relation")
-
-    def __init__(self, field: models.Field[Any, Any]) -> None:
-        super().__init__(field)
-        self._attname = field.attname
-        self._field_name = field.name
-        self._is_relation = field.remote_field is not None
-        self._field = field
-
-    def _values_equal(self, val1: Any, val2: Any) -> bool:
-        """Compare values using to_python for consistent type conversion."""
-        # Fast path: same type and value, no conversion needed
-        if type(val1) is type(val2):
-            return bool(val1 == val2)
-        # Slow path: different types, need to_python for normalization
-        try:
-            return bool(self._field.to_python(val1) == self._field.to_python(val2))
-        except ValidationError, TypeError, ValueError:
-            return bool(val1 == val2)
-
-    def __get__(self, instance: models.Model | None, cls: type[models.Model] | None = None) -> Any:
-        if instance is None:
-            return self
-        try:
-            return instance.__dict__[self._attname]
-        except KeyError:
-            return super().__get__(instance, cls)
-
-    def __set__(self, instance: models.Model | None, value: Any) -> None:
-        if instance is None:
-            return
-
-        # Try Cython fast path if available
-        if _USE_CYTHON_SET:
-            _fast_set(
-                instance,
-                value,
-                self._attname,
-                self._field_name,
-                self._is_relation,
-                self._field,
-                _normalize_value,
-            )
-            return
-
-        # Pure Python fallback
-        d = instance.__dict__
-        attname = self._attname
-
-        # Fast path: check if we should track at all
-        try:
-            state = instance._state
-            if state.adding or attname not in d:
-                d[attname] = value
-                return
-        except AttributeError:
-            d[attname] = value
-            return
-
-        # Check FIELDS_TO_CHECK / FIELDS_TO_CHECK_EXCLUDE (cached at instance level for speed)
-        field_name = self._field_name
-        cache_key = "_fields_check_cache"
-        cache = d.get(cache_key)
-        if cache is None:
-            fields_to_check = getattr(instance, "FIELDS_TO_CHECK", None)
-            fields_to_exclude = getattr(instance, "FIELDS_TO_CHECK_EXCLUDE", None)
-            if fields_to_check is not None and fields_to_exclude is not None:
-                raise ValueError("Cannot use both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE on the same model")
-            cache = (fields_to_check, fields_to_exclude)
-            d[cache_key] = cache
-
-        fields_to_check, fields_to_exclude = cache
-
-        # FIELDS_TO_CHECK: whitelist - only track if in list
-        if fields_to_check is not None and field_name not in fields_to_check and attname not in fields_to_check:
-            d[attname] = value
-            return
-
-        # FIELDS_TO_CHECK_EXCLUDE: blacklist - don't track if in list
-        if fields_to_exclude is not None and (field_name in fields_to_exclude or attname in fields_to_exclude):
-            d[attname] = value
-            return
-
-        old = d[attname]
-        d[attname] = value
-
-        if self._values_equal(value, old):
-            return
-
-        if self._is_relation and self._field.is_cached(instance):  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
-            self._field.delete_cached_value(instance)  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
-
-        diff = d.setdefault("_state_diff", {})
-
-        if field_name not in diff:
-            diff[field_name] = _normalize_value(old)
-            if self._is_relation:
-                d.setdefault("_state_diff_rel", set()).add(field_name)
-            return
-
-        # Check if reverting to original value
-        if self._values_equal(value, diff[field_name]):
-            del diff[field_name]
-            if self._is_relation and (rel := d.get("_state_diff_rel")):
-                rel.discard(field_name)
 
 
 class _FileDiffDescriptor(FileDescriptor):
@@ -314,7 +148,7 @@ class _DirtyMeta(ModelBase):
             for field in cls._meta.concrete_fields:  # ty: ignore[unresolved-attribute]
                 attr = getattr(cls, field.attname, None)
                 if type(attr) in (DeferredAttribute, ForeignKeyDeferredAttribute):
-                    setattr(cls, field.attname, _DiffDescriptor(field))
+                    setattr(cls, field.attname, DiffDescriptor(field, attr))
                 elif isinstance(attr, FileDescriptor):
                     setattr(cls, field.attname, _FileDiffDescriptor(field))
 

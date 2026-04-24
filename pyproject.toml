@@ -123,13 +123,9 @@ unfixable = []
   "DTZ005", # Naive datetime.now() is intentional for timezone testing
   "UP017",  # timezone.utc used for test clarity
 ]
-"src/dirtyfields/dirtyfields.py" = [
-  "PLR0911", # Many return statements in descriptor __set__ is inherent to the tracking logic
-  "PLR0912", # Many branches in descriptor __set__ is inherent to the tracking logic
-]
-"src/dirtyfields/_fast_set.py" = [
-  "PLR0911", # Cython fast path mirrors the descriptor return structure
-  "PLR0912", # Cython fast path mirrors the descriptor branching structure
+"src/dirtyfields/_descriptor.py" = [
+  "PLR0911", # Many returns are inherent to the descriptor tracking logic
+  "PLR0912", # Many branches are inherent to the descriptor tracking logic
 ]
 
 [tool.pytest.ini_options]
