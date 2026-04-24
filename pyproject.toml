@@ -70,9 +70,12 @@ dirtyfields = ["*.c", "*.html"]
 build = ["cp314-*", "cp314t-*"]
 enable = ["cpython-freethreading"]
 build-verbosity = 1
-# Smoke-test the wheel: import must work (Django not required — _descriptor
-# only imports django.core.files + django.core.exceptions at module load).
-test-command = "python -c \"import dirtyfields._descriptor; print(dirtyfields._descriptor.DiffDescriptor)\""
+# Smoke-test the wheel: configure a minimal Django (no apps), then import
+# the compiled descriptor. Importing `dirtyfields` triggers loading
+# `DirtyFieldsMixin`, which is a Django Model subclass and so needs apps
+# ready — `settings.configure() + django.setup()` with empty INSTALLED_APPS
+# is the smallest viable setup.
+test-command = "python -c \"from django.conf import settings; settings.configure(INSTALLED_APPS=[]); import django; django.setup(); from dirtyfields._descriptor import DiffDescriptor; print(DiffDescriptor)\""
 
 [tool.cibuildwheel.linux]
 archs = ["x86_64"]
