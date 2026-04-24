@@ -15,7 +15,7 @@ class MyModel(DirtyFieldsMixin, models.Model):
 
 #### `FIELDS_TO_CHECK`
 
-Optional list of field names to track. If not set, all fields are tracked.
+Optional list of field names to track (whitelist). If not set, all fields are tracked.
 
 ```python
 class MyModel(DirtyFieldsMixin, models.Model):
@@ -29,6 +29,32 @@ class MyModel(DirtyFieldsMixin, models.Model):
 **Type:** `list[str] | None`
 
 **Default:** `None` (track all fields)
+
+!!! note "Mutual Exclusion"
+    Cannot be used together with `FIELDS_TO_CHECK_EXCLUDE`. Using both will raise a `ValueError`.
+
+---
+
+#### `FIELDS_TO_CHECK_EXCLUDE`
+
+Optional list of field names to exclude from tracking (blacklist). All other fields are tracked.
+
+```python
+class MyModel(DirtyFieldsMixin, models.Model):
+    FIELDS_TO_CHECK_EXCLUDE = ['updated_at', 'last_login']
+
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    updated_at = models.DateTimeField(auto_now=True)  # Not tracked
+    last_login = models.DateTimeField(null=True)  # Not tracked
+```
+
+**Type:** `list[str] | None`
+
+**Default:** `None` (track all fields)
+
+!!! note "Mutual Exclusion"
+    Cannot be used together with `FIELDS_TO_CHECK`. Using both will raise a `ValueError`.
 
 ---
 
@@ -241,6 +267,33 @@ Save only the fields that have been modified.
 
 ---
 
+#### `asave(*args, **kwargs)` *(async)*
+
+Async equivalent of `Model.save()` with dirty tracking. Captures dirty state into `_was_dirty_fields`, calls `super().asave()`, then resets the dirty state.
+
+**Example:**
+
+```python
+obj.name = "changed"
+await obj.asave()
+obj.is_dirty()      # False
+obj.was_dirty()     # True
+```
+
+---
+
+#### `refresh_from_db(using=None, fields=None, from_queryset=None)`
+
+Override of `Model.refresh_from_db()` that also resets the dirty state. If `fields` is provided, only those fields have their dirty state reset.
+
+---
+
+#### `arefresh_from_db(using=None, fields=None, from_queryset=None)` *(async)*
+
+Async equivalent of `refresh_from_db()`.
+
+---
+
 ## Utility Functions
 
 ### `raw_compare(new_value, old_value)`
@@ -297,14 +350,76 @@ class MyModel(DirtyFieldsMixin, models.Model):
 
 ---
 
+## Bulk Operation Helpers
+
+These functions help track dirty state when using bulk operations like `bulk_update()`, which bypass the model's `save()` method.
+
+### `capture_dirty_state(instances)`
+
+Capture current dirty state for multiple instances before a bulk operation.
+
+Call this before `bulk_update()` to preserve the dirty state for later inspection via `was_dirty()` / `get_was_dirty_fields()`.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `instances` | `Iterable[DirtyFieldsMixin]` | Model instances to capture state for |
+
+**Returns:** `None`
+
+---
+
+### `reset_dirty_state(instances, fields=None)`
+
+Reset dirty tracking state for multiple instances after a bulk operation.
+
+Call this after `bulk_update()` to clear the dirty state, indicating that changes have been persisted.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `instances` | `Iterable[DirtyFieldsMixin]` | - | Model instances to reset state for |
+| `fields` | `Iterable[str] \| None` | `None` | If provided, only reset these specific fields. Otherwise reset all. |
+
+**Returns:** `None`
+
+**Example:**
+
+```python
+from dirtyfields import capture_dirty_state, reset_dirty_state
+
+# Modify instances
+instances = list(MyModel.objects.filter(status='pending'))
+for obj in instances:
+    obj.status = 'processed'
+
+# Capture state before bulk update
+capture_dirty_state(instances)
+
+# Perform bulk update
+MyModel.objects.bulk_update(instances, ['status'])
+
+# Reset state after bulk update
+reset_dirty_state(instances)
+
+# Now you can check what was changed
+for obj in instances:
+    if obj.was_dirty():
+        print(f"Object {obj.pk} had changes: {obj.get_was_dirty_fields()}")
+```
+
+---
+
 ## Module Info
 
 ### `__version__`
 
-The package version string.
+The package version string, read from installed package metadata.
 
 ```python
 >>> from dirtyfields import __version__
 >>> __version__
-'1.0.0'
+'1.9.8b5'
 ```

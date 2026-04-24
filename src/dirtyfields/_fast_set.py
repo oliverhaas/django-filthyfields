@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import cython
+import cython  # type: ignore[import-untyped]
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -21,8 +21,8 @@ if cython.compiled:
     print("dirtyfields: Using Cython-optimized __set__")  # noqa: T201
 
 
-@cython.cfunc
-@cython.inline
+@cython.cfunc  # type: ignore[untyped-decorator]
+@cython.inline  # type: ignore[untyped-decorator]
 def _fast_values_equal(field: Any, val1: Any, val2: Any) -> cython.bint:
     """Compare values - fast path for same types."""
     if type(val1) is type(val2):
@@ -61,13 +61,25 @@ def fast_set(  # noqa: PLR0913
         d[attname] = value
         return
 
-    # Check FIELDS_TO_CHECK (cached at instance level for speed)
-    fields_to_check = d.get("_fields_to_check_cache")
-    if fields_to_check is None:
+    # Check FIELDS_TO_CHECK / FIELDS_TO_CHECK_EXCLUDE (cached at instance level for speed)
+    cache = d.get("_fields_check_cache")
+    if cache is None:
         fields_to_check = getattr(instance, "FIELDS_TO_CHECK", None)
-        d["_fields_to_check_cache"] = fields_to_check
+        fields_to_exclude = getattr(instance, "FIELDS_TO_CHECK_EXCLUDE", None)
+        if fields_to_check is not None and fields_to_exclude is not None:
+            raise ValueError("Cannot use both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE on the same model")
+        cache = (fields_to_check, fields_to_exclude)
+        d["_fields_check_cache"] = cache
 
+    fields_to_check, fields_to_exclude = cache
+
+    # FIELDS_TO_CHECK: whitelist - only track if in list
     if fields_to_check is not None and field_name not in fields_to_check and attname not in fields_to_check:
+        d[attname] = value
+        return
+
+    # FIELDS_TO_CHECK_EXCLUDE: blacklist - don't track if in list
+    if fields_to_exclude is not None and (field_name in fields_to_exclude or attname in fields_to_exclude):
         d[attname] = value
         return
 

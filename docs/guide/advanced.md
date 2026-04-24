@@ -2,6 +2,8 @@
 
 ## Limiting Tracked Fields
 
+### Including Specific Fields (Whitelist)
+
 Use `FIELDS_TO_CHECK` to only track specific fields:
 
 ```python
@@ -22,6 +24,34 @@ False  # Not tracked!
 ```
 
 This is useful when you only care about changes to specific fields, or want to improve performance by not tracking large fields.
+
+### Excluding Specific Fields (Blacklist)
+
+Use `FIELDS_TO_CHECK_EXCLUDE` to track all fields except the specified ones:
+
+```python
+class MyModel(DirtyFieldsMixin, models.Model):
+    FIELDS_TO_CHECK_EXCLUDE = ['updated_at', 'last_login']
+
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    updated_at = models.DateTimeField(auto_now=True)
+    last_login = models.DateTimeField(null=True)
+
+>>> obj.name = "changed"
+>>> obj.is_dirty()
+True  # 'name' is tracked
+
+>>> obj2 = MyModel.objects.get(pk=2)
+>>> obj2.updated_at = timezone.now()
+>>> obj2.is_dirty()
+False  # 'updated_at' is excluded!
+```
+
+This is more convenient than `FIELDS_TO_CHECK` when you want to track most fields but exclude a few (e.g., auto-updated timestamps).
+
+!!! warning "Cannot Use Both"
+    You cannot use both `FIELDS_TO_CHECK` and `FIELDS_TO_CHECK_EXCLUDE` on the same model. Attempting to do so will raise a `ValueError`.
 
 ## Model Inheritance
 
@@ -92,6 +122,39 @@ obj.save()  # Updates all fields
 # Do this:
 obj.status = 'completed'
 obj.save_dirty_fields()  # Only updates 'status'
+```
+
+### Bulk Operations
+
+Django's `bulk_update()` and `bulk_create()` bypass the model's `save()` method, so dirty tracking doesn't happen automatically. Use the helper functions to manually manage dirty state:
+
+```python
+from dirtyfields import capture_dirty_state, reset_dirty_state
+
+# Modify multiple instances
+instances = list(MyModel.objects.filter(status='pending'))
+for obj in instances:
+    obj.status = 'processed'
+
+# Capture dirty state before bulk operation
+capture_dirty_state(instances)
+
+# Perform bulk update (bypasses save())
+MyModel.objects.bulk_update(instances, ['status'])
+
+# Reset dirty state after bulk operation
+reset_dirty_state(instances)
+
+# Now instances are clean, but was_dirty() still works
+for obj in instances:
+    print(f"{obj.pk} was dirty: {obj.was_dirty()}")
+```
+
+You can also reset only specific fields:
+
+```python
+# Only reset the 'status' field, keep other fields dirty
+reset_dirty_state(instances, fields=['status'])
 ```
 
 ## Transaction Limitations

@@ -47,6 +47,7 @@ Thumbs.db
 
 # Documentation
 site/
+docs/superpowers/
 
 # Cython build artifacts
 src/dirtyfields/_fast_set.c

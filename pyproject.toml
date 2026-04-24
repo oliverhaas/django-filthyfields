@@ -1,10 +1,10 @@
 [project]
 name = "django-filthyfields"
-version = "1.9.8b2"
+version = "1.9.8b5"
 description = "Tracking dirty fields on a Django model instance."
 readme = "README.md"
 license = "BSD-3-Clause"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 keywords = [
   "django",
   "filthyfields",
@@ -14,10 +14,8 @@ keywords = [
   "changes",
 ]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Framework :: Django",
-  "Framework :: Django :: 4.2",
-  "Framework :: Django :: 5.2",
   "Framework :: Django :: 6.0",
   "Intended Audience :: Developers",
   "License :: OSI Approved :: BSD License",
@@ -26,13 +24,11 @@ classifiers = [
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
   "Topic :: Software Development :: Libraries :: Python Modules",
+  "Typing :: Typed",
 ]
-dependencies = ["Django>=4.2"]
+dependencies = ["Django>=6.0"]
 
 [project.urls]
 Homepage = "https://github.com/oliverhaas/django-dirtyfields"
@@ -42,20 +38,22 @@ Repository = "https://github.com/oliverhaas/django-dirtyfields.git"
 [dependency-groups]
 dev = [
   "cython>=3.2.4",
-  "django-stubs==5.2.8",
-  "pre-commit==4.5.1",
-  "pytest==9.0.2",
-  "pytest-cov==7.0.0",
-  "pytest-django==4.11.1",
+  "django-stubs==6.0.3",
+  "mypy==1.20.2",
+  "pre-commit==4.6.0",
+  "pytest==9.0.3",
+  "pytest-asyncio==1.3.0",
+  "pytest-cov==7.1.0",
+  "pytest-django==4.12.0",
   "pytest-xdist==3.8.0",
-  "ruff==0.14.13",
+  "ruff==0.15.11",
   "setuptools>=80.10.1",
-  "ty==0.0.12",
+  "ty==0.0.32",
 ]
-docs = ["mkdocs==1.6.1", "mkdocs-material==9.7.1", "mike==2.1.3"]
+docs = ["mkdocs==1.6.1", "mkdocs-material==9.7.6", "mike==2.2.0"]
 
 [build-system]
-requires = ["hatchling==1.28.0"]
+requires = ["hatchling==1.29.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
@@ -115,9 +113,14 @@ unfixable = []
   "SIM117",  # Nested with for query assertions is clearer
   "TRY301",  # Raise in tests is fine
 ]
-"tests/benchmark*.py" = [
+"benchmarks/**" = [
+  "ANN",     # No type annotations required in benchmarks
+  "DJ001",   # null=True on CharField for benchmark models is fine
+  "DJ008",   # Benchmark models don't need __str__
   "E402",    # Import order - Django setup required before imports
+  "PLR0913", # Too many arguments in benchmark fixtures
   "PLR0915", # main() has many statements - that's fine for a benchmark script
+  "PLR2004", # Magic values in benchmarks are fine
   "S105",    # Hardcoded secret key is fine for benchmarks
   "T201",    # print() is the output mechanism for benchmarks
 ]
@@ -125,6 +128,14 @@ unfixable = []
   "DTZ001", # Naive datetime is intentional for timezone testing
   "DTZ005", # Naive datetime.now() is intentional for timezone testing
   "UP017",  # timezone.utc used for test clarity
+]
+"src/dirtyfields/dirtyfields.py" = [
+  "PLR0911", # Many return statements in descriptor __set__ is inherent to the tracking logic
+  "PLR0912", # Many branches in descriptor __set__ is inherent to the tracking logic
+]
+"src/dirtyfields/_fast_set.py" = [
+  "PLR0911", # Cython fast path mirrors the descriptor return structure
+  "PLR0912", # Cython fast path mirrors the descriptor branching structure
 ]
 
 [tool.pytest.ini_options]
@@ -150,3 +161,11 @@ exclude_lines = [
   "if TYPE_CHECKING:",
   "raise NotImplementedError",
 ]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+plugins = ["mypy_django_plugin.main"]
+
+[tool.django-stubs]
+django_settings_module = "tests.django_settings"

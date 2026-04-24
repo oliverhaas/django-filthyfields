@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 def raw_compare(new_value: Any, old_value: Any) -> bool:
     """Default comparison: simple equality check."""
-    return new_value == old_value
+    return bool(new_value == old_value)
 
 
 def normalise_value(value: Any) -> Any:

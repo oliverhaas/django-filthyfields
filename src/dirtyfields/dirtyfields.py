@@ -34,7 +34,7 @@ try:
 
     _USE_CYTHON_SET = True
 except ImportError:
-    _fast_set = None  # type: ignore[assignment, misc]
+    _fast_set = None  # type: ignore[assignment]  # ty: ignore[invalid-assignment]
     _USE_CYTHON_SET = False
 
 # Types that don't need deepcopy (immutable)
@@ -59,27 +59,45 @@ _IMMUTABLE_TYPES = frozenset(
 
 def _normalize_value(value: Any) -> Any:
     """Normalize a field value for storage in the diff dict."""
+    if value is None or type(value) in _IMMUTABLE_TYPES:
+        return value
     if isinstance(value, File):
         return value.name
     if isinstance(value, memoryview):
         return bytes(value)
-    if value is None or type(value) in _IMMUTABLE_TYPES:
-        return value
+    # Fast path for simple dicts/lists (common for JSONField)
+    # Use shallow copy if all values are immutable, otherwise deepcopy
+    if isinstance(value, dict):
+        if all(type(v) in _IMMUTABLE_TYPES or v is None for v in value.values()):
+            return value.copy()
+        return deepcopy(value)
+    if isinstance(value, (list, tuple)):
+        if all(type(v) in _IMMUTABLE_TYPES or v is None for v in value):
+            return list(value) if isinstance(value, list) else value
+        return deepcopy(value)
     return deepcopy(value)
 
 
 def _should_track_field(instance: models.Model, field_name: str, field_attname: str | None = None) -> bool:
-    """Check if a field should be tracked based on FIELDS_TO_CHECK.
+    """Check if a field should be tracked based on FIELDS_TO_CHECK or FIELDS_TO_CHECK_EXCLUDE.
 
-    For backward compatibility, accepts both field.name (e.g., 'fkey') and
-    field.attname (e.g., 'fkey_id') in FIELDS_TO_CHECK.
+    Accepts both field.name (e.g., 'fkey') and field.attname (e.g., 'fkey_id').
+
+    FIELDS_TO_CHECK: Only track fields in this list (whitelist)
+    FIELDS_TO_CHECK_EXCLUDE: Track all fields EXCEPT those in this list (blacklist)
+
+    Mutual-exclusion validation lives on the assignment path (_DiffDescriptor.__set__);
+    this helper does not raise.
     """
     fields_to_check = getattr(instance, "FIELDS_TO_CHECK", None)
-    if fields_to_check is None:
-        return True
-    if field_name in fields_to_check:
-        return True
-    return field_attname is not None and field_attname in fields_to_check
+    if fields_to_check is not None:
+        return field_name in fields_to_check or (field_attname is not None and field_attname in fields_to_check)
+
+    fields_to_exclude = getattr(instance, "FIELDS_TO_CHECK_EXCLUDE", None)
+    if fields_to_exclude is not None:
+        return field_name not in fields_to_exclude and (field_attname is None or field_attname not in fields_to_exclude)
+
+    return True
 
 
 def _track_file_change(instance: models.Model, field_name: str, old_name: str, new_name: str) -> None:
@@ -122,12 +140,12 @@ class _DiffDescriptor(DeferredAttribute):
         """Compare values using to_python for consistent type conversion."""
         # Fast path: same type and value, no conversion needed
         if type(val1) is type(val2):
-            return val1 == val2
+            return bool(val1 == val2)
         # Slow path: different types, need to_python for normalization
         try:
-            return self._field.to_python(val1) == self._field.to_python(val2)
-        except (ValidationError, TypeError, ValueError):
-            return val1 == val2
+            return bool(self._field.to_python(val1) == self._field.to_python(val2))
+        except ValidationError, TypeError, ValueError:
+            return bool(val1 == val2)
 
     def __get__(self, instance: models.Model | None, cls: type[models.Model] | None = None) -> Any:
         if instance is None:
@@ -137,7 +155,7 @@ class _DiffDescriptor(DeferredAttribute):
         except KeyError:
             return super().__get__(instance, cls)
 
-    def __set__(self, instance: models.Model | None, value: Any) -> None:  # noqa: PLR0911
+    def __set__(self, instance: models.Model | None, value: Any) -> None:
         if instance is None:
             return
 
@@ -168,14 +186,27 @@ class _DiffDescriptor(DeferredAttribute):
             d[attname] = value
             return
 
-        # Check FIELDS_TO_CHECK (cached at instance level for speed)
+        # Check FIELDS_TO_CHECK / FIELDS_TO_CHECK_EXCLUDE (cached at instance level for speed)
         field_name = self._field_name
-        fields_to_check = d.get("_fields_to_check_cache")
-        if fields_to_check is None:
+        cache_key = "_fields_check_cache"
+        cache = d.get(cache_key)
+        if cache is None:
             fields_to_check = getattr(instance, "FIELDS_TO_CHECK", None)
-            d["_fields_to_check_cache"] = fields_to_check  # Cache for future
+            fields_to_exclude = getattr(instance, "FIELDS_TO_CHECK_EXCLUDE", None)
+            if fields_to_check is not None and fields_to_exclude is not None:
+                raise ValueError("Cannot use both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE on the same model")
+            cache = (fields_to_check, fields_to_exclude)
+            d[cache_key] = cache
 
+        fields_to_check, fields_to_exclude = cache
+
+        # FIELDS_TO_CHECK: whitelist - only track if in list
         if fields_to_check is not None and field_name not in fields_to_check and attname not in fields_to_check:
+            d[attname] = value
+            return
+
+        # FIELDS_TO_CHECK_EXCLUDE: blacklist - don't track if in list
+        if fields_to_exclude is not None and (field_name in fields_to_exclude or attname in fields_to_exclude):
             d[attname] = value
             return
 
@@ -185,8 +216,8 @@ class _DiffDescriptor(DeferredAttribute):
         if self._values_equal(value, old):
             return
 
-        if self._is_relation and self._field.is_cached(instance):  # ty: ignore[possibly-missing-attribute]
-            self._field.delete_cached_value(instance)  # ty: ignore[possibly-missing-attribute]
+        if self._is_relation and self._field.is_cached(instance):  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+            self._field.delete_cached_value(instance)  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
 
         diff = d.setdefault("_state_diff", {})
 
@@ -215,29 +246,29 @@ class _FileDiffDescriptor(FileDescriptor):
         # Wrap the FieldFile's save and delete methods to track changes
         # Note: empty FieldFile is falsy, so we check 'is not None' instead of 'if file'
         # We're monkey-patching the FieldFile at runtime to intercept save/delete
-        # ty doesn't understand that file is always FieldFile when instance is not None
+        # Type checkers don't understand that file is always FieldFile when instance is not None
         if file is not None and not getattr(file, "_dirty_wrapped", False):
-            original_save = file.save  # ty: ignore[possibly-missing-attribute]
-            original_delete = file.delete  # ty: ignore[possibly-missing-attribute]
+            original_save = file.save  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
+            original_delete = file.delete  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
             field_name = self.field.name
             inst = instance  # Capture for closure with narrowed type
 
             def tracked_save(name: str, content: File[Any], save: bool = True) -> None:
-                old_name = file.name or ""  # ty: ignore[possibly-missing-attribute]
+                old_name = file.name or ""  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
                 original_save(name, content, save=save)
-                new_name = file.name or ""  # ty: ignore[possibly-missing-attribute]
+                new_name = file.name or ""  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
                 if not inst._state.adding:
                     _track_file_change(inst, field_name, old_name, new_name)
 
             def tracked_delete(save: bool = True) -> None:
-                old_name = file.name or ""  # ty: ignore[possibly-missing-attribute]
+                old_name = file.name or ""  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
                 original_delete(save=save)
                 if not inst._state.adding:
                     _track_file_change(inst, field_name, old_name, "")
 
-            file.save = tracked_save  # ty: ignore[invalid-assignment]
-            file.delete = tracked_delete  # ty: ignore[invalid-assignment]
-            file._dirty_wrapped = True  # ty: ignore[invalid-assignment]
+            file.save = tracked_save  # type: ignore[method-assign,union-attr]  # ty: ignore[invalid-assignment]
+            file.delete = tracked_delete  # type: ignore[method-assign,union-attr]  # ty: ignore[invalid-assignment]
+            file._dirty_wrapped = True  # type: ignore[union-attr]  # ty: ignore[invalid-assignment]
 
         return file
 
@@ -259,10 +290,10 @@ class _FileDiffDescriptor(FileDescriptor):
 
         if should_track:
             old = d[attname]
-            old_normalized = old.name if isinstance(old, File) else (old or "")
-            new_normalized = value.name if isinstance(value, File) else (value or "")
+            old_normalized = (old.name or "") if isinstance(old, File) else (old or "")
+            new_normalized = (value.name or "") if isinstance(value, File) else (value or "")
 
-            _track_file_change(instance, field_name, old_normalized, new_normalized)
+            _track_file_change(instance, field_name, str(old_normalized), str(new_normalized))
 
         super().__set__(instance, value)
 
@@ -279,8 +310,8 @@ class _DirtyMeta(ModelBase):
     ) -> type:
         cls = super().__new__(mcs, name, bases, namespace, **kwargs)
 
-        if hasattr(cls, "_meta") and not cls._meta.abstract:
-            for field in cls._meta.concrete_fields:
+        if hasattr(cls, "_meta") and not cls._meta.abstract:  # ty: ignore[unresolved-attribute]
+            for field in cls._meta.concrete_fields:  # ty: ignore[unresolved-attribute]
                 attr = getattr(cls, field.attname, None)
                 if type(attr) in (DeferredAttribute, ForeignKeyDeferredAttribute):
                     setattr(cls, field.attname, _DiffDescriptor(field))
@@ -351,6 +382,11 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         super().save(*args, **kwargs)
         self._dirty_reset_state()
 
+    async def asave(self, *args: Any, **kwargs: Any) -> None:
+        self._dirty_capture_was_dirty()
+        await super().asave(*args, **kwargs)
+        self._dirty_reset_state()
+
     def refresh_from_db(  # ty: ignore[invalid-method-override]
         self,
         using: str | None = None,
@@ -360,24 +396,25 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         super().refresh_from_db(using=using, fields=fields, from_queryset=from_queryset)
         self._dirty_reset_state(fields=fields)
 
+    async def arefresh_from_db(  # ty: ignore[invalid-method-override]
+        self,
+        using: str | None = None,
+        fields: Iterable[str] | None = None,
+        from_queryset: models.QuerySet[Self] | None = None,
+    ) -> None:
+        await super().arefresh_from_db(using=using, fields=fields, from_queryset=from_queryset)
+        self._dirty_reset_state(fields=fields)
+
     def _as_dict_m2m(self) -> dict[str, set[Any]]:
         """Get current M2M field values as a dict of sets of PKs."""
         if not self.pk:
             return {}
 
-        result = {}
-        fields_to_check = getattr(self, "FIELDS_TO_CHECK", None)
-
-        for field in _get_m2m_fields(self.__class__):
-            if (
-                fields_to_check is not None
-                and field.name not in fields_to_check
-                and field.attname not in fields_to_check
-            ):
-                continue
-            result[field.attname] = {obj.pk for obj in getattr(self, field.attname).all()}
-
-        return result
+        return {
+            field.attname: {obj.pk for obj in getattr(self, field.attname).all()}
+            for field in _get_m2m_fields(self.__class__)
+            if _should_track_field(self, field.name, field.attname)
+        }
 
     def _snapshot_m2m_state(self) -> None:
         """Capture current M2M state as the original state for dirty tracking."""
@@ -507,7 +544,6 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         """Get current field values (for new instances)."""
         result = {}
         deferred = self.get_deferred_fields()
-        fields_to_check = getattr(self, "FIELDS_TO_CHECK", None)
 
         for field in self._meta.concrete_fields:
             if field.primary_key and not include_pk:
@@ -516,11 +552,7 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
                 continue
             if field.attname in deferred:
                 continue
-            if (
-                fields_to_check is not None
-                and field.name not in fields_to_check
-                and field.attname not in fields_to_check
-            ):
+            if not _should_track_field(self, field.name, field.attname):
                 continue
 
             value = self.__dict__.get(field.attname)
@@ -557,3 +589,57 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         else:
             dirty_fields = self.get_dirty_fields(check_relationship=True)
             self.save(update_fields=dirty_fields.keys())
+
+
+# Standalone helper functions for bulk operations
+
+
+def capture_dirty_state(instances: Iterable[DirtyFieldsMixin]) -> None:
+    """Capture current dirty state for multiple instances before a bulk operation.
+
+    Call this before bulk_update() or similar operations to preserve the
+    dirty state for later inspection via was_dirty() / get_was_dirty_fields().
+
+    Args:
+        instances: Iterable of model instances with DirtyFieldsMixin
+
+    Example:
+        >>> instances = list(MyModel.objects.filter(status='pending'))
+        >>> for obj in instances:
+        ...     obj.status = 'processed'
+        >>> capture_dirty_state(instances)
+        >>> MyModel.objects.bulk_update(instances, ['status'])
+        >>> reset_dirty_state(instances)
+        >>> instances[0].was_dirty()
+        True
+    """
+    for instance in instances:
+        instance._dirty_capture_was_dirty()
+
+
+def reset_dirty_state(
+    instances: Iterable[DirtyFieldsMixin],
+    fields: Iterable[str] | None = None,
+) -> None:
+    """Reset dirty tracking state for multiple instances after a bulk operation.
+
+    Call this after bulk_update() or similar operations to clear the dirty
+    state, indicating that changes have been persisted.
+
+    Args:
+        instances: Iterable of model instances with DirtyFieldsMixin
+        fields: If provided, only reset these specific fields. Otherwise reset all.
+
+    Example:
+        >>> instances = list(MyModel.objects.filter(status='pending'))
+        >>> for obj in instances:
+        ...     obj.status = 'processed'
+        >>> capture_dirty_state(instances)
+        >>> MyModel.objects.bulk_update(instances, ['status'])
+        >>> reset_dirty_state(instances)
+        >>> instances[0].is_dirty()
+        False
+    """
+    field_list = list(fields) if fields is not None else None
+    for instance in instances:
+        instance._dirty_reset_state(fields=field_list)
