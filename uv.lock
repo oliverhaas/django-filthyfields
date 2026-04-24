@@ -204,7 +204,7 @@ wheels = [
 
 [[package]]
 name = "django-filthyfields"
-version = "1.9.8b6"
+version = "1.9.8b7"
 source = { editable = "." }
 dependencies = [
     { name = "django" },
