@@ -20,16 +20,18 @@ This fork uses **lazy descriptor-based tracking**, which for typical use-cases w
 
 ### Benchmark Results
 
-Performance comparison on Python 3.14 (10,000 instances, 20 fields each):
+Python 3.14, 10,000 instances × 20 fields, 5 iterations. Numbers in parentheses are overhead vs. plain Django.
 
-| Scenario                              | Plain   | filthyfields | dirtyfields |
-|---------------------------------------|---------|--------------|-------------|
-| `.only(1 field)` + read 1 field       | 35 ms   | 41 ms (+6)   | 151 ms (+116) |
-| Load 20 fields + read 20 fields       | 58 ms   | 110 ms (+52) | 244 ms (+186) |
-| `.only(1 field)` + write 1 field      | 35 ms   | 47 ms (+12)  | 153 ms (+118) |
-| Load 20 fields + write 20 fields      | 55 ms   | 202 ms (+147)| 244 ms (+189) |
-| `.only(1 field)` + read+write 1 field | 35 ms   | 47 ms (+12)  | 152 ms (+117) |
-| Load 20 fields + read+write 20 fields | 60 ms   | 223 ms (+163)| 243 ms (+183) |
+| Scenario                              | Plain   | filthyfields        | dirtyfields         |
+|---------------------------------------|--------:|--------------------:|--------------------:|
+| `.only(1 field)` + read 1 field       |  38 ms  |  42 ms (+4)         | 140 ms (+101)       |
+| Load 20 fields + read 20 fields       | 140 ms  | 162 ms (+22)        | 516 ms (+376)       |
+| `.only(1 field)` + write 1 field      |  38 ms  |  47 ms (+9)         | 141 ms (+103)       |
+| Load 20 fields + write 20 fields      | 133 ms  | 244 ms (+111)       | 518 ms (+384)       |
+| `.only(1 field)` + read+write 1 field |  38 ms  |  48 ms (+10)        | 141 ms (+103)       |
+| Load 20 fields + read+write 20 fields | 138 ms  | 254 ms (+116)       | 527 ms (+390)       |
+
+Across the suite, **filthyfields overhead is 3×–28× smaller than dirtyfields overhead** — biggest on read-only paths where the Cython-backed descriptor avoids the full-model snapshot that upstream does on every load.
 
 Run the benchmark yourself: `uv run pytest tests/test_benchmark.py -m benchmark -s`
 
