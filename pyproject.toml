@@ -116,6 +116,7 @@ unfixable = []
 "tests/test_benchmark.py" = [
   "T201",    # print() is the output mechanism for the benchmark summary
   "PLR0915", # Scenario bodies have many statements by design
+  "S607",    # `uv` is on PATH; we deliberately invoke it without a full path
 ]
 "tests/test_timezone_aware_fields.py" = [
   "DTZ001", # Naive datetime is intentional for timezone testing
