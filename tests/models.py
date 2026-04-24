@@ -114,6 +114,14 @@ class JSONFieldModel(DirtyFieldsMixin, models.Model):
     json_field = models.JSONField(default=dict)
 
 
+class JSONFieldTrackMutationsModel(DirtyFieldsMixin, models.Model):
+    """Variant with TRACK_MUTATIONS enabled — detects in-place mutations of mutable values."""
+
+    TRACK_MUTATIONS = True
+
+    json_field = models.JSONField(default=dict)
+
+
 class ModelWithFieldsToCheck(DirtyFieldsMixin, models.Model):
     """Model that only tracks specific fields."""
 

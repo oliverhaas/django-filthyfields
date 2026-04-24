@@ -6,6 +6,8 @@ import dirtyfields
 from dirtyfields import capture_dirty_state, reset_dirty_state
 from tests.models import (
     FileFieldModel,
+    JSONFieldModel,
+    JSONFieldTrackMutationsModel,
     ModelTest,
     ModelWithBothFieldsConfig,
     ModelWithFieldsToCheck,
@@ -537,3 +539,32 @@ def test_bulk_helpers_with_generator():
 
     # Verify reset worked (note: generators are exhausted, so we check instances directly)
     assert all(not obj.is_dirty() for obj in instances)
+
+
+@pytest.mark.django_db
+def test_track_mutations_off_misses_in_place_mutation():
+    """Without TRACK_MUTATIONS, in-place mutation of a mutable field value is not detected."""
+    obj = JSONFieldModel.objects.create(json_field={"k": 1})
+    obj = JSONFieldModel.objects.get(pk=obj.pk)
+
+    obj.json_field["k"] = 2  # mutate in place, no __set__
+
+    assert obj.is_dirty() is False
+    assert obj.get_dirty_fields() == {}
+
+
+@pytest.mark.django_db
+def test_track_mutations_on_detects_in_place_mutation():
+    """With TRACK_MUTATIONS = True, in-place mutations are detected."""
+    obj = JSONFieldTrackMutationsModel.objects.create(json_field={"k": 1})
+    obj = JSONFieldTrackMutationsModel.objects.get(pk=obj.pk)
+
+    _ = obj.json_field  # first read snapshots the value
+    obj.json_field["k"] = 2
+
+    assert obj.is_dirty() is True
+    assert obj.get_dirty_fields() == {"json_field": {"k": 1}}
+
+    obj.save()
+    assert obj.is_dirty() is False
+    assert obj.get_dirty_fields() == {}

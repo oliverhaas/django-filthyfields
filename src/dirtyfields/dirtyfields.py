@@ -163,10 +163,11 @@ class _DirtyMeta(ModelBase):
         cls = super().__new__(mcs, name, bases, namespace, **kwargs)
 
         if hasattr(cls, "_meta") and not cls._meta.abstract:  # ty: ignore[unresolved-attribute]
+            track_mutations = bool(getattr(cls, "TRACK_MUTATIONS", False))
             for field in cls._meta.concrete_fields:  # ty: ignore[unresolved-attribute]
                 attr = getattr(cls, field.attname, None)
                 if type(attr) in (DeferredAttribute, ForeignKeyDeferredAttribute):
-                    setattr(cls, field.attname, DiffDescriptor(field, attr))
+                    setattr(cls, field.attname, DiffDescriptor(field, attr, track_mutations))
                 elif isinstance(attr, FileDescriptor):
                     field.attr_class = _wrap_attr_class(field.attr_class)
                     setattr(cls, field.attname, _FileDiffDescriptor(field))
@@ -194,6 +195,11 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
     # Set to True to enable M2M field tracking
     ENABLE_M2M_CHECK = False
 
+    # Set to True to detect in-place mutations of mutable field values
+    # (e.g. ``obj.json_field["k"] = "v"``). Off by default to keep reads free;
+    # enabling snapshots mutable values via deepcopy on first __get__.
+    TRACK_MUTATIONS = False
+
     # Custom compare function: (callable, kwargs_dict) or None for default equality
     compare_function: CompareFunction | None = None
 
@@ -217,6 +223,7 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         if fields is None:
             self.__dict__.pop("_state_diff", None)
             self.__dict__.pop("_state_diff_rel", None)
+            self.__dict__.pop("_state_mut_snapshot", None)
             # Reset M2M state by re-snapshotting current state
             if self.ENABLE_M2M_CHECK and self.pk:
                 self._snapshot_m2m_state()
@@ -229,6 +236,10 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
                 if rel:
                     for name in fields:
                         rel.discard(name)
+            mut_snap = self.__dict__.get("_state_mut_snapshot")
+            if mut_snap:
+                for name in fields:
+                    mut_snap.pop(name, None)
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         self._dirty_capture_was_dirty()
@@ -296,6 +307,26 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
 
         return result
 
+    def _get_mutation_dirty_fields(self) -> dict[str, Any]:
+        """Fields whose mutable value was mutated in place since first read (TRACK_MUTATIONS).
+
+        Returns ``{}`` when TRACK_MUTATIONS is off or no mutations detected.
+        Entries already present in ``_state_diff`` are skipped — an explicit
+        reassignment takes precedence over the pre-mutation snapshot.
+        """
+        snap = self.__dict__.get("_state_mut_snapshot")
+        if not snap:
+            return {}
+        diff = self.__dict__.get("_state_diff") or {}
+        d = self.__dict__
+        result: dict[str, Any] = {}
+        for field_name, original in snap.items():
+            if field_name in diff:
+                continue
+            if d.get(field_name) != original:
+                result[field_name] = original
+        return result
+
     def is_dirty(self, check_relationship: bool = False, check_m2m: bool = False) -> bool:
         """Check if instance has unsaved changes."""
         if self._state.adding:
@@ -310,6 +341,9 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
             has_field_changes = any(k not in rel for k in diff)
 
         if has_field_changes:
+            return True
+
+        if self._get_mutation_dirty_fields():
             return True
 
         if check_m2m:
@@ -352,6 +386,9 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
             result = {k: v for k, v in diff.items() if k not in rel}
         else:
             result = dict(diff)
+
+        # Merge in fields mutated in place (TRACK_MUTATIONS)
+        result.update(self._get_mutation_dirty_fields())
 
         # Apply compare_function to filter out fields that are actually equal
         compare_func = getattr(self, "compare_function", None)

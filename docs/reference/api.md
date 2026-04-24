@@ -75,6 +75,26 @@ class MyModel(DirtyFieldsMixin, models.Model):
 
 ---
 
+#### `TRACK_MUTATIONS`
+
+Detect in-place mutations of mutable field values (e.g. `obj.json_field["k"] = "v"` or `obj.tags_list.append("new")`). Off by default: the descriptor-based approach only tracks assignments via `__set__`, so mutations through a live reference go unnoticed. Enabling this snapshots mutable values (`dict`, `list`, `set`, `bytearray`) via `deepcopy` on first read, so `get_dirty_fields()` can compare and detect changes.
+
+```python
+class MyModel(DirtyFieldsMixin, models.Model):
+    TRACK_MUTATIONS = True
+
+    data = models.JSONField(default=dict)
+```
+
+**Type:** `bool`
+
+**Default:** `False`
+
+!!! note "Cost"
+    A `deepcopy` per mutable-valued field on first read. Leave off when you only reassign fields — the default is correct and free for the common case.
+
+---
+
 #### `compare_function`
 
 Custom comparison function for determining if field values have changed. Useful for timezone-aware datetime comparisons.

@@ -74,6 +74,10 @@ _IMMUTABLE_TYPES = frozenset(
     ),
 )
 
+# Types whose values can be mutated in place without going through __set__.
+# Used for TRACK_MUTATIONS snapshotting in __get__.
+_MUTABLE_TYPES = frozenset((dict, list, set, bytearray))
+
 
 def _normalize_value(value: Any) -> Any:
     """Normalize a field value for storage in the diff dict."""
@@ -108,13 +112,20 @@ class DiffDescriptor:
     _attname: str
     _field_name: str
     _is_relation: cython.bint
+    _track_mutations: cython.bint
 
-    def __init__(self, field: models.Field[Any, Any], deferred_attr: Any) -> None:
+    def __init__(
+        self,
+        field: models.Field[Any, Any],
+        deferred_attr: Any,
+        track_mutations: bool = False,
+    ) -> None:
         self._field = field
         self._deferred_attr = deferred_attr
         self._attname = field.attname
         self._field_name = field.name
         self._is_relation = field.remote_field is not None
+        self._track_mutations = track_mutations
 
     @cython.cfunc  # type: ignore[untyped-decorator]
     @cython.inline  # type: ignore[untyped-decorator]
@@ -130,10 +141,22 @@ class DiffDescriptor:
     def __get__(self, instance: Any, cls: Any) -> Any:
         if instance is None:
             return self
+        d = instance.__dict__
         try:
-            return instance.__dict__[self._attname]
+            value = d[self._attname]
         except KeyError:
             return self._deferred_attr.__get__(instance, cls)
+
+        # TRACK_MUTATIONS: deepcopy the value on first read so in-place mutations
+        # (e.g. obj.json_field["k"] = "v") are still detectable at get_dirty_fields() time.
+        if self._track_mutations and type(value) in _MUTABLE_TYPES:
+            snap = d.get("_state_mut_snapshot")
+            if snap is None:
+                snap = {}
+                d["_state_mut_snapshot"] = snap
+            if self._field_name not in snap:
+                snap[self._field_name] = deepcopy(value)
+        return value
 
     def __set__(self, instance: Any, value: Any) -> None:
         if instance is None:
