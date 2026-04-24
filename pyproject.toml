@@ -18,7 +18,6 @@ classifiers = [
   "Framework :: Django",
   "Framework :: Django :: 6.0",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: BSD License",
   "Natural Language :: English",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
@@ -53,14 +52,33 @@ dev = [
 docs = ["mkdocs==1.6.1", "mkdocs-material==9.7.6", "mike==2.2.0"]
 
 [build-system]
-requires = ["hatchling==1.29.0"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=80", "cython>=3.2.4"]
+build-backend = "setuptools.build_meta"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/dirtyfields"]
+[tool.setuptools.packages.find]
+where = ["src"]
 
-[tool.hatch.build.targets.sdist]
-include = ["src/dirtyfields"]
+[tool.setuptools.package-data]
+dirtyfields = ["py.typed"]
+
+[tool.setuptools.exclude-package-data]
+dirtyfields = ["*.c", "*.html"]
+
+# cibuildwheel config — builds the wheel matrix in CI.
+# We target cp314 and cp314t (free-threaded) because that's our supported runtime.
+[tool.cibuildwheel]
+build = ["cp314-*", "cp314t-*"]
+enable = ["cpython-freethreading"]
+build-verbosity = 1
+# Smoke-test the wheel: import must work (Django not required — _descriptor
+# only imports django.core.files + django.core.exceptions at module load).
+test-command = "python -c \"import dirtyfields._descriptor; print(dirtyfields._descriptor.DiffDescriptor)\""
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64"]
+
+[tool.cibuildwheel.macos]
+archs = ["arm64"]
 
 [tool.ruff]
 line-length = 120
