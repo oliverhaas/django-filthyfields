@@ -13,8 +13,8 @@ Dirty means that field in-memory and database values are different.
 
 ## Why This Fork?
 
-The original django-dirtyfields captures model state by making a full snapshot of the model at the start.
-This means **every field value is copied on every model load**, regardless of whether you'll modify the instance.
+The original django-dirtyfields captures model state by making a full snapshot of the model on instance initialization.
+This means **every field value is copied every time a model instance is initialized**, regardless of whether you'll modify the instance.
 
 This fork uses **lazy descriptor-based tracking**, which for typical use-cases where one reads/writes fields at most once each has less overhead.
 
