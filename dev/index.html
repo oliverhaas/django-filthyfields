@@ -861,8 +861,8 @@
 rewritten "lazy" descriptor-based internal implementation, and has since diverged with its own feature set and release cadence.</p>
 </div>
 <h2 id="why-this-fork">Why This Fork?<a class="headerlink" href="#why-this-fork" title="Permanent link">&para;</a></h2>
-<p>The original django-dirtyfields captures model state by making a full snapshot of the model at the start.
-This means <strong>every field value is copied on every model load</strong>, regardless of whether you'll modify the instance.</p>
+<p>The original django-dirtyfields captures model state by making a full snapshot of the model on instance initialization.
+This means <strong>every field value is copied every time a model instance is initialized</strong>, regardless of whether you'll modify the instance.</p>
 <p>This fork uses <strong>lazy descriptor-based tracking</strong>, which for typical use-cases where one reads/writes fields at most once each has less overhead.</p>
 <h3 id="benchmark-results">Benchmark Results<a class="headerlink" href="#benchmark-results" title="Permanent link">&para;</a></h3>
 <p>Python 3.14, 10,000 instances × 20 fields, 5 iterations. Numbers in parentheses are overhead vs. plain Django.</p>
