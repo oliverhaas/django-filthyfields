@@ -865,55 +865,56 @@ rewritten "lazy" descriptor-based internal implementation, and has since diverge
 This means <strong>every field value is copied on every model load</strong>, regardless of whether you'll modify the instance.</p>
 <p>This fork uses <strong>lazy descriptor-based tracking</strong>, which for typical use-cases where one reads/writes fields at most once each has less overhead.</p>
 <h3 id="benchmark-results">Benchmark Results<a class="headerlink" href="#benchmark-results" title="Permanent link">&para;</a></h3>
-<p>Performance comparison on Python 3.14 (10,000 instances, 20 fields each):</p>
+<p>Python 3.14, 10,000 instances × 20 fields, 5 iterations. Numbers in parentheses are overhead vs. plain Django.</p>
 <table>
 <thead>
 <tr>
 <th>Scenario</th>
-<th>Plain</th>
-<th>filthyfields</th>
-<th>dirtyfields</th>
+<th style="text-align: right;">Plain</th>
+<th style="text-align: right;">filthyfields</th>
+<th style="text-align: right;">dirtyfields</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>.only(1 field)</code> + read 1 field</td>
-<td>35 ms</td>
-<td>41 ms (+6)</td>
-<td>151 ms (+116)</td>
+<td style="text-align: right;">38 ms</td>
+<td style="text-align: right;">42 ms (+4)</td>
+<td style="text-align: right;">140 ms (+101)</td>
 </tr>
 <tr>
 <td>Load 20 fields + read 20 fields</td>
-<td>58 ms</td>
-<td>110 ms (+52)</td>
-<td>244 ms (+186)</td>
+<td style="text-align: right;">140 ms</td>
+<td style="text-align: right;">162 ms (+22)</td>
+<td style="text-align: right;">516 ms (+376)</td>
 </tr>
 <tr>
 <td><code>.only(1 field)</code> + write 1 field</td>
-<td>35 ms</td>
-<td>47 ms (+12)</td>
-<td>153 ms (+118)</td>
+<td style="text-align: right;">38 ms</td>
+<td style="text-align: right;">47 ms (+9)</td>
+<td style="text-align: right;">141 ms (+103)</td>
 </tr>
 <tr>
 <td>Load 20 fields + write 20 fields</td>
-<td>55 ms</td>
-<td>202 ms (+147)</td>
-<td>244 ms (+189)</td>
+<td style="text-align: right;">133 ms</td>
+<td style="text-align: right;">244 ms (+111)</td>
+<td style="text-align: right;">518 ms (+384)</td>
 </tr>
 <tr>
 <td><code>.only(1 field)</code> + read+write 1 field</td>
-<td>35 ms</td>
-<td>47 ms (+12)</td>
-<td>152 ms (+117)</td>
+<td style="text-align: right;">38 ms</td>
+<td style="text-align: right;">48 ms (+10)</td>
+<td style="text-align: right;">141 ms (+103)</td>
 </tr>
 <tr>
 <td>Load 20 fields + read+write 20 fields</td>
-<td>60 ms</td>
-<td>223 ms (+163)</td>
-<td>243 ms (+183)</td>
+<td style="text-align: right;">138 ms</td>
+<td style="text-align: right;">254 ms (+116)</td>
+<td style="text-align: right;">527 ms (+390)</td>
 </tr>
 </tbody>
 </table>
+<p>Across the suite, <strong>filthyfields overhead is 3×–28× smaller than dirtyfields overhead</strong> — biggest on read-only paths where the Cython-backed descriptor avoids the full-model snapshot that upstream does on every load.</p>
 <p>Run the benchmark yourself: <code>uv run pytest tests/test_benchmark.py -m benchmark -s</code></p>
 <h2 id="compatibility">Compatibility<a class="headerlink" href="#compatibility" title="Permanent link">&para;</a></h2>
 <table>
