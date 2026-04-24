@@ -92,24 +92,19 @@ def test_correctly_handle_foreignkeys_id_field_in_update_fields():
 
 
 @pytest.mark.django_db
-def test_f_objects_tracked():
-    """F objects are tracked as dirty when assigned.
-
-    The descriptor-based approach tracks all assignments, including F expressions.
-    """
+def test_f_objects_not_tracked():
+    """F objects and other ORM expressions aren't tracked — Django evaluates them at save time."""
     tm = ExpressionModelTest.objects.create(counter=0)
     assert tm.counter == 0
     assert tm.get_dirty_fields() == {}
 
     tm.counter = F("counter") + 1
-    # The descriptor tracks that counter was changed (stores old value)
-    assert tm.get_dirty_fields() == {"counter": 0}
+    assert tm.get_dirty_fields() == {}
 
     tm.save()
     tm.refresh_from_db()
     assert tm.counter == 1
 
-    # After refresh, we can track changes
     tm.counter = 10
     assert tm.get_dirty_fields() == {"counter": 1}
 
@@ -126,8 +121,7 @@ def test_f_objects_auto_refresh_django6():
     assert tm.get_dirty_fields() == {}
 
     tm.counter = F("counter") + 1
-    # Descriptor tracks the assignment
-    assert tm.get_dirty_fields() == {"counter": 0}
+    assert tm.get_dirty_fields() == {}
 
     tm.save()
     # Django 6.0 auto-refreshes F() fields after save - no manual refresh needed
@@ -147,7 +141,7 @@ def test_f_objects_with_update_fields_django6():
     assert tm.get_dirty_fields() == {}
 
     tm.counter = F("counter") + 1
-    assert tm.get_dirty_fields() == {"counter": 0}
+    assert tm.get_dirty_fields() == {}
 
     tm.save(update_fields={"counter"})
     # Auto-refresh happens even with update_fields in Django 6.0+
@@ -167,8 +161,7 @@ def test_concat_expression_django6():
 
     # Set characters to a Concat expression
     tm.characters = Concat(F("characters"), Value("def"))
-    # Descriptor tracks the assignment (old value was "abc")
-    assert tm.get_dirty_fields() == {"characters": "abc"}
+    assert tm.get_dirty_fields() == {}
 
     # Save - Django 6.0 auto-refreshes F() fields
     tm.save()

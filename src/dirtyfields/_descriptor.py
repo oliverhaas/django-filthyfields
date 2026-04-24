@@ -51,6 +51,7 @@ except ImportError:  # pragma: no cover - cython not installed at runtime (pure-
 
 from django.core.exceptions import ValidationError
 from django.core.files import File
+from django.db.models.expressions import BaseExpression, Combinable
 
 if TYPE_CHECKING:
     from django.db import models
@@ -140,6 +141,11 @@ class DiffDescriptor:
 
         d = instance.__dict__
         attname = self._attname
+
+        # ORM expressions (F, Func, ...) get resolved at save time, not tracked as edits.
+        if isinstance(value, (BaseExpression, Combinable)):
+            d[attname] = value
+            return
 
         # Fast path: new instance being populated, or field not yet loaded
         try:

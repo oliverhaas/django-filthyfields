@@ -118,6 +118,9 @@ def test_expressions_not_taken_into_account_for_dirty_check():
     tm = ExpressionModelTest.objects.create()
     tm.counter = F("counter") + 1
 
+    assert tm.is_dirty() is False
+    assert tm.get_dirty_fields() == {}
+
     # This save() was raising a ValidationError
     tm.save()
 
