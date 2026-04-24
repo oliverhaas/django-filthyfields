@@ -31,7 +31,7 @@ Performance comparison on Python 3.14 (10,000 instances, 20 fields each):
 | `.only(1 field)` + read+write 1 field | 35 ms   | 47 ms (+12)  | 152 ms (+117) |
 | Load 20 fields + read+write 20 fields | 60 ms   | 223 ms (+163)| 243 ms (+183) |
 
-Run the benchmark yourself: `uv run python benchmarks/benchmark.py --compare`
+Run the benchmark yourself: `uv run pytest tests/test_benchmark.py -m benchmark -s`
 
 ## Compatibility
 
