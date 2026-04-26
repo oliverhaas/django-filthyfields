@@ -66,7 +66,8 @@ def test_save_dirty_full_save_on_adding():
 
 
 @pytest.mark.django_db
-def test_handle_foreignkeys_id_field_in_update_fields():
+def test_fk_assigned_by_object_saved_with_id_in_update_fields():
+    """Assign FK via the object descriptor, save with the `_id` form in update_fields."""
     tm1 = ModelTest.objects.create(boolean=True, characters="dummy")
     tm2 = ModelTest.objects.create(boolean=True, characters="dummy")
     tmwfk = ModelWithForeignKeyTest.objects.create(fkey=tm1)
@@ -79,7 +80,8 @@ def test_handle_foreignkeys_id_field_in_update_fields():
 
 
 @pytest.mark.django_db
-def test_correctly_handle_foreignkeys_id_field_in_update_fields():
+def test_fk_assigned_by_id_saved_with_name_in_update_fields():
+    """Assign FK via `_id`, save with the field name in update_fields."""
     tm1 = ModelTest.objects.create(boolean=True, characters="dummy")
     tm2 = ModelTest.objects.create(boolean=True, characters="dummy")
     tmwfk = ModelWithForeignKeyTest.objects.create(fkey=tm1)
