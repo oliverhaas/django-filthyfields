@@ -1,7 +1,7 @@
 # Django Filthy Fields
 
 [![PyPI version](https://img.shields.io/pypi/v/django-filthyfields.svg)](https://pypi.org/project/django-filthyfields/)
-[![CI](https://github.com/oliverhaas/django-dirtyfields/actions/workflows/ci.yml/badge.svg)](https://github.com/oliverhaas/django-dirtyfields/actions/workflows/ci.yml)
+[![CI](https://github.com/oliverhaas/django-filthyfields/actions/workflows/ci.yml/badge.svg)](https://github.com/oliverhaas/django-filthyfields/actions/workflows/ci.yml)
 
 **Tracking dirty fields on a Django model instance.**
 
@@ -63,4 +63,4 @@ obj.get_dirty_fields()  # {'name': 'test'}
 
 ## Getting Help
 
-- [GitHub Discussions](https://github.com/oliverhaas/django-dirtyfields/discussions) - Questions and community support
+- [GitHub Discussions](https://github.com/oliverhaas/django-filthyfields/discussions) - Questions and community support

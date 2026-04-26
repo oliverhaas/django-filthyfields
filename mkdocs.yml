@@ -1,9 +1,9 @@
 site_name: Django Filthy Fields
-site_url: https://oliverhaas.github.io/django-dirtyfields/
+site_url: https://oliverhaas.github.io/django-filthyfields/
 site_description: Tracking dirty fields on a Django model instance.
 site_author: Oliver Haas
-repo_name: oliverhaas/django-dirtyfields
-repo_url: https://github.com/oliverhaas/django-dirtyfields
+repo_name: oliverhaas/django-filthyfields
+repo_url: https://github.com/oliverhaas/django-filthyfields
 
 theme:
   name: material

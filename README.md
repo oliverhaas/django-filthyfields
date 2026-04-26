@@ -1,7 +1,7 @@
 # Django Filthy Fields
 
 [![PyPI version](https://img.shields.io/pypi/v/django-filthyfields.svg)](https://pypi.org/project/django-filthyfields/)
-[![CI](https://github.com/oliverhaas/django-dirtyfields/actions/workflows/ci.yml/badge.svg)](https://github.com/oliverhaas/django-dirtyfields/actions/workflows/ci.yml)
+[![CI](https://github.com/oliverhaas/django-filthyfields/actions/workflows/ci.yml/badge.svg)](https://github.com/oliverhaas/django-filthyfields/actions/workflows/ci.yml)
 
 Tracking dirty fields on a Django model instance.
 Dirty means that field in-memory and database values are different.
@@ -10,4 +10,4 @@ Started as a fork of [django-dirtyfields](https://github.com/romgar/django-dirty
 rewritten "lazy" descriptor-based internal implementation, and has since diverged with its
 own feature set and release cadence.
 
-See the [documentation](https://oliverhaas.github.io/django-dirtyfields/) for more information.
+See the [documentation](https://oliverhaas.github.io/django-filthyfields/) for more information.

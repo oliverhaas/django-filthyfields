@@ -30,9 +30,9 @@ classifiers = [
 dependencies = ["Django>=6.0"]
 
 [project.urls]
-Homepage = "https://github.com/oliverhaas/django-dirtyfields"
-Documentation = "https://oliverhaas.github.io/django-dirtyfields/"
-Repository = "https://github.com/oliverhaas/django-dirtyfields.git"
+Homepage = "https://github.com/oliverhaas/django-filthyfields"
+Documentation = "https://oliverhaas.github.io/django-filthyfields/"
+Repository = "https://github.com/oliverhaas/django-filthyfields.git"
 
 [dependency-groups]
 dev = [

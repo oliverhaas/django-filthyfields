@@ -171,3 +171,26 @@ def test_concat_expression_django6():
     # Normal tracking works after save
     tm.characters = "xyz"
     assert tm.get_dirty_fields() == {"characters": "abcdef"}
+
+
+@pytest.mark.skipif(django.VERSION < (6, 0), reason="tests Django 6.0+ F() behavior")
+@pytest.mark.django_db
+def test_expression_with_update_fields_for_different_field_django6():
+    """An F-bearing field isn't refreshed when save(update_fields=...) excludes it."""
+    tm = ModelTest.objects.create(boolean=True, characters="abc")
+    assert tm.get_dirty_fields() == {}
+
+    tm.characters = Concat(F("characters"), Value("def"))
+    assert tm.get_dirty_fields() == {}
+
+    # Save a different field — auto-refresh skips `characters` since it's not in update_fields.
+    tm.save(update_fields={"boolean"})
+    assert tm.get_dirty_fields() == {}
+
+    # Final full save resolves the expression and refreshes.
+    tm.save()
+    assert tm.characters == "abcdef"
+    assert tm.get_dirty_fields() == {}
+
+    tm.characters = "xyz"
+    assert tm.get_dirty_fields() == {"characters": "abcdef"}

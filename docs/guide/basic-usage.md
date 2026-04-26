@@ -143,17 +143,32 @@ True
 
 ## F() Expressions
 
-Fields assigned with `F()` expressions are properly tracked:
+Fields assigned with an `F()` expression (or any other ORM expression like `Concat`, `Func`, …) are **not** reported as dirty. The expression is a directive the ORM resolves at save time, not a value change you can compare against the saved value.
 
 ```python
 from django.db.models import F
 
+>>> obj.count
+5
 >>> obj.count = F('count') + 1
 >>> obj.is_dirty()
-True
+False
 >>> obj.get_dirty_fields()
-{'count': 5}  # Original value before F() expression
+{}
 ```
+
+On Django 6.0+, `Model.save()` [auto-refreshes fields assigned to expressions](https://docs.djangoproject.com/en/6.0/ref/models/expressions/#f-assignments-are-refreshed-after-model-save), so after `obj.save()` the field holds its resolved value (e.g. `6`) and tracking resumes as normal:
+
+```python
+>>> obj.save()
+>>> obj.count
+6
+>>> obj.count = 10
+>>> obj.get_dirty_fields()
+{'count': 6}
+```
+
+If you `save(update_fields={...})` and the expression-bearing field isn't included, the auto-refresh skips it — the field keeps holding the unresolved expression until a later full `save()` or `refresh_from_db()`.
 
 ## New (Unsaved) Models
 
