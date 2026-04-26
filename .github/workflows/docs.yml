@@ -8,6 +8,13 @@ on:
       - "v*"
   workflow_dispatch:
 
+# Serialize docs deploys; both the push-to-main and v-tag triggers fire on
+# the same bump commit, and both push to gh-pages — without this, one wins
+# and the other fails with "fetch first".
+concurrency:
+  group: docs-deploy
+  cancel-in-progress: false
+
 permissions:
   contents: write
   pages: write
