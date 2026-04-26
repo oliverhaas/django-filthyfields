@@ -44,6 +44,10 @@ except ImportError:  # pragma: no cover - cython not installed at runtime (pure-
             return fn
 
         @staticmethod
+        def ccall(fn: Any) -> Any:
+            return fn
+
+        @staticmethod
         def inline(fn: Any) -> Any:
             return fn
 
@@ -79,8 +83,13 @@ _IMMUTABLE_TYPES = frozenset(
 _MUTABLE_TYPES = frozenset((dict, list, set, bytearray))
 
 
+@cython.ccall  # type: ignore[untyped-decorator]
 def _normalize_value(value: Any) -> Any:
-    """Normalize a field value for storage in the diff dict."""
+    """Normalize a field value for storage in the diff dict.
+
+    Stores immutable types by reference and mutable containers via shallow or
+    deep copy — whichever preserves snapshot independence at the lowest cost.
+    """
     if value is None or type(value) in _IMMUTABLE_TYPES:
         return value
     if isinstance(value, File):
@@ -88,13 +97,15 @@ def _normalize_value(value: Any) -> Any:
     if isinstance(value, memoryview):
         return bytes(value)
     if isinstance(value, dict):
-        if all(type(v) in _IMMUTABLE_TYPES or v is None for v in value.values()):
-            return value.copy()
-        return deepcopy(value)
+        for v in value.values():
+            if v is not None and type(v) not in _IMMUTABLE_TYPES:
+                return deepcopy(value)
+        return value.copy()
     if isinstance(value, (list, tuple)):
-        if all(type(v) in _IMMUTABLE_TYPES or v is None for v in value):
-            return list(value) if isinstance(value, list) else value
-        return deepcopy(value)
+        for v in value:
+            if v is not None and type(v) not in _IMMUTABLE_TYPES:
+                return deepcopy(value)
+        return list(value) if isinstance(value, list) else value
     return deepcopy(value)
 
 
