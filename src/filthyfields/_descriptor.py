@@ -24,6 +24,7 @@ from __future__ import annotations
 from copy import deepcopy
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
+from pathlib import PurePath
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
@@ -75,8 +76,15 @@ _IMMUTABLE_TYPES = frozenset(
         datetime,
         time,
         timedelta,
+        frozenset,
     ),
 )
+
+# Subclass-aware fallback used when the exact-type lookup misses. Picks up
+# IntEnum (int subclass), Django's SafeString (str subclass), pathlib.PurePath
+# concrete subclasses (PosixPath / WindowsPath / PurePosixPath / etc.), and
+# any user-defined subclass of an immutable base — all safe to share by reference.
+_IMMUTABLE_BASES: tuple[type, ...] = (str, int, bytes, PurePath)
 
 # Types whose values can be mutated in place without going through __set__.
 # Used for TRACK_MUTATIONS snapshotting in __get__.
@@ -90,7 +98,7 @@ def _normalize_value(value: Any) -> Any:
     Stores immutable types by reference and mutable containers via shallow or
     deep copy — whichever preserves snapshot independence at the lowest cost.
     """
-    if value is None or type(value) in _IMMUTABLE_TYPES:
+    if value is None or type(value) in _IMMUTABLE_TYPES or isinstance(value, _IMMUTABLE_BASES):
         return value
     if isinstance(value, File):
         return value.name
@@ -98,12 +106,12 @@ def _normalize_value(value: Any) -> Any:
         return bytes(value)
     if isinstance(value, dict):
         for v in value.values():
-            if v is not None and type(v) not in _IMMUTABLE_TYPES:
+            if v is not None and type(v) not in _IMMUTABLE_TYPES and not isinstance(v, _IMMUTABLE_BASES):
                 return deepcopy(value)
         return value.copy()
     if isinstance(value, (list, tuple)):
         for v in value:
-            if v is not None and type(v) not in _IMMUTABLE_TYPES:
+            if v is not None and type(v) not in _IMMUTABLE_TYPES and not isinstance(v, _IMMUTABLE_BASES):
                 return deepcopy(value)
         return list(value) if isinstance(value, list) else value
     return deepcopy(value)

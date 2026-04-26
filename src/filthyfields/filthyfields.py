@@ -145,8 +145,7 @@ class _FileDiffDescriptor(FileDescriptor):
             old = d[attname]
             old_normalized = (old.name or "") if isinstance(old, File) else (old or "")
             new_normalized = (value.name or "") if isinstance(value, File) else (value or "")
-
-            _track_file_change(instance, field_name, str(old_normalized), str(new_normalized))
+            _track_file_change(instance, field_name, old_normalized, new_normalized)
 
         super().__set__(instance, value)
 
@@ -470,8 +469,15 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         return value
 
     def _get_field_value_for_verbose(self, field_name: str) -> Any:
-        """Get current field value for verbose mode, normalizing file fields."""
-        value = getattr(self, field_name, None)
+        """Get current field value for verbose mode, normalizing file fields.
+
+        Reads from ``__dict__`` first to avoid the descriptor walk; only falls
+        back to ``getattr`` when the field hasn't been loaded yet (deferred).
+        """
+        try:
+            value = self.__dict__[field_name]
+        except KeyError:
+            value = getattr(self, field_name, None)
         if isinstance(value, File):
             return value.name
         return value

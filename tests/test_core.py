@@ -529,14 +529,20 @@ def test_reset_dirty_state_with_specific_fields():
 
 @pytest.mark.django_db
 def test_capture_dirty_state_empty_list():
-    """Test capture_dirty_state with empty list doesn't error."""
-    capture_dirty_state([])  # Should not raise
+    """capture_dirty_state with empty list is a no-op (doesn't raise, doesn't touch other instances)."""
+    other = ModelTest.objects.create(characters="other")
+    other.characters = "modified"
+    capture_dirty_state([])
+    assert other.is_dirty()  # untouched
 
 
 @pytest.mark.django_db
 def test_reset_dirty_state_empty_list():
-    """Test reset_dirty_state with empty list doesn't error."""
-    reset_dirty_state([])  # Should not raise
+    """reset_dirty_state with empty list is a no-op (doesn't raise, doesn't touch other instances)."""
+    other = ModelTest.objects.create(characters="other")
+    other.characters = "modified"
+    reset_dirty_state([])
+    assert other.is_dirty()  # untouched
 
 
 @pytest.mark.django_db
