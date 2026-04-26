@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.8b9] - 2026-04-26
+
+### Changed
+
+- Repo renamed to `oliverhaas/django-filthyfields` and detached from upstream fork relationship. URLs and badges updated.
+
+### Fixed
+
+- Docs: F()-expressions section in the basic-usage guide claimed F() was tracked as dirty (true pre-b8, no longer correct).
+
 ## [1.9.8b8] - 2026-04-25
 
 ### Added
