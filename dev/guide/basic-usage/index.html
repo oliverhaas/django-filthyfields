@@ -1107,7 +1107,7 @@
 <a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="kc">True</span>
 </code></pre></div>
 <h2 id="f-expressions">F() Expressions<a class="headerlink" href="#f-expressions" title="Permanent link">&para;</a></h2>
-<p>Fields assigned with an <code>F()</code> expression (or any other ORM expression like <code>Concat</code>, <code>Func</code>, …) are <strong>not</strong> reported as dirty. The expression is a directive the ORM resolves at save time, not a value change you can compare against the saved value.</p>
+<p><code>F()</code> (and other ORM expressions like <code>Concat</code>, <code>Func</code>) are not reported as dirty — they're directives the ORM resolves at save time, not values to diff against.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.db.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
 <a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
 <a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">count</span>
@@ -1115,10 +1115,8 @@
 <a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="n">F</span><span class="p">(</span><span class="s1">&#39;count&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
 <a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
 <a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="kc">False</span>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">()</span>
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="p">{}</span>
 </code></pre></div>
-<p>On Django 6.0+, <code>Model.save()</code> <a href="https://docs.djangoproject.com/en/6.0/ref/models/expressions/#f-assignments-are-refreshed-after-model-save">auto-refreshes fields assigned to expressions</a>, so after <code>obj.save()</code> the field holds its resolved value (e.g. <code>6</code>) and tracking resumes as normal:</p>
+<p>On Django 6.0+, <code>save()</code> <a href="https://docs.djangoproject.com/en/6.0/ref/models/expressions/#f-assignments-are-refreshed-after-model-save">auto-refreshes expression-assigned fields</a>, so tracking resumes after the save:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 <a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">count</span>
 <a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="mi">6</span>
@@ -1126,7 +1124,7 @@
 <a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">()</span>
 <a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="p">{</span><span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">}</span>
 </code></pre></div>
-<p>If you <code>save(update_fields={...})</code> and the expression-bearing field isn't included, the auto-refresh skips it — the field keeps holding the unresolved expression until a later full <code>save()</code> or <code>refresh_from_db()</code>.</p>
+<p><code>save(update_fields={...})</code> skips the auto-refresh for fields not in <code>update_fields</code> — the unresolved expression sticks around until the next full save or <code>refresh_from_db()</code>.</p>
 <h2 id="new-unsaved-models">New (Unsaved) Models<a class="headerlink" href="#new-unsaved-models" title="Permanent link">&para;</a></h2>
 <p>New model instances that haven't been saved are always considered dirty:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>

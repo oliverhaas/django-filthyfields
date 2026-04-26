@@ -857,7 +857,7 @@
 <p>Dirty means that field in-memory and database values are different.</p>
 <div class="admonition info">
 <p class="admonition-title">Originated as a fork of django-dirtyfields</p>
-<p>This project started as a fork of <a href="https://github.com/romgar/django-dirtyfields">django-dirtyfields</a> with a rewritten lazy, descriptor-based internal implementation. It has since diverged with its own feature set, release cadence, and import name (<code>filthyfields</code>).</p>
+<p>This project started as a fork of <a href="https://github.com/romgar/django-dirtyfields">django-dirtyfields</a> with a rewritten lazy, descriptor-based internal implementation. It has since diverged with its own feature set, release cadence, and import name (<code>filthyfields</code>). The mixin and method names (<code>DirtyFieldsMixin</code>, <code>get_dirty_fields</code>, <code>is_dirty</code>, …) are kept from upstream — hence the play-on-words package name.</p>
 </div>
 <h2 id="why-this-project">Why This Project?<a class="headerlink" href="#why-this-project" title="Permanent link">&para;</a></h2>
 <p>The original django-dirtyfields captures model state by snapshotting every field on instance initialization — every field value is copied on every model load, regardless of whether you'll modify the instance.</p>
