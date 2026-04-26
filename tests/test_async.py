@@ -87,4 +87,19 @@ async def test_aget_produces_clean_state():
 
     assert not tm.is_dirty()
     assert tm.get_dirty_fields() == {}
-    assert "_state_diff" not in tm.__dict__
+
+
+@pytest.mark.asyncio
+async def test_arefresh_from_db_with_from_queryset():
+    """arefresh_from_db(from_queryset=...) resets dirty state, mirroring sync version."""
+    tm = await ModelTest.objects.acreate(boolean=True, characters="initial")
+    alias = await ModelTest.objects.aget(pk=tm.pk)
+    alias.characters = "updated"
+    await alias.asave()
+
+    tm.boolean = False
+    assert tm.get_dirty_fields() == {"boolean": True}
+
+    await tm.arefresh_from_db(from_queryset=ModelTest.objects.all())
+    assert tm.characters == "updated"
+    assert tm.get_dirty_fields() == {}

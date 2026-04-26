@@ -22,9 +22,8 @@ uv add django-filthyfields
 ```python
 >>> from filthyfields import DirtyFieldsMixin
 >>> DirtyFieldsMixin
-<class 'dirtyfields.dirtyfields.DirtyFieldsMixin'>
+<class 'filthyfields.filthyfields.DirtyFieldsMixin'>
 ```
 
 !!! note "Import Path"
-    The package is installed as `django-filthyfields` but you import from `dirtyfields`.
-    This maintains compatibility with the original django-dirtyfields package.
+    The PyPI distribution is `django-filthyfields`; the import package is `filthyfields`.

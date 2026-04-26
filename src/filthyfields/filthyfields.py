@@ -1,7 +1,7 @@
 """Diff-based dirty field tracking for Django models.
 
-Only stores original values of fields that actually change, rather than
-capturing full model state upfront. Significantly faster than the signal-based approach.
+Stores original values only for fields that actually change, instead of
+snapshotting the whole model on every load.
 """
 
 from __future__ import annotations
@@ -373,6 +373,14 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         """Check if instance has unsaved changes."""
         if self._state.adding:
             return True
+
+        # When a compare_function is configured it may filter otherwise-dirty
+        # fields out of get_dirty_fields(). Defer to it so the two stay consistent.
+        if getattr(self, "compare_function", None) is not None:
+            return bool(
+                self.get_dirty_fields(check_relationship=check_relationship, check_m2m=check_m2m),
+            )
+
         diff = self.__dict__.get("_state_diff")
         if not diff:
             has_field_changes = False

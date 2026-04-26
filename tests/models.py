@@ -182,3 +182,27 @@ class CurrentDatetimeModelTest(DirtyFieldsMixin, models.Model):
         timezone_support_compare,
         {"timezone_to_set": django_timezone.get_current_timezone()},
     )
+
+
+# Custom-callable hooks (covers the (callable, kwargs) tuple contract for
+# compare_function and normalise_function — outside the timezone helper).
+def _abs_equal(new_value, old_value, *, tolerance=0):
+    """Equal if absolute values match within tolerance."""
+    return abs(abs(new_value) - abs(old_value)) <= tolerance
+
+
+def _to_str(value):
+    """Coerce to str for output normalisation."""
+    return str(value) if value is not None else None
+
+
+class CompareFunctionCustomCallableModel(DirtyFieldsMixin, models.Model):
+    compare_function = (_abs_equal, {"tolerance": 1})
+
+    int_field = models.IntegerField(default=0)
+
+
+class NormaliseFunctionCustomCallableModel(DirtyFieldsMixin, models.Model):
+    normalise_function = (_to_str, {})
+
+    int_field = models.IntegerField(default=0)

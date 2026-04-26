@@ -97,14 +97,31 @@ True
 
 ### Descriptor-Based Tracking
 
-Unlike the original django-dirtyfields which uses signals to capture model state on every load,
-this implementation uses descriptors that only store values when fields are modified.
+Where the original django-dirtyfields hooks `post_init` and snapshots every field's value on every model load, this fork installs Cython-compiled descriptors at class definition time. Reads stay free, snapshots happen on the first write to a tracked field, and on the published wheels the descriptor's `__get__`/`__set__` are C slot functions — no Python frame on the read/write path. Result: lower memory (only changed fields are stored), no `post_init`/`post_save` signal hop, and faster loads in the common case where most fields are read but never modified.
 
-This means:
+### Detecting In-Place Mutations (`TRACK_MUTATIONS`)
 
-- **Loading models is faster**: No state copying on `post_init`
-- **Memory usage is lower**: Only changed fields are stored
-- **Saving models is simpler**: No `post_save` signal handler
+The descriptor approach catches assignments (`obj.field = …`) but not in-place mutations of mutable values (`obj.json_field["k"] = …`, `obj.tags_list.append(…)`). If your model holds JSONField, ArrayField, or other mutable values that you mutate without reassigning, opt in:
+
+```python
+class MyModel(DirtyFieldsMixin, models.Model):
+    TRACK_MUTATIONS = True
+
+    data = models.JSONField(default=dict)
+```
+
+```python
+>>> obj = MyModel.objects.get(pk=1)
+>>> obj.data
+{'key': 'old'}
+>>> obj.data['key'] = 'new'   # in-place — no __set__ called
+>>> obj.is_dirty()
+True
+>>> obj.get_dirty_fields()
+{'data': {'key': 'old'}}
+```
+
+Cost: one `deepcopy` per mutable-valued field on first read. Leave `TRACK_MUTATIONS` off if your code only ever reassigns fields — the default is correct and free for that case.
 
 ### When to Use `save_dirty_fields()`
 

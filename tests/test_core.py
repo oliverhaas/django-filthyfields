@@ -236,8 +236,15 @@ def test_file_fields_direct_assignment():
     assert tm.get_dirty_fields() == {"file1": "path/to/file.txt"}
 
 
+@pytest.fixture
+def isolated_media_root(tmp_path, settings):
+    """Point MEDIA_ROOT at a per-test temp dir so file-creating tests don't leak files."""
+    settings.MEDIA_ROOT = str(tmp_path)
+    return tmp_path
+
+
 @pytest.mark.django_db
-def test_file_fields_save_method():
+def test_file_fields_save_method(isolated_media_root):
     """Test file field tracking via FieldFile.save() method."""
     from django.core.files.base import ContentFile
 
@@ -576,3 +583,68 @@ def test_track_mutations_on_detects_in_place_mutation():
     obj.save()
     assert obj.is_dirty() is False
     assert obj.get_dirty_fields() == {}
+
+
+@pytest.mark.django_db
+def test_track_mutations_off_with_first_read_no_detection():
+    """Without TRACK_MUTATIONS, even reading the field first doesn't enable mutation detection.
+
+    Locks down the descriptor's lazy-snapshot contract: snapshot is only taken
+    on __get__ when TRACK_MUTATIONS is True.
+    """
+    obj = JSONFieldModel.objects.create(json_field={"k": 1})
+    obj = JSONFieldModel.objects.get(pk=obj.pk)
+
+    _ = obj.json_field  # read first; no snapshot taken (TRACK_MUTATIONS off)
+    obj.json_field["k"] = 2
+
+    assert obj.is_dirty() is False
+    assert obj.get_dirty_fields() == {}
+
+
+@pytest.mark.django_db
+def test_compare_function_custom_callable():
+    """compare_function accepts an arbitrary (callable, kwargs) tuple."""
+    from tests.models import CompareFunctionCustomCallableModel
+
+    obj = CompareFunctionCustomCallableModel.objects.create(int_field=10)
+    obj = CompareFunctionCustomCallableModel.objects.get(pk=obj.pk)
+
+    # Within tolerance=1 → not dirty
+    obj.int_field = 11
+    assert obj.get_dirty_fields() == {}
+    assert obj.is_dirty() is False
+
+    # Outside tolerance → dirty
+    obj.int_field = 99
+    assert obj.get_dirty_fields() == {"int_field": 10}
+
+
+@pytest.mark.django_db
+def test_normalise_function_custom_callable():
+    """normalise_function transforms the saved value before it's returned."""
+    from tests.models import NormaliseFunctionCustomCallableModel
+
+    obj = NormaliseFunctionCustomCallableModel.objects.create(int_field=42)
+    obj = NormaliseFunctionCustomCallableModel.objects.get(pk=obj.pk)
+
+    obj.int_field = 99
+    # _to_str coerces 42 (int) -> "42"
+    assert obj.get_dirty_fields() == {"int_field": "42"}
+    assert obj.get_dirty_fields(verbose=True) == {"int_field": {"saved": "42", "current": "99"}}
+
+
+@pytest.mark.django_db
+def test_reset_dirty_state_with_specific_fields_clears_relation_diff():
+    """reset_dirty_state(fields=...) also discards from _state_diff_rel for FK fields."""
+    tm = ModelTest.objects.create(boolean=True, characters="x")
+    tm2 = ModelTest.objects.create(boolean=True, characters="y")
+    fk = ModelWithForeignKeyTest.objects.create(fkey=tm)
+    fk = ModelWithForeignKeyTest.objects.get(pk=fk.pk)
+
+    fk.fkey = tm2
+    assert fk.get_dirty_fields(check_relationship=True) == {"fkey": tm.pk}
+
+    capture_dirty_state([fk])
+    reset_dirty_state([fk], fields=["fkey"])
+    assert fk.get_dirty_fields(check_relationship=True) == {}

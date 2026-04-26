@@ -5,6 +5,7 @@
 To track dirty fields on a model, inherit from `DirtyFieldsMixin`:
 
 ```python
+# myapp/models.py  (`myapp` must be in INSTALLED_APPS — otherwise Django raises app_label errors)
 from django.db import models
 from filthyfields import DirtyFieldsMixin
 
@@ -14,7 +15,7 @@ class ExampleModel(DirtyFieldsMixin, models.Model):
 ```
 
 !!! important "Mixin Order"
-    `DirtyFieldsMixin` should come **before** `models.Model` in the inheritance list.
+    `DirtyFieldsMixin` must come **before** `models.Model` in the inheritance list.
 
 ## Check if a Model is Dirty
 

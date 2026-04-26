@@ -319,11 +319,30 @@ obj.was_dirty()     # True
 
 Override of `Model.refresh_from_db()` that also resets the dirty state. If `fields` is provided, only those fields have their dirty state reset.
 
+**Example:**
+
+```python
+>>> obj.name = "changed"
+>>> obj.is_dirty()
+True
+>>> obj.refresh_from_db()
+>>> obj.is_dirty()
+False
+```
+
 ---
 
 #### `arefresh_from_db(using=None, fields=None, from_queryset=None)` *(async)*
 
 Async equivalent of `refresh_from_db()`.
+
+**Example:**
+
+```python
+obj.name = "changed"
+await obj.arefresh_from_db()
+obj.is_dirty()  # False
+```
 
 ---
 
