@@ -116,14 +116,29 @@ class MyModel(DirtyFieldsMixin, models.Model):
 
 #### `normalise_function`
 
-Custom function to transform values before returning them from `get_dirty_fields()`.
+Custom function to transform values before returning them from `get_dirty_fields()` and `was_dirty_fields()`. Useful when the snapshot value is in a form your application code doesn't want to handle directly — e.g. converting `Decimal` to `float` for JSON serialization, or coercing custom field types into a canonical comparable form.
 
 ```python
-from filthyfields import DirtyFieldsMixin, normalise_value
+from decimal import Decimal
+
+def coerce_for_json(value):
+    if isinstance(value, Decimal):
+        return float(value)
+    return value
 
 class MyModel(DirtyFieldsMixin, models.Model):
-    normalise_function = (normalise_value, {})
+    normalise_function = (coerce_for_json, {})
+
+    price = models.DecimalField(max_digits=10, decimal_places=2)
 ```
+
+```python
+>>> obj.price = Decimal("12.50")
+>>> obj.get_dirty_fields()
+{'price': 9.99}  # was Decimal('9.99'), normalised to float
+```
+
+The tuple's second element is passed as keyword arguments to the callable: `your_func(value, **kwargs)`.
 
 **Type:** `tuple[Callable[..., Any], dict[str, Any]] | None`
 
@@ -270,13 +285,11 @@ Get fields that were dirty before the last save.
 
 #### `save_dirty_fields()`
 
-Save only the fields that have been modified.
+Save only the fields that have been modified. On a never-saved instance (`_state.adding=True`) this falls back to a normal full `save()`, since "only changed fields" doesn't make sense for an INSERT.
 
 **Parameters:** None
 
 **Returns:** None
-
-**Raises:** `ValueError` if the model has never been saved (no primary key)
 
 **Example:**
 
