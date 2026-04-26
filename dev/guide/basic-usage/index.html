@@ -12,7 +12,7 @@
         <meta name="author" content="Oliver Haas">
       
       
-        <link rel="canonical" href="https://oliverhaas.github.io/django-dirtyfields/dev/guide/basic-usage/">
+        <link rel="canonical" href="https://oliverhaas.github.io/django-filthyfields/dev/guide/basic-usage/">
       
       
         <link rel="prev" href="../../getting-started/quickstart/">
@@ -200,13 +200,13 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/oliverhaas/django-dirtyfields" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/oliverhaas/django-filthyfields" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
   </div>
   <div class="md-source__repository">
-    oliverhaas/django-dirtyfields
+    oliverhaas/django-filthyfields
   </div>
 </a>
       </div>
@@ -246,13 +246,13 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/oliverhaas/django-dirtyfields" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/oliverhaas/django-filthyfields" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
   </div>
   <div class="md-source__repository">
-    oliverhaas/django-dirtyfields
+    oliverhaas/django-filthyfields
   </div>
 </a>
     </div>
@@ -1107,23 +1107,34 @@
 <a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="kc">True</span>
 </code></pre></div>
 <h2 id="f-expressions">F() Expressions<a class="headerlink" href="#f-expressions" title="Permanent link">&para;</a></h2>
-<p>Fields assigned with <code>F()</code> expressions are properly tracked:</p>
+<p>Fields assigned with an <code>F()</code> expression (or any other ORM expression like <code>Concat</code>, <code>Func</code>, …) are <strong>not</strong> reported as dirty. The expression is a directive the ORM resolves at save time, not a value change you can compare against the saved value.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.db.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">F</span>
 <a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="n">F</span><span class="p">(</span><span class="s1">&#39;count&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="kc">True</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">()</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="p">{</span><span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>  <span class="c1"># Original value before F() expression</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">count</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="mi">5</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="n">F</span><span class="p">(</span><span class="s1">&#39;count&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="kc">False</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">()</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="p">{}</span>
 </code></pre></div>
+<p>On Django 6.0+, <code>Model.save()</code> <a href="https://docs.djangoproject.com/en/6.0/ref/models/expressions/#f-assignments-are-refreshed-after-model-save">auto-refreshes fields assigned to expressions</a>, so after <code>obj.save()</code> the field holds its resolved value (e.g. <code>6</code>) and tracking resumes as normal:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">count</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="mi">6</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="mi">10</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_dirty_fields</span><span class="p">()</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="p">{</span><span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">}</span>
+</code></pre></div>
+<p>If you <code>save(update_fields={...})</code> and the expression-bearing field isn't included, the auto-refresh skips it — the field keeps holding the unresolved expression until a later full <code>save()</code> or <code>refresh_from_db()</code>.</p>
 <h2 id="new-unsaved-models">New (Unsaved) Models<a class="headerlink" href="#new-unsaved-models" title="Permanent link">&para;</a></h2>
 <p>New model instances that haven't been saved are always considered dirty:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="kc">True</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="kc">False</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="kc">True</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dirty</span><span class="p">()</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="kc">False</span>
 </code></pre></div>
 
 
