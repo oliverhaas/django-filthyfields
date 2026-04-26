@@ -9,23 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** import name renamed from `dirtyfields` to `filthyfields`. Update `from dirtyfields import …` to `from filthyfields import …`. The PyPI distribution name (`django-filthyfields`) is unchanged.
-- LICENSE rewritten with own copyright (Oliver Haas) and an extensive attribution paragraph crediting the upstream Praekelt Foundation original and Romain Garrigues' fork that this project derives from. License terms (BSD-3-Clause) unchanged.
-- `_normalize_value` compiled as a Cython `ccall`; the `all(generator)` immutable-value checks rewritten as plain for-loops with early return. Microbench gain on flat dict/list/tuple snapshots; nested cases roughly at parity with `deepcopy`.
-- `FIELDS_TO_CHECK` / `FIELDS_TO_CHECK_EXCLUDE` mutual-exclusion check now fires at class definition time (was: first attribute write to a loaded instance).
+- **Breaking:** import name renamed from `dirtyfields` to `filthyfields`. Update `from dirtyfields import …` to `from filthyfields import …`. PyPI distribution name unchanged.
+- LICENSE rewritten with own copyright + attribution to upstream (Praekelt Foundation original, romgar's fork). Terms (BSD-3-Clause) unchanged.
+- `FIELDS_TO_CHECK` + `FIELDS_TO_CHECK_EXCLUDE` mutual-exclusion check now fires at class def time, not first write.
+- `_normalize_value` compiled as a Cython `ccall`; `all(generator)` rewritten as for-loops with early return.
 
 ### Fixed
 
-- `save(update_fields=…)` / `asave(update_fields=…)` no longer wipe the *entire* dirty state. Fields not included in `update_fields` were not persisted, so they correctly remain dirty.
-- `is_dirty()` now honors `compare_function` (was inconsistent with `get_dirty_fields()` when a custom comparator filtered an otherwise-dirty field out).
+- `save(update_fields=…)` no longer wipes dirty state for fields it didn't persist.
+- `is_dirty()` now honors `compare_function` (matched `get_dirty_fields()`).
 - TRACK_MUTATIONS snapshot no longer skipped on first read of a deferred field.
-- `__set__`: equality computed before the dict write so a raise inside `_values_equal` no longer leaves `__dict__` in a torn state.
-- `__get__` `_state_mut_snapshot` initialization uses `setdefault` (avoids the get-then-set race under free-threading).
-- API docs: `save_dirty_fields` no longer claims to raise `ValueError` on never-saved instances (it falls back to a normal `save()`); `normalise_function` example replaced with a transforming Decimal→float case (the previous example wired up the identity function).
+- `__set__`: equality computed before the dict write so a raise in `_values_equal` doesn't tear `__dict__`.
+- `__get__` `_state_mut_snapshot` init uses `setdefault` — closes free-threading race.
+- API docs: `save_dirty_fields` doesn't raise on never-saved (it falls back to `save()`); `normalise_function` example replaced with a real transformation.
 
 ### Added
 
-- Test coverage for: custom `compare_function` callable, custom `normalise_function` callable, partial save reset (positive case), TRACK_MUTATIONS contract (negative case: read-without-track), `arefresh_from_db(from_queryset=…)`, `reset_dirty_state(fields=…)` clearing relation diff. `isolated_media_root` fixture for file-field tests so they no longer leak files into `MEDIA_ROOT`.
+- Tests: custom `compare_function` callable, custom `normalise_function` callable, partial-save reset, TRACK_MUTATIONS read-without-track-flag, `arefresh_from_db(from_queryset=…)`, `reset_dirty_state(fields=…)` for FK. `isolated_media_root` fixture so file-field tests don't leak files.
 
 ## [1.9.8b9] - 2026-04-26
 

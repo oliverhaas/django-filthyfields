@@ -8,7 +8,7 @@
 Dirty means that field in-memory and database values are different.
 
 !!! info "Originated as a fork of django-dirtyfields"
-    This project started as a fork of [django-dirtyfields](https://github.com/romgar/django-dirtyfields) with a rewritten lazy, descriptor-based internal implementation. It has since diverged with its own feature set, release cadence, and import name (`filthyfields`).
+    This project started as a fork of [django-dirtyfields](https://github.com/romgar/django-dirtyfields) with a rewritten lazy, descriptor-based internal implementation. It has since diverged with its own feature set, release cadence, and import name (`filthyfields`). The mixin and method names (`DirtyFieldsMixin`, `get_dirty_fields`, `is_dirty`, …) are kept from upstream — hence the play-on-words package name.
 
 ## Why This Project?
 

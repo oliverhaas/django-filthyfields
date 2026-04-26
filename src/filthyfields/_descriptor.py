@@ -2,21 +2,12 @@
 # ruff: noqa: ERA001
 """Diff descriptor for dirty-field tracking.
 
-This module is written in Cython *pure-Python mode* — a regular ``.py`` file
-with ``@cython.cclass`` and ``@cython.cfunc`` decorators.
+Written in Cython pure-Python mode: runs as plain Python without Cython
+installed (via ``_CythonStub``); when compiled, becomes a C extension type
+whose ``__get__``/``__set__`` are the ``tp_descr_get``/``tp_descr_set`` slots.
 
-* Runs as a plain Python class when not compiled (no Cython needed at runtime
-  — there's a stub for that case).
-* When compiled with ``cythonize -i``, becomes a C extension type whose
-  ``__get__`` / ``__set__`` are the ``tp_descr_get`` / ``tp_descr_set`` slots.
-  CPython's attribute machinery calls them directly, no Python frame, and
-  the typed instance attributes are C struct members instead of ``__dict__``
-  entries.
-
-Uses *composition*, not inheritance, around Django's ``DeferredAttribute``:
-we hold one as a member and delegate to it for the deferred-load fallback
-on ``__get__``. Inheriting from a Python class from a ``cdef class`` is
-awkward and loses half the point.
+Composition over inheritance around Django's ``DeferredAttribute`` (cdef
+classes can't cleanly subclass Python classes).
 """
 
 from __future__ import annotations
@@ -30,9 +21,8 @@ from uuid import UUID
 
 try:
     import cython  # type: ignore[import-untyped]
-except ImportError:  # pragma: no cover - cython not installed at runtime (pure-Python path)
-    # Minimal stub so the module runs without the cython package installed.
-    # When compiled, cython is always available and this branch is skipped.
+except ImportError:  # pragma: no cover - pure-Python fallback when cython not installed
+
     class _CythonStub:
         bint = bool
 
@@ -80,24 +70,17 @@ _IMMUTABLE_TYPES = frozenset(
     ),
 )
 
-# Subclass-aware fallback used when the exact-type lookup misses. Picks up
-# IntEnum (int subclass), Django's SafeString (str subclass), pathlib.PurePath
-# concrete subclasses (PosixPath / WindowsPath / PurePosixPath / etc.), and
-# any user-defined subclass of an immutable base — all safe to share by reference.
+# Isinstance fallback for subclasses of immutable bases (IntEnum, SafeString,
+# pathlib subclasses, user-defined subclasses) — safe to share by reference.
 _IMMUTABLE_BASES: tuple[type, ...] = (str, int, bytes, PurePath)
 
-# Types whose values can be mutated in place without going through __set__.
-# Used for TRACK_MUTATIONS snapshotting in __get__.
+# Mutable container types — snapshotted on first __get__ when TRACK_MUTATIONS is on.
 _MUTABLE_TYPES = frozenset((dict, list, set, bytearray))
 
 
 @cython.ccall  # type: ignore[untyped-decorator]
 def _normalize_value(value: Any) -> Any:
-    """Normalize a field value for storage in the diff dict.
-
-    Stores immutable types by reference and mutable containers via shallow or
-    deep copy — whichever preserves snapshot independence at the lowest cost.
-    """
+    """Snapshot-friendly copy: by reference for immutables, shallow or deep for containers."""
     if value is None or type(value) in _IMMUTABLE_TYPES or isinstance(value, _IMMUTABLE_BASES):
         return value
     if isinstance(value, File):
@@ -119,12 +102,7 @@ def _normalize_value(value: Any) -> Any:
 
 @cython.cclass
 class DiffDescriptor:
-    """Descriptor that tracks field changes via ``__set__``.
-
-    When compiled, this is a Cython extension type — ``__get__`` / ``__set__``
-    are C slot functions; the attributes below are C struct members. When not
-    compiled, it's a plain Python class with the same semantics.
-    """
+    """Tracks field changes via ``__set__``. Compiled as a Cython extension type."""
 
     _deferred_attr: Any
     _field: Any
@@ -149,9 +127,9 @@ class DiffDescriptor:
     @cython.cfunc  # type: ignore[untyped-decorator]
     @cython.inline  # type: ignore[untyped-decorator]
     def _values_equal(self, val1: Any, val2: Any) -> cython.bint:
-        """Compare values with field-level to_python fallback for type coercion."""
         if type(val1) is type(val2):
             return val1 == val2
+        # Different types: try field.to_python() to coerce, fall back to raw ==
         try:
             return self._field.to_python(val1) == self._field.to_python(val2)
         except (ValidationError, TypeError, ValueError):  # fmt: skip
@@ -164,13 +142,10 @@ class DiffDescriptor:
         try:
             value = d[self._attname]
         except KeyError:
-            # Deferred-field load: Django's DeferredAttribute fetches the value
-            # AND populates instance.__dict__ as a side effect. We re-read so
-            # the TRACK_MUTATIONS branch below also sees deferred values.
+            # Django's DeferredAttribute fetches AND populates __dict__ — re-read
+            # so TRACK_MUTATIONS below also sees deferred values.
             value = self._deferred_attr.__get__(instance, cls)
 
-        # TRACK_MUTATIONS: deepcopy the value on first read so in-place mutations
-        # (e.g. obj.json_field["k"] = "v") are still detectable at get_dirty_fields() time.
         # setdefault avoids the get-then-set race under free-threading.
         if self._track_mutations and type(value) in _MUTABLE_TYPES:
             snap = d.setdefault("_state_mut_snapshot", {})
@@ -185,12 +160,11 @@ class DiffDescriptor:
         d = instance.__dict__
         attname = self._attname
 
-        # ORM expressions (F, Func, ...) get resolved at save time, not tracked as edits.
+        # ORM expressions resolve at save time; not user-visible value changes.
         if isinstance(value, (BaseExpression, Combinable)):
             d[attname] = value
             return
 
-        # Fast path: new instance being populated, or field not yet loaded
         try:
             state = instance._state
             if state.adding or attname not in d:
@@ -200,9 +174,8 @@ class DiffDescriptor:
             d[attname] = value
             return
 
-        # FIELDS_TO_CHECK / FIELDS_TO_CHECK_EXCLUDE (cached per instance).
-        # The mutual-exclusion check between the two attributes runs at class def
-        # time in _DirtyMeta.__new__, so we can trust at most one is set here.
+        # Mutual exclusion between FIELDS_TO_CHECK and _EXCLUDE is enforced at
+        # class def time, so at most one is set here.
         field_name = self._field_name
         cache = d.get("_fields_check_cache")
         if cache is None:
@@ -222,8 +195,8 @@ class DiffDescriptor:
             d[attname] = value
             return
 
-        # Determine equality before the dict write so a raise inside _values_equal
-        # leaves __dict__ untouched (no torn state where new value is set but no diff entry).
+        # Equality before the dict write so a raise in _values_equal leaves
+        # __dict__ consistent with _state_diff.
         old = d[attname]
         equal = self._values_equal(value, old)
         d[attname] = value

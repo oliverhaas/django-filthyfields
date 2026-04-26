@@ -1,8 +1,4 @@
-"""Diff-based dirty field tracking for Django models.
-
-Stores original values only for fields that actually change, instead of
-snapshotting the whole model on every load.
-"""
+"""Diff-based dirty field tracking for Django models — only changed fields are stored."""
 
 from __future__ import annotations
 
@@ -28,19 +24,7 @@ if TYPE_CHECKING:
 
 
 def _should_track_field(instance: models.Model, field_name: str, field_attname: str | None = None) -> bool:
-    """Check if a field should be tracked based on FIELDS_TO_CHECK or FIELDS_TO_CHECK_EXCLUDE.
-
-    Accepts both field.name (e.g., 'fkey') and field.attname (e.g., 'fkey_id').
-
-    FIELDS_TO_CHECK: Only track fields in this list (whitelist)
-    FIELDS_TO_CHECK_EXCLUDE: Track all fields EXCEPT those in this list (blacklist)
-
-    Mutual-exclusion validation lives on the assignment path (`DiffDescriptor.__set__`)
-    so it fires on the first field write on an already-loaded instance. This helper
-    is called from read paths (`_as_dict_m2m`, `_get_current_values`, `_track_file_change`)
-    where raising would trip up `Model.__init__` before the user ever writes a field,
-    so it deliberately does not raise.
-    """
+    """Apply FIELDS_TO_CHECK / FIELDS_TO_CHECK_EXCLUDE. Accepts both name and attname (e.g. 'fkey'/'fkey_id')."""
     fields_to_check = getattr(instance, "FIELDS_TO_CHECK", None)
     if fields_to_check is not None:
         return field_name in fields_to_check or (field_attname is not None and field_attname in fields_to_check)
@@ -53,32 +37,21 @@ def _should_track_field(instance: models.Model, field_name: str, field_attname: 
 
 
 def _track_file_change(instance: models.Model, field_name: str, old_name: str, new_name: str) -> None:
-    """Track a file field change in the instance's diff dict."""
     if old_name == new_name:
         return
-
     if not _should_track_field(instance, field_name):
         return
 
     d = instance.__dict__
     diff = d.setdefault("_state_diff", {})
-
     if field_name not in diff:
         diff[field_name] = old_name
-        return
-
-    # Check if reverting to original
-    if new_name == diff[field_name]:
+    elif new_name == diff[field_name]:
         del diff[field_name]
 
 
 class _TrackingFieldFileMixin:
-    """Mixin for ``FieldFile`` subclasses that records ``save()`` / ``delete()``
-    into the instance's dirty-diff.
-
-    Installed per-field by replacing ``field.attr_class`` with a subclass
-    ``(self, base_attr_class)`` at metaclass time. No monkey-patching.
-    """
+    """``FieldFile`` mixin that records ``save()`` / ``delete()`` into the instance's diff."""
 
     def save(self, name: str, content: File[Any], save: bool = True) -> None:
         old_name = self.name or ""  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
@@ -102,10 +75,8 @@ _TRACKING_ATTR_CLASS_CACHE: dict[type[FieldFile], type[FieldFile]] = {}
 def _wrap_attr_class(base: type[FieldFile]) -> type[FieldFile]:
     """Return a ``(_TrackingFieldFileMixin, base)`` subclass, cached per base.
 
-    ``base`` is whatever ``attr_class`` the field has — typically ``FieldFile``
-    for ``FileField`` or ``ImageFieldFile`` for ``ImageField``; layering via a
-    synthesized subclass preserves any base-specific behaviour (e.g. image
-    dimension handling).
+    Layering preserves base-specific behaviour like ``ImageFieldFile``'s
+    dimension handling.
     """
     if issubclass(base, _TrackingFieldFileMixin):
         return base
@@ -121,9 +92,7 @@ def _wrap_attr_class(base: type[FieldFile]) -> type[FieldFile]:
 
 
 class _FileDiffDescriptor(FileDescriptor):
-    """Tracks file-field attribute assignments. Reads go through Django's own
-    ``FileDescriptor.__get__`` which produces the tracking ``FieldFile``
-    subclass we install via ``field.attr_class``."""
+    """Tracks file-field assignments. Reads use Django's ``FileDescriptor.__get__``."""
 
     def __set__(self, instance: models.Model | None, value: Any) -> None:
         if instance is None:
@@ -162,15 +131,11 @@ class _DirtyMeta(ModelBase):
     ) -> type:
         cls = super().__new__(mcs, name, bases, namespace, **kwargs)
 
+        # Proxy models still need descriptor install when they're the first
+        # DirtyFields class in the MRO (proxying a plain Django model).
         if not hasattr(cls, "_meta") or cls._meta.abstract:  # ty: ignore[unresolved-attribute]
             return cls
-        # Note: proxy models DO need descriptor installation when they're the
-        # first DirtyFields class in the MRO (e.g. proxying a plain Django
-        # model). Skipping all proxies would break that case.
 
-        # Fail fast on misconfigured FIELDS_TO_CHECK / FIELDS_TO_CHECK_EXCLUDE.
-        # Without this, the error would only surface on the first attribute write
-        # to a loaded instance.
         if (
             getattr(cls, "FIELDS_TO_CHECK", None) is not None
             and getattr(cls, "FIELDS_TO_CHECK_EXCLUDE", None) is not None
@@ -185,10 +150,8 @@ class _DirtyMeta(ModelBase):
             if type(attr) in (DeferredAttribute, ForeignKeyDeferredAttribute):
                 setattr(cls, field.attname, DiffDescriptor(field, attr, track_mutations))
             elif isinstance(attr, FileDescriptor):
-                # _wrap_attr_class is idempotent + cached; safe to call repeatedly,
-                # but we mutate the field instance — which is shared with any
-                # parent abstract model. Don't share file fields with non-DirtyFields
-                # concrete subclasses.
+                # field.attr_class mutation is shared with any abstract parent;
+                # don't share file fields with non-DirtyFields concrete subclasses.
                 field.attr_class = _wrap_attr_class(field.attr_class)
                 setattr(cls, field.attname, _FileDiffDescriptor(field))
 
@@ -196,7 +159,7 @@ class _DirtyMeta(ModelBase):
 
 
 def _get_m2m_fields(model_class: type[models.Model]) -> list[models.ManyToManyField[Any, Any]]:
-    """Get M2M fields for a model class (excluding auto-created reverse relations)."""
+    """M2M fields excluding auto-created reverse relations."""
     return cast(
         "list[models.ManyToManyField[Any, Any]]",
         [f for f in model_class._meta.get_fields() if f.many_to_many and not f.auto_created],
@@ -204,56 +167,37 @@ def _get_m2m_fields(model_class: type[models.Model]) -> list[models.ManyToManyFi
 
 
 class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
-    """Mixin for Django models with dirty field tracking via descriptors.
-
-    Key methods: is_dirty(), get_dirty_fields(), was_dirty(), get_was_dirty_fields().
-    """
+    """Adds dirty-field tracking. See ``is_dirty``, ``get_dirty_fields``, ``was_dirty``."""
 
     class Meta:
         abstract = True
 
-    # Set to True to enable M2M field tracking
     ENABLE_M2M_CHECK = False
-
-    # Set to True to detect in-place mutations of mutable field values
-    # (e.g. ``obj.json_field["k"] = "v"``). Off by default to keep reads free;
-    # enabling snapshots mutable values via deepcopy on first __get__.
+    # Snapshot mutable values (dict/list/set/bytearray) on first __get__ so
+    # in-place mutations are detectable. Costs one deepcopy per mutable field.
     TRACK_MUTATIONS = False
 
-    # Custom compare function: (callable, kwargs_dict) or None for default equality
     compare_function: CompareFunction | None = None
-
-    # Custom normalise function: (callable, kwargs_dict) or None for no normalization
-    # Used to transform values before returning them in get_dirty_fields()
     normalise_function: NormaliseFunction | None = None
 
     def _dirty_capture_was_dirty(self) -> None:
-        """Capture current dirty state into _was_dirty_fields for post-save inspection."""
         self._was_dirty_fields = self.get_dirty_fields(check_relationship=False)
         self._was_dirty_fields_rel = self.get_dirty_fields(check_relationship=True)
         if self.ENABLE_M2M_CHECK:
             self._was_dirty_fields_m2m = self._get_m2m_dirty_fields()
 
     def _dirty_reset_state(self, fields: Iterable[str] | None = None) -> None:
-        """Reset dirty tracking state.
-
-        Args:
-            fields: If provided, only reset these fields (accepts either field name
-                or attname — e.g. both ``"fkey"`` and ``"fkey_id"`` clear the FK
-                entry). If ``None``, reset everything.
-        """
+        """Reset dirty state. ``fields=None`` resets everything; otherwise accepts name or attname."""
         if fields is None:
             self.__dict__.pop("_state_diff", None)
             self.__dict__.pop("_state_diff_rel", None)
             self.__dict__.pop("_state_mut_snapshot", None)
-            # Reset M2M state by re-snapshotting current state
             if self.ENABLE_M2M_CHECK and self.pk:
                 self._snapshot_m2m_state()
             return
         self._dirty_reset_partial(fields)
 
     def _dirty_reset_partial(self, fields: Iterable[str]) -> None:
-        """Reset dirty tracking state for a specific subset of fields."""
         # Normalize attnames -> names so callers can pass either form.
         normalized: set[str] = set()
         for name in fields:
@@ -274,7 +218,6 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         if mut_snap:
             for name in normalized:
                 mut_snap.pop(name, None)
-        # Re-snapshot M2M state for the named fields if they're tracked
         if self.ENABLE_M2M_CHECK and self.pk and "_original_m2m_state" in self.__dict__:
             current_m2m = self._as_dict_m2m()
             for name in normalized:
@@ -310,10 +253,8 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         self._dirty_reset_state(fields=fields)
 
     def _as_dict_m2m(self) -> dict[str, set[Any]]:
-        """Get current M2M field values as a dict of sets of PKs."""
         if not self.pk:
             return {}
-
         return {
             field.attname: {obj.pk for obj in getattr(self, field.attname).all()}
             for field in _get_m2m_fields(self.__class__)
@@ -321,40 +262,29 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         }
 
     def _snapshot_m2m_state(self) -> None:
-        """Capture current M2M state as the original state for dirty tracking."""
         if not self.ENABLE_M2M_CHECK or not self.pk:
             return
         self._original_m2m_state = self._as_dict_m2m()
 
     def _get_m2m_dirty_fields(self) -> dict[str, set[Any]]:
-        """Get M2M fields that have changed since the original snapshot."""
         if not self.ENABLE_M2M_CHECK or not self.pk:
             return {}
 
-        # Capture original state on first check (lazy initialization).
-        # `in self.__dict__` instead of hasattr — avoids walking the descriptor chain.
+        # Lazy snapshot on first check — first call returns {}.
         if "_original_m2m_state" not in self.__dict__:
             self._snapshot_m2m_state()
-            return {}  # First check - nothing dirty yet
+            return {}
 
         original = getattr(self, "_original_m2m_state", {})
         current = self._as_dict_m2m()
-        result = {}
-
-        for field_name, original_pks in original.items():
-            current_pks = current.get(field_name, set())
-            if current_pks != original_pks:
-                result[field_name] = original_pks
-
-        return result
+        return {
+            field_name: original_pks
+            for field_name, original_pks in original.items()
+            if current.get(field_name, set()) != original_pks
+        }
 
     def _get_mutation_dirty_fields(self) -> dict[str, Any]:
-        """Fields whose mutable value was mutated in place since first read (TRACK_MUTATIONS).
-
-        Returns ``{}`` when TRACK_MUTATIONS is off or no mutations detected.
-        Entries already present in ``_state_diff`` are skipped — an explicit
-        reassignment takes precedence over the pre-mutation snapshot.
-        """
+        """In-place mutations detected via TRACK_MUTATIONS snapshots; skipped if already in _state_diff."""
         snap = self.__dict__.get("_state_mut_snapshot")
         if not snap:
             return {}
@@ -369,12 +299,11 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         return result
 
     def is_dirty(self, check_relationship: bool = False, check_m2m: bool = False) -> bool:
-        """Check if instance has unsaved changes."""
         if self._state.adding:
             return True
 
-        # When a compare_function is configured it may filter otherwise-dirty
-        # fields out of get_dirty_fields(). Defer to it so the two stay consistent.
+        # compare_function may filter dirty fields out of get_dirty_fields();
+        # defer to it so the two stay consistent.
         if getattr(self, "compare_function", None) is not None:
             return bool(
                 self.get_dirty_fields(check_relationship=check_relationship, check_m2m=check_m2m),
@@ -408,16 +337,7 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         check_m2m: bool = False,
         verbose: bool = False,
     ) -> dict[str, Any]:
-        """Get fields that have changed since load from DB.
-
-        Args:
-            check_relationship: Include FK field changes
-            check_m2m: Include M2M field changes (requires ENABLE_M2M_CHECK=True)
-            verbose: Return {"saved": old, "current": new} instead of just old value
-
-        Returns:
-            Dict mapping field names to original values (or verbose dicts)
-        """
+        """Fields changed since DB load. ``verbose=True`` returns ``{"saved": old, "current": new}`` per field."""
         if check_m2m and not self.ENABLE_M2M_CHECK:
             raise ValueError("You can't check m2m fields if ENABLE_M2M_CHECK is set to False")
 
@@ -436,19 +356,15 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         else:
             result = dict(diff)
 
-        # Merge in fields mutated in place (TRACK_MUTATIONS)
         result.update(self._get_mutation_dirty_fields())
 
-        # Apply compare_function to filter out fields that are actually equal
         compare_func = getattr(self, "compare_function", None)
         if compare_func is not None and result:
             func, kwargs = compare_func
             result = {k: v for k, v in result.items() if not func(self._get_field_value_for_verbose(k), v, **kwargs)}
 
-        # M2M comparison: check against original snapshot
         if check_m2m:
-            m2m_dirty = self._get_m2m_dirty_fields()
-            result.update(m2m_dirty)
+            result.update(self._get_m2m_dirty_fields())
 
         if verbose:
             return {
@@ -461,7 +377,6 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         return {k: self._normalise_output_value(v) for k, v in result.items()}
 
     def _normalise_output_value(self, value: Any) -> Any:
-        """Apply normalise_function to a value if defined."""
         normalise_func = getattr(self, "normalise_function", None)
         if normalise_func is not None:
             func, kwargs = normalise_func
@@ -469,11 +384,7 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         return value
 
     def _get_field_value_for_verbose(self, field_name: str) -> Any:
-        """Get current field value for verbose mode, normalizing file fields.
-
-        Reads from ``__dict__`` first to avoid the descriptor walk; only falls
-        back to ``getattr`` when the field hasn't been loaded yet (deferred).
-        """
+        # __dict__ first to avoid the descriptor walk; getattr only loads deferred fields.
         try:
             value = self.__dict__[field_name]
         except KeyError:
@@ -487,7 +398,7 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         check_relationship: bool,
         include_pk: bool,
     ) -> dict[str, Any]:
-        """Get current field values (for new instances)."""
+        """Current field values; used on new (adding=True) instances."""
         result = {}
         deferred = self.get_deferred_fields()
 
@@ -510,11 +421,10 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         return result
 
     def was_dirty(self, check_relationship: bool = False, check_m2m: bool = False) -> bool:
-        """Check if instance was dirty before the last save."""
         return bool(self.get_was_dirty_fields(check_relationship=check_relationship, check_m2m=check_m2m))
 
     def get_was_dirty_fields(self, check_relationship: bool = False, check_m2m: bool = False) -> dict[str, Any]:
-        """Get fields that were dirty before the last save."""
+        """Fields dirty before the last save (captured by save()/asave())."""
         if check_m2m and not self.ENABLE_M2M_CHECK:
             raise ValueError("You can't check m2m fields if ENABLE_M2M_CHECK is set to False")
 
@@ -529,7 +439,7 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         return result
 
     def save_dirty_fields(self) -> None:
-        """Save only the dirty fields (optimization for partial updates)."""
+        """Save with ``update_fields`` set to the dirty fields. Falls back to full ``save()`` on a new instance."""
         if self._state.adding:
             self.save()
         else:
@@ -537,28 +447,8 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
             self.save(update_fields=list(dirty_fields))
 
 
-# Standalone helper functions for bulk operations
-
-
 def capture_dirty_state(instances: Iterable[DirtyFieldsMixin]) -> None:
-    """Capture current dirty state for multiple instances before a bulk operation.
-
-    Call this before bulk_update() or similar operations to preserve the
-    dirty state for later inspection via was_dirty() / get_was_dirty_fields().
-
-    Args:
-        instances: Iterable of model instances with DirtyFieldsMixin
-
-    Example:
-        >>> instances = list(MyModel.objects.filter(status='pending'))
-        >>> for obj in instances:
-        ...     obj.status = 'processed'
-        >>> capture_dirty_state(instances)
-        >>> MyModel.objects.bulk_update(instances, ['status'])
-        >>> reset_dirty_state(instances)
-        >>> instances[0].was_dirty()
-        True
-    """
+    """Snapshot dirty state on each instance — call before ``bulk_update()`` so ``was_dirty()`` works after."""
     for instance in instances:
         instance._dirty_capture_was_dirty()
 
@@ -567,25 +457,7 @@ def reset_dirty_state(
     instances: Iterable[DirtyFieldsMixin],
     fields: Iterable[str] | None = None,
 ) -> None:
-    """Reset dirty tracking state for multiple instances after a bulk operation.
-
-    Call this after bulk_update() or similar operations to clear the dirty
-    state, indicating that changes have been persisted.
-
-    Args:
-        instances: Iterable of model instances with DirtyFieldsMixin
-        fields: If provided, only reset these specific fields. Otherwise reset all.
-
-    Example:
-        >>> instances = list(MyModel.objects.filter(status='pending'))
-        >>> for obj in instances:
-        ...     obj.status = 'processed'
-        >>> capture_dirty_state(instances)
-        >>> MyModel.objects.bulk_update(instances, ['status'])
-        >>> reset_dirty_state(instances)
-        >>> instances[0].is_dirty()
-        False
-    """
+    """Clear dirty state on each instance — call after ``bulk_update()``. ``fields`` accepts name or attname."""
     field_list = list(fields) if fields is not None else None
     for instance in instances:
         instance._dirty_reset_state(fields=field_list)
