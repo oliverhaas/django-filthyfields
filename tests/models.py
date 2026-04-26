@@ -140,16 +140,6 @@ class ModelWithFieldsToCheckExclude(DirtyFieldsMixin, models.Model):
     boolean2 = models.BooleanField(default=True)
 
 
-class ModelWithBothFieldsConfig(DirtyFieldsMixin, models.Model):
-    """Model with both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE (should error)."""
-
-    FIELDS_TO_CHECK = ["boolean1"]
-    FIELDS_TO_CHECK_EXCLUDE = ["boolean2"]
-
-    boolean1 = models.BooleanField(default=True)
-    boolean2 = models.BooleanField(default=True)
-
-
 # M2M field tracking models
 class Many2ManyModelTest(DirtyFieldsMixin, models.Model):
     m2m_field = models.ManyToManyField(ModelTest)

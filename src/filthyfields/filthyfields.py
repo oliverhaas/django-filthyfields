@@ -163,15 +163,35 @@ class _DirtyMeta(ModelBase):
     ) -> type:
         cls = super().__new__(mcs, name, bases, namespace, **kwargs)
 
-        if hasattr(cls, "_meta") and not cls._meta.abstract:  # ty: ignore[unresolved-attribute]
-            track_mutations = bool(getattr(cls, "TRACK_MUTATIONS", False))
-            for field in cls._meta.concrete_fields:  # ty: ignore[unresolved-attribute]
-                attr = getattr(cls, field.attname, None)
-                if type(attr) in (DeferredAttribute, ForeignKeyDeferredAttribute):
-                    setattr(cls, field.attname, DiffDescriptor(field, attr, track_mutations))
-                elif isinstance(attr, FileDescriptor):
-                    field.attr_class = _wrap_attr_class(field.attr_class)
-                    setattr(cls, field.attname, _FileDiffDescriptor(field))
+        if not hasattr(cls, "_meta") or cls._meta.abstract:  # ty: ignore[unresolved-attribute]
+            return cls
+        # Note: proxy models DO need descriptor installation when they're the
+        # first DirtyFields class in the MRO (e.g. proxying a plain Django
+        # model). Skipping all proxies would break that case.
+
+        # Fail fast on misconfigured FIELDS_TO_CHECK / FIELDS_TO_CHECK_EXCLUDE.
+        # Without this, the error would only surface on the first attribute write
+        # to a loaded instance.
+        if (
+            getattr(cls, "FIELDS_TO_CHECK", None) is not None
+            and getattr(cls, "FIELDS_TO_CHECK_EXCLUDE", None) is not None
+        ):
+            raise ValueError(
+                f"{cls.__name__}: cannot use both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE on the same model",
+            )
+
+        track_mutations = bool(getattr(cls, "TRACK_MUTATIONS", False))
+        for field in cls._meta.concrete_fields:  # ty: ignore[unresolved-attribute]
+            attr = getattr(cls, field.attname, None)
+            if type(attr) in (DeferredAttribute, ForeignKeyDeferredAttribute):
+                setattr(cls, field.attname, DiffDescriptor(field, attr, track_mutations))
+            elif isinstance(attr, FileDescriptor):
+                # _wrap_attr_class is idempotent + cached; safe to call repeatedly,
+                # but we mutate the field instance — which is shared with any
+                # parent abstract model. Don't share file fields with non-DirtyFields
+                # concrete subclasses.
+                field.attr_class = _wrap_attr_class(field.attr_class)
+                setattr(cls, field.attname, _FileDiffDescriptor(field))
 
         return cls
 
@@ -239,7 +259,7 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         normalized: set[str] = set()
         for name in fields:
             try:
-                normalized.add(self._meta.get_field(name).name)  # ty: ignore[unresolved-attribute]
+                normalized.add(self._meta.get_field(name).name)
             except FieldDoesNotExist:
                 normalized.add(name)
 
@@ -312,8 +332,9 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         if not self.ENABLE_M2M_CHECK or not self.pk:
             return {}
 
-        # Capture original state on first check (lazy initialization)
-        if not hasattr(self, "_original_m2m_state"):
+        # Capture original state on first check (lazy initialization).
+        # `in self.__dict__` instead of hasattr — avoids walking the descriptor chain.
+        if "_original_m2m_state" not in self.__dict__:
             self._snapshot_m2m_state()
             return {}  # First check - nothing dirty yet
 
@@ -499,7 +520,7 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
             self.save()
         else:
             dirty_fields = self.get_dirty_fields(check_relationship=True)
-            self.save(update_fields=dirty_fields.keys())
+            self.save(update_fields=list(dirty_fields))
 
 
 # Standalone helper functions for bulk operations

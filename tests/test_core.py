@@ -9,7 +9,6 @@ from tests.models import (
     JSONFieldModel,
     JSONFieldTrackMutationsModel,
     ModelTest,
-    ModelWithBothFieldsConfig,
     ModelWithFieldsToCheck,
     ModelWithFieldsToCheckExclude,
     ModelWithForeignKeyTest,
@@ -451,14 +450,23 @@ def test_fields_to_check_exclude_excluded_field_not_dirty():
     assert not tm.is_dirty()
 
 
-@pytest.mark.django_db
-def test_both_fields_to_check_and_exclude_raises_error():
-    """Test that using both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE raises ValueError."""
-    tm = ModelWithBothFieldsConfig.objects.create()
+def test_both_fields_to_check_and_exclude_raises_at_class_def():
+    """Defining a model with both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE raises ValueError immediately."""
+    from django.db import models as _models
 
-    # Changing a field should trigger the error on descriptor access
-    with pytest.raises(ValueError, match="Cannot use both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE"):
-        tm.boolean1 = False
+    from filthyfields import DirtyFieldsMixin as _Mixin
+
+    with pytest.raises(ValueError, match="cannot use both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE"):
+
+        class _BothConfigured(_Mixin, _models.Model):
+            FIELDS_TO_CHECK = ["a"]
+            FIELDS_TO_CHECK_EXCLUDE = ["b"]
+
+            a = _models.BooleanField(default=True)
+            b = _models.BooleanField(default=True)
+
+            class Meta:
+                app_label = "tests"
 
 
 # Bulk operation helper tests

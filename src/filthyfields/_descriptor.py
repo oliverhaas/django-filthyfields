@@ -156,15 +156,16 @@ class DiffDescriptor:
         try:
             value = d[self._attname]
         except KeyError:
-            return self._deferred_attr.__get__(instance, cls)
+            # Deferred-field load: Django's DeferredAttribute fetches the value
+            # AND populates instance.__dict__ as a side effect. We re-read so
+            # the TRACK_MUTATIONS branch below also sees deferred values.
+            value = self._deferred_attr.__get__(instance, cls)
 
         # TRACK_MUTATIONS: deepcopy the value on first read so in-place mutations
         # (e.g. obj.json_field["k"] = "v") are still detectable at get_dirty_fields() time.
+        # setdefault avoids the get-then-set race under free-threading.
         if self._track_mutations and type(value) in _MUTABLE_TYPES:
-            snap = d.get("_state_mut_snapshot")
-            if snap is None:
-                snap = {}
-                d["_state_mut_snapshot"] = snap
+            snap = d.setdefault("_state_mut_snapshot", {})
             if self._field_name not in snap:
                 snap[self._field_name] = deepcopy(value)
         return value
@@ -191,17 +192,16 @@ class DiffDescriptor:
             d[attname] = value
             return
 
-        # FIELDS_TO_CHECK / FIELDS_TO_CHECK_EXCLUDE (cached per instance)
+        # FIELDS_TO_CHECK / FIELDS_TO_CHECK_EXCLUDE (cached per instance).
+        # The mutual-exclusion check between the two attributes runs at class def
+        # time in _DirtyMeta.__new__, so we can trust at most one is set here.
         field_name = self._field_name
         cache = d.get("_fields_check_cache")
         if cache is None:
-            fields_to_check = getattr(instance, "FIELDS_TO_CHECK", None)
-            fields_to_exclude = getattr(instance, "FIELDS_TO_CHECK_EXCLUDE", None)
-            if fields_to_check is not None and fields_to_exclude is not None:
-                raise ValueError(
-                    "Cannot use both FIELDS_TO_CHECK and FIELDS_TO_CHECK_EXCLUDE on the same model",
-                )
-            cache = (fields_to_check, fields_to_exclude)
+            cache = (
+                getattr(instance, "FIELDS_TO_CHECK", None),
+                getattr(instance, "FIELDS_TO_CHECK_EXCLUDE", None),
+            )
             d["_fields_check_cache"] = cache
 
         fields_to_check, fields_to_exclude = cache
@@ -214,10 +214,12 @@ class DiffDescriptor:
             d[attname] = value
             return
 
+        # Determine equality before the dict write so a raise inside _values_equal
+        # leaves __dict__ untouched (no torn state where new value is set but no diff entry).
         old = d[attname]
+        equal = self._values_equal(value, old)
         d[attname] = value
-
-        if self._values_equal(value, old):
+        if equal:
             return
 
         if self._is_relation and self._field.is_cached(instance):
