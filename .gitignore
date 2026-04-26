@@ -50,5 +50,5 @@ site/
 docs/superpowers/
 
 # Cython build artifacts
-src/dirtyfields/*.c
-src/dirtyfields/*.html
+src/filthyfields/*.c
+src/filthyfields/*.html

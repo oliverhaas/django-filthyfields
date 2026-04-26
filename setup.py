@@ -10,7 +10,7 @@ from setuptools import setup
 
 setup(
     ext_modules=cythonize(
-        ["src/dirtyfields/_descriptor.py"],
+        ["src/filthyfields/_descriptor.py"],
         compiler_directives={"language_level": "3"},
     ),
 )

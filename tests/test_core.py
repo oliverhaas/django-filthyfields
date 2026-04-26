@@ -2,8 +2,8 @@ import django
 import pytest
 from django.db import DatabaseError, transaction
 
-import dirtyfields
-from dirtyfields import capture_dirty_state, reset_dirty_state
+import filthyfields
+from filthyfields import capture_dirty_state, reset_dirty_state
 from tests.models import (
     FileFieldModel,
     JSONFieldModel,
@@ -21,8 +21,8 @@ from tests.models import (
 
 
 def test_version_numbers():
-    assert isinstance(dirtyfields.__version__, str)
-    assert dirtyfields.__version__  # Not empty
+    assert isinstance(filthyfields.__version__, str)
+    assert filthyfields.__version__  # Not empty
 
 
 @pytest.mark.django_db

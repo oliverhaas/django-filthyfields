@@ -27,7 +27,7 @@ from pathlib import Path
 import pytest
 from django.db import models
 
-from dirtyfields import DirtyFieldsMixin
+from filthyfields import DirtyFieldsMixin
 from tests._benchmark_common import (
     ITERATIONS,
     N_INSTANCES,

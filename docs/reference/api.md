@@ -5,7 +5,7 @@
 The main mixin class to add dirty field tracking to Django models.
 
 ```python
-from dirtyfields import DirtyFieldsMixin
+from filthyfields import DirtyFieldsMixin
 
 class MyModel(DirtyFieldsMixin, models.Model):
     ...
@@ -100,7 +100,7 @@ class MyModel(DirtyFieldsMixin, models.Model):
 Custom comparison function for determining if field values have changed. Useful for timezone-aware datetime comparisons.
 
 ```python
-from dirtyfields import DirtyFieldsMixin, timezone_support_compare
+from filthyfields import DirtyFieldsMixin, timezone_support_compare
 
 class MyModel(DirtyFieldsMixin, models.Model):
     compare_function = (timezone_support_compare, {})
@@ -119,7 +119,7 @@ class MyModel(DirtyFieldsMixin, models.Model):
 Custom function to transform values before returning them from `get_dirty_fields()`.
 
 ```python
-from dirtyfields import DirtyFieldsMixin, normalise_value
+from filthyfields import DirtyFieldsMixin, normalise_value
 
 class MyModel(DirtyFieldsMixin, models.Model):
     normalise_function = (normalise_value, {})
@@ -321,7 +321,7 @@ Async equivalent of `refresh_from_db()`.
 Default comparison function using simple equality.
 
 ```python
->>> from dirtyfields import raw_compare
+>>> from filthyfields import raw_compare
 >>> raw_compare("a", "a")
 True
 >>> raw_compare("a", "b")
@@ -335,7 +335,7 @@ False
 Default normalisation function that returns the value unchanged.
 
 ```python
->>> from dirtyfields import normalise_value
+>>> from filthyfields import normalise_value
 >>> normalise_value({"key": "value"})
 {'key': 'value'}
 ```
@@ -361,7 +361,7 @@ When comparing datetime values where one is timezone-aware and the other is naiv
 **Example:**
 
 ```python
-from dirtyfields import DirtyFieldsMixin, timezone_support_compare
+from filthyfields import DirtyFieldsMixin, timezone_support_compare
 
 class MyModel(DirtyFieldsMixin, models.Model):
     compare_function = (timezone_support_compare, {})
@@ -408,7 +408,7 @@ Call this after `bulk_update()` to clear the dirty state, indicating that change
 **Example:**
 
 ```python
-from dirtyfields import capture_dirty_state, reset_dirty_state
+from filthyfields import capture_dirty_state, reset_dirty_state
 
 # Modify instances
 instances = list(MyModel.objects.filter(status='pending'))
@@ -439,6 +439,6 @@ for obj in instances:
 The package version string. Read at import time from installed package metadata via `importlib.metadata.version("django-filthyfields")`, so it always reflects the version pip/uv resolved to.
 
 ```python
->>> from dirtyfields import __version__
+>>> from filthyfields import __version__
 >>> __version__  # e.g. '1.9.8b6'
 ```

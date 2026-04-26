@@ -20,7 +20,7 @@ uv add django-filthyfields
 ## Verify Installation
 
 ```python
->>> from dirtyfields import DirtyFieldsMixin
+>>> from filthyfields import DirtyFieldsMixin
 >>> DirtyFieldsMixin
 <class 'dirtyfields.dirtyfields.DirtyFieldsMixin'>
 ```

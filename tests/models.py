@@ -2,8 +2,8 @@ from django.db import models
 from django.db.models.signals import pre_save
 from django.utils import timezone as django_timezone
 
-from dirtyfields import DirtyFieldsMixin
-from dirtyfields.compare import timezone_support_compare
+from filthyfields import DirtyFieldsMixin
+from filthyfields.compare import timezone_support_compare
 
 
 class ModelTest(DirtyFieldsMixin, models.Model):

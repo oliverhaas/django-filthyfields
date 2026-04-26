@@ -16,7 +16,7 @@ from django.db.models.fields.files import FieldFile, FileDescriptor
 from django.db.models.fields.related_descriptors import ForeignKeyDeferredAttribute
 from django.db.models.query_utils import DeferredAttribute
 
-from dirtyfields._descriptor import DiffDescriptor, _normalize_value
+from filthyfields._descriptor import DiffDescriptor, _normalize_value
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable

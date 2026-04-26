@@ -12,5 +12,5 @@ __all__ = [
 ]
 __version__ = version("django-filthyfields")
 
-from dirtyfields.compare import normalise_value, raw_compare, timezone_support_compare
-from dirtyfields.dirtyfields import DirtyFieldsMixin, capture_dirty_state, reset_dirty_state
+from filthyfields.compare import normalise_value, raw_compare, timezone_support_compare
+from filthyfields.filthyfields import DirtyFieldsMixin, capture_dirty_state, reset_dirty_state

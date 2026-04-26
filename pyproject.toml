@@ -59,10 +59,10 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-dirtyfields = ["py.typed"]
+filthyfields = ["py.typed"]
 
 [tool.setuptools.exclude-package-data]
-dirtyfields = ["*.c", "*.html"]
+filthyfields = ["*.c", "*.html"]
 
 # cibuildwheel config — builds the wheel matrix in CI.
 # We target cp314 and cp314t (free-threaded) because that's our supported runtime.
@@ -71,11 +71,11 @@ build = ["cp314-*", "cp314t-*"]
 enable = ["cpython-freethreading"]
 build-verbosity = 1
 # Smoke-test the wheel: configure a minimal Django (no apps), then import
-# the compiled descriptor. Importing `dirtyfields` triggers loading
+# the compiled descriptor. Importing `filthyfields` triggers loading
 # `DirtyFieldsMixin`, which is a Django Model subclass and so needs apps
 # ready — `settings.configure() + django.setup()` with empty INSTALLED_APPS
 # is the smallest viable setup.
-test-command = "python -c \"from django.conf import settings; settings.configure(INSTALLED_APPS=[]); import django; django.setup(); from dirtyfields._descriptor import DiffDescriptor; print(DiffDescriptor)\""
+test-command = "python -c \"from django.conf import settings; settings.configure(INSTALLED_APPS=[]); import django; django.setup(); from filthyfields._descriptor import DiffDescriptor; print(DiffDescriptor)\""
 
 [tool.cibuildwheel.linux]
 archs = ["x86_64"]
@@ -144,7 +144,7 @@ unfixable = []
   "DTZ005", # Naive datetime.now() is intentional for timezone testing
   "UP017",  # timezone.utc used for test clarity
 ]
-"src/dirtyfields/_descriptor.py" = [
+"src/filthyfields/_descriptor.py" = [
   "PLR0911", # Many returns are inherent to the descriptor tracking logic
   "PLR0912", # Many branches are inherent to the descriptor tracking logic
 ]
@@ -165,7 +165,7 @@ markers = [
 [tool.coverage.run]
 concurrency = ["thread"]
 branch = true
-source = ["dirtyfields"]
+source = ["filthyfields"]
 omit = ["*/__init__.py"]
 
 [tool.coverage.report]

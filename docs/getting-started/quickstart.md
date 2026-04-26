@@ -6,7 +6,7 @@ To track dirty fields on a model, inherit from `DirtyFieldsMixin`:
 
 ```python
 from django.db import models
-from dirtyfields import DirtyFieldsMixin
+from filthyfields import DirtyFieldsMixin
 
 class ExampleModel(DirtyFieldsMixin, models.Model):
     boolean = models.BooleanField(default=True)

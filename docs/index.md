@@ -45,7 +45,7 @@ Run the benchmark yourself: `uv run pytest tests/test_benchmark.py -m benchmark 
 
 ```python
 from django.db import models
-from dirtyfields import DirtyFieldsMixin
+from filthyfields import DirtyFieldsMixin
 
 class MyModel(DirtyFieldsMixin, models.Model):
     name = models.CharField(max_length=100)

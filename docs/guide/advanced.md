@@ -129,7 +129,7 @@ obj.save_dirty_fields()  # Only updates 'status'
 Django's `bulk_update()` and `bulk_create()` bypass the model's `save()` method, so dirty tracking doesn't happen automatically. Use the helper functions to manually manage dirty state:
 
 ```python
-from dirtyfields import capture_dirty_state, reset_dirty_state
+from filthyfields import capture_dirty_state, reset_dirty_state
 
 # Modify multiple instances
 instances = list(MyModel.objects.filter(status='pending'))
@@ -265,7 +265,7 @@ True
 The default comparison uses simple equality (`==`). For special cases like timezone-aware datetime comparisons, you can provide a custom comparison function:
 
 ```python
-from dirtyfields import DirtyFieldsMixin, timezone_support_compare
+from filthyfields import DirtyFieldsMixin, timezone_support_compare
 
 class MyModel(DirtyFieldsMixin, models.Model):
     compare_function = (timezone_support_compare, {})
