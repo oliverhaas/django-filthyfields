@@ -324,15 +324,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#why-this-fork" class="md-nav__link">
+  <a href="#why-this-project" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Why This Fork?
+        Why This Project?
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Why This Fork?">
+    <nav class="md-nav" aria-label="Why This Project?">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -770,15 +770,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#why-this-fork" class="md-nav__link">
+  <a href="#why-this-project" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Why This Fork?
+        Why This Project?
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Why This Fork?">
+    <nav class="md-nav" aria-label="Why This Project?">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -856,14 +856,12 @@
 <p><strong>Tracking dirty fields on a Django model instance.</strong></p>
 <p>Dirty means that field in-memory and database values are different.</p>
 <div class="admonition info">
-<p class="admonition-title">Fork of django-dirtyfields</p>
-<p>This started as a fork of <a href="https://github.com/romgar/django-dirtyfields">django-dirtyfields</a> with a
-rewritten "lazy" descriptor-based internal implementation, and has since diverged with its own feature set and release cadence.</p>
+<p class="admonition-title">Originated as a fork of django-dirtyfields</p>
+<p>This project started as a fork of <a href="https://github.com/romgar/django-dirtyfields">django-dirtyfields</a> with a rewritten lazy, descriptor-based internal implementation. It has since diverged with its own feature set, release cadence, and import name (<code>filthyfields</code>).</p>
 </div>
-<h2 id="why-this-fork">Why This Fork?<a class="headerlink" href="#why-this-fork" title="Permanent link">&para;</a></h2>
-<p>The original django-dirtyfields captures model state by making a full snapshot of the model on instance initialization.
-This means <strong>every field value is copied every time a model instance is initialized</strong>, regardless of whether you'll modify the instance.</p>
-<p>This fork uses <strong>lazy descriptor-based tracking</strong>, which for typical use-cases where one reads/writes fields at most once each has less overhead.</p>
+<h2 id="why-this-project">Why This Project?<a class="headerlink" href="#why-this-project" title="Permanent link">&para;</a></h2>
+<p>The original django-dirtyfields captures model state by snapshotting every field on instance initialization — every field value is copied on every model load, regardless of whether you'll modify the instance.</p>
+<p>This project uses lazy descriptor-based tracking instead, which for typical use cases (read or write each field at most once) has less overhead.</p>
 <h3 id="benchmark-results">Benchmark Results<a class="headerlink" href="#benchmark-results" title="Permanent link">&para;</a></h3>
 <p>Python 3.14, 10,000 instances × 20 fields, 5 iterations. Numbers in parentheses are overhead vs. plain Django.</p>
 <table>
@@ -914,7 +912,7 @@ This means <strong>every field value is copied every time a model instance is in
 </tr>
 </tbody>
 </table>
-<p>Across the suite, <strong>filthyfields overhead is 3×–28× smaller than dirtyfields overhead</strong> — biggest on read-only paths where the Cython-backed descriptor avoids the full-model snapshot that upstream does on every load.</p>
+<p>Across the suite, filthyfields overhead is 3×–28× smaller than dirtyfields overhead — biggest on read-only paths where the Cython-backed descriptor avoids the full-model snapshot that upstream does on every load.</p>
 <p>Run the benchmark yourself: <code>uv run pytest tests/test_benchmark.py -m benchmark -s</code></p>
 <h2 id="compatibility">Compatibility<a class="headerlink" href="#compatibility" title="Permanent link">&para;</a></h2>
 <table>
@@ -933,7 +931,7 @@ This means <strong>every field value is copied every time a model instance is in
 </table>
 <h2 id="quick-example">Quick Example<a class="headerlink" href="#quick-example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dirtyfields</span><span class="w"> </span><span class="kn">import</span> <span class="n">DirtyFieldsMixin</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">filthyfields</span><span class="w"> </span><span class="kn">import</span> <span class="n">DirtyFieldsMixin</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">(</span><span class="n">DirtyFieldsMixin</span><span class="p">,</span> <span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
