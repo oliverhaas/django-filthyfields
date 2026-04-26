@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
 
+from django.core.exceptions import FieldDoesNotExist
 from django.core.files import File
 from django.db import models
 from django.db.models.base import ModelBase
@@ -218,7 +219,9 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         """Reset dirty tracking state.
 
         Args:
-            fields: If provided, only reset these fields. Otherwise reset all.
+            fields: If provided, only reset these fields (accepts either field name
+                or attname — e.g. both ``"fkey"`` and ``"fkey_id"`` clear the FK
+                entry). If ``None``, reset everything.
         """
         if fields is None:
             self.__dict__.pop("_state_diff", None)
@@ -227,29 +230,47 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
             # Reset M2M state by re-snapshotting current state
             if self.ENABLE_M2M_CHECK and self.pk:
                 self._snapshot_m2m_state()
-        else:
-            diff = self.__dict__.get("_state_diff")
-            if diff:
-                for name in fields:
-                    diff.pop(name, None)
-                rel = self.__dict__.get("_state_diff_rel")
-                if rel:
-                    for name in fields:
-                        rel.discard(name)
-            mut_snap = self.__dict__.get("_state_mut_snapshot")
-            if mut_snap:
-                for name in fields:
-                    mut_snap.pop(name, None)
+            return
+        self._dirty_reset_partial(fields)
+
+    def _dirty_reset_partial(self, fields: Iterable[str]) -> None:
+        """Reset dirty tracking state for a specific subset of fields."""
+        # Normalize attnames -> names so callers can pass either form.
+        normalized: set[str] = set()
+        for name in fields:
+            try:
+                normalized.add(self._meta.get_field(name).name)  # ty: ignore[unresolved-attribute]
+            except FieldDoesNotExist:
+                normalized.add(name)
+
+        diff = self.__dict__.get("_state_diff")
+        if diff:
+            for name in normalized:
+                diff.pop(name, None)
+            rel = self.__dict__.get("_state_diff_rel")
+            if rel:
+                for name in normalized:
+                    rel.discard(name)
+        mut_snap = self.__dict__.get("_state_mut_snapshot")
+        if mut_snap:
+            for name in normalized:
+                mut_snap.pop(name, None)
+        # Re-snapshot M2M state for the named fields if they're tracked
+        if self.ENABLE_M2M_CHECK and self.pk and "_original_m2m_state" in self.__dict__:
+            current_m2m = self._as_dict_m2m()
+            for name in normalized:
+                if name in current_m2m:
+                    self._original_m2m_state[name] = current_m2m[name]
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         self._dirty_capture_was_dirty()
         super().save(*args, **kwargs)
-        self._dirty_reset_state()
+        self._dirty_reset_state(fields=kwargs.get("update_fields"))
 
     async def asave(self, *args: Any, **kwargs: Any) -> None:
         self._dirty_capture_was_dirty()
         await super().asave(*args, **kwargs)
-        self._dirty_reset_state()
+        self._dirty_reset_state(fields=kwargs.get("update_fields"))
 
     def refresh_from_db(  # ty: ignore[invalid-method-override]
         self,

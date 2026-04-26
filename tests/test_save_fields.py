@@ -66,6 +66,28 @@ def test_save_dirty_full_save_on_adding():
 
 
 @pytest.mark.django_db
+def test_save_with_update_fields_only_resets_those_fields():
+    """Partial save via update_fields should only reset dirty state for the saved fields.
+
+    The unsaved fields were not persisted to the DB, so they must remain dirty
+    so the user can later issue a full save() (or another partial save) to commit them.
+    """
+    tm = ModelTest.objects.create(boolean=True, characters="abc")
+    tm.boolean = False
+    tm.characters = "xyz"
+    assert tm.get_dirty_fields() == {"boolean": True, "characters": "abc"}
+
+    tm.save(update_fields=["boolean"])
+
+    # `boolean` was persisted — clean
+    # `characters` was NOT persisted — still dirty
+    assert tm.get_dirty_fields() == {"characters": "abc"}
+
+    tm.save(update_fields=["characters"])
+    assert tm.get_dirty_fields() == {}
+
+
+@pytest.mark.django_db
 def test_fk_assigned_by_object_saved_with_id_in_update_fields():
     """Assign FK via the object descriptor, save with the `_id` form in update_fields."""
     tm1 = ModelTest.objects.create(boolean=True, characters="dummy")

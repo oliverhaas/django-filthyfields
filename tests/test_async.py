@@ -48,8 +48,8 @@ async def test_asave_with_update_fields():
 
     await tm.asave(update_fields=["boolean"])
 
-    # After partial save, dirty tracking resets ALL fields
-    assert not tm.is_dirty()
+    # `boolean` was persisted — clean. `characters` was not — still dirty.
+    assert tm.get_dirty_fields() == {"characters": "original"}
 
 
 @pytest.mark.asyncio
