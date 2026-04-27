@@ -408,7 +408,7 @@ These functions help track dirty state when using bulk operations like `bulk_upd
 
 ### `capture_dirty_state(instances)`
 
-Capture current dirty state for multiple instances before a bulk operation.
+Capture current dirty state before a bulk operation.
 
 Call this before `bulk_update()` to preserve the dirty state for later inspection via `was_dirty()` / `get_was_dirty_fields()`.
 
@@ -416,7 +416,7 @@ Call this before `bulk_update()` to preserve the dirty state for later inspectio
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `instances` | `Iterable[DirtyFieldsMixin]` | Model instances to capture state for |
+| `instances` | `DirtyFieldsMixin \| Iterable[DirtyFieldsMixin]` | A single instance or an iterable of instances |
 
 **Returns:** `None`
 
@@ -424,7 +424,7 @@ Call this before `bulk_update()` to preserve the dirty state for later inspectio
 
 ### `reset_dirty_state(instances, fields=None)`
 
-Reset dirty tracking state for multiple instances after a bulk operation.
+Reset dirty tracking state after a bulk operation.
 
 Call this after `bulk_update()` to clear the dirty state, indicating that changes have been persisted.
 
@@ -432,7 +432,7 @@ Call this after `bulk_update()` to clear the dirty state, indicating that change
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `instances` | `Iterable[DirtyFieldsMixin]` | - | Model instances to reset state for |
+| `instances` | `DirtyFieldsMixin \| Iterable[DirtyFieldsMixin]` | - | A single instance or an iterable of instances |
 | `fields` | `Iterable[str] \| None` | `None` | If provided, only reset these specific fields. Otherwise reset all. |
 
 **Returns:** `None`

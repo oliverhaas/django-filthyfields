@@ -447,17 +447,21 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
             self.save(update_fields=list(dirty_fields))
 
 
-def capture_dirty_state(instances: Iterable[DirtyFieldsMixin]) -> None:
-    """Snapshot dirty state on each instance — call before ``bulk_update()`` so ``was_dirty()`` works after."""
+def capture_dirty_state(instances: DirtyFieldsMixin | Iterable[DirtyFieldsMixin]) -> None:
+    """Snapshot dirty state — call before ``bulk_update()`` so ``was_dirty()`` works after. Accepts a single instance or an iterable."""
+    if isinstance(instances, DirtyFieldsMixin):
+        instances = (instances,)
     for instance in instances:
         instance._dirty_capture_was_dirty()
 
 
 def reset_dirty_state(
-    instances: Iterable[DirtyFieldsMixin],
+    instances: DirtyFieldsMixin | Iterable[DirtyFieldsMixin],
     fields: Iterable[str] | None = None,
 ) -> None:
-    """Clear dirty state on each instance — call after ``bulk_update()``. ``fields`` accepts name or attname."""
+    """Clear dirty state — call after ``bulk_update()``. ``fields`` accepts name or attname. Accepts a single instance or an iterable."""
+    if isinstance(instances, DirtyFieldsMixin):
+        instances = (instances,)
     field_list = list(fields) if fields is not None else None
     for instance in instances:
         instance._dirty_reset_state(fields=field_list)

@@ -546,6 +546,32 @@ def test_reset_dirty_state_empty_list():
 
 
 @pytest.mark.django_db
+def test_bulk_helpers_accept_single_instance():
+    """capture/reset accept a single DirtyFieldsMixin without wrapping in a list."""
+    tm = ModelTest.objects.create(boolean=True, characters="orig")
+    tm.characters = "modified"
+
+    capture_dirty_state(tm)
+    ModelTest.objects.bulk_update([tm], ["characters"])
+    reset_dirty_state(tm)
+
+    assert not tm.is_dirty()
+    assert tm.was_dirty()
+    assert tm.get_was_dirty_fields() == {"characters": "orig"}
+
+
+@pytest.mark.django_db
+def test_reset_dirty_state_single_instance_with_fields():
+    """reset_dirty_state(single_instance, fields=...) only clears the named fields."""
+    tm = ModelTest.objects.create(boolean=True, characters="orig")
+    tm.boolean = False
+    tm.characters = "modified"
+
+    reset_dirty_state(tm, fields=["characters"])
+    assert tm.get_dirty_fields() == {"boolean": True}
+
+
+@pytest.mark.django_db
 def test_bulk_helpers_with_generator():
     """Test that bulk helpers work with generators/iterables."""
     instances = [ModelTest.objects.create(characters=f"obj{i}") for i in range(3)]
