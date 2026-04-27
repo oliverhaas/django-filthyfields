@@ -1,0 +1,4649 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Tracking dirty fields on a Django model instance.">
+      
+      
+        <meta name="author" content="Oliver Haas">
+      
+      
+        <link rel="canonical" href="https://oliverhaas.github.io/django-filthyfields/2.0.2/reference/changelog/">
+      
+      
+        <link rel="prev" href="../api/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Changelog - Django Filthy Fields</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#changelog" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Django Filthy Fields" class="md-header__button md-logo" aria-label="Django Filthy Fields" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Django Filthy Fields
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Changelog
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/oliverhaas/django-filthyfields" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    oliverhaas/django-filthyfields
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Django Filthy Fields" class="md-nav__button md-logo" aria-label="Django Filthy Fields" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Django Filthy Fields
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/oliverhaas/django-filthyfields" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    oliverhaas/django-filthyfields
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/basic-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Basic Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#202-2026-04-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [2.0.2] - 2026-04-27
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[2.0.2] - 2026-04-27">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#201-2026-04-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [2.0.1] - 2026-04-27
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[2.0.1] - 2026-04-27">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#200-2026-04-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [2.0.0] - 2026-04-26
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[2.0.0] - 2026-04-26">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b9-2026-04-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b9] - 2026-04-26
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b9] - 2026-04-26">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b8-2026-04-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b8] - 2026-04-25
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b8] - 2026-04-25">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b7-2026-04-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b7] - 2026-04-24
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b7] - 2026-04-24">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b5-2026-04-23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b5] - 2026-04-23
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b5] - 2026-04-23">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b4-2026-04-06" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b4] - 2026-04-06
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b4] - 2026-04-06">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b3-2026-01-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b3] - 2026-01-22
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b3] - 2026-01-22">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b2-2026-01-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b2] - 2026-01-17
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b2] - 2026-01-17">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b1-2025-01-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b1] - 2025-01-17
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b1] - 2025-01-17">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a2-2025-01-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.1.0a2] - 2025-01-16
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.1.0a2] - 2025-01-16">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a1-2025-01-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.1.0a1] - 2025-01-16
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.1.0a1] - 2025-01-16">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#historical-releases-from-upstream-django-dirtyfields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Historical Releases (from upstream django-dirtyfields)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198-2025-11-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8] - 2025-11-17
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8] - 2025-11-17">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#197-2025-03-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.7] - 2025-03-22
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.7] - 2025-03-22">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#196-2025-02-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.6] - 2025-02-07
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.6] - 2025-02-07">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#195-2024-11-09" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.5] - 2024-11-09
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.5] - 2024-11-09">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#194-2024-11-09" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.4] - 2024-11-09
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.4] - 2024-11-09">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#193-2024-05-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.3] - 2024-05-24
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.3] - 2024-05-24">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#192-2023-04-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.2] - 2023-04-12
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.2] - 2023-04-12">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#191-2023-01-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.1] - 2023-01-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.1] - 2023-01-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#190-2022-11-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.0] - 2022-11-07
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.0] - 2022-11-07">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#182-2022-07-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.8.2] - 2022-07-16
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.8.2] - 2022-07-16">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#181-2022-03-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.8.1] - 2022-03-07
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.8.1] - 2022-03-07">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#180-2022-01-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.8.0] - 2022-01-22
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.8.0] - 2022-01-22">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#170-2021-05-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.7.0] - 2021-05-02
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.7.0] - 2021-05-02">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#160-2021-04-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.6.0] - 2021-04-07
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.6.0] - 2021-04-07">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#150-2021-01-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.5.0] - 2021-01-15
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.5.0] - 2021-01-15">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#141-2020-11-28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.4.1] - 2020-11-28
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.4.1] - 2020-11-28">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-2020-04-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.4] - 2020-04-11
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.4] - 2020-04-11">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#131-2018-02-28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.3.1] - 2018-02-28
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.3.1] - 2018-02-28">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-2017-08-23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.3] - 2017-08-23
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.3] - 2017-08-23">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#121-2016-11-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.2.1] - 2016-11-16
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.2.1] - 2016-11-16">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-2016-08-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.2] - 2016-08-11
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.2] - 2016-08-11">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-2016-08-04" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.1] - 2016-08-04
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.1] - 2016-08-04">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#101-2016-07-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.0.1] - 2016-07-25
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.0.1] - 2016-07-25">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-2016-06-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.0] - 2016-06-26
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.0] - 2016-06-26">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#09-2016-06-18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.9] - 2016-06-18
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.9] - 2016-06-18">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#082-2016-03-19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.8.2] - 2016-03-19
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.8.2] - 2016-03-19">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#081-2015-12-08" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.8.1] - 2015-12-08
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.8.1] - 2015-12-08">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#08-2015-10-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.8] - 2015-10-30
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.8] - 2015-10-30">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#07-2015-06-18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.7] - 2015-06-18
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.7] - 2015-06-18">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#061-2015-06-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.6.1] - 2015-06-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.6.1] - 2015-06-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#06-2015-06-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.6] - 2015-06-11
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.6] - 2015-06-11">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#05-2015-05-06" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.5] - 2015-05-06
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.5] - 2015-05-06">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#041-2015-04-08" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.4.1] - 2015-04-08
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.4.1] - 2015-04-08">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#04-2015-03-31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.4] - 2015-03-31
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.4] - 2015-03-31">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#202-2026-04-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [2.0.2] - 2026-04-27
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[2.0.2] - 2026-04-27">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#201-2026-04-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [2.0.1] - 2026-04-27
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[2.0.1] - 2026-04-27">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#200-2026-04-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [2.0.0] - 2026-04-26
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[2.0.0] - 2026-04-26">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b9-2026-04-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b9] - 2026-04-26
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b9] - 2026-04-26">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b8-2026-04-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b8] - 2026-04-25
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b8] - 2026-04-25">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b7-2026-04-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b7] - 2026-04-24
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b7] - 2026-04-24">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b5-2026-04-23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b5] - 2026-04-23
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b5] - 2026-04-23">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b4-2026-04-06" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b4] - 2026-04-06
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b4] - 2026-04-06">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b3-2026-01-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b3] - 2026-01-22
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b3] - 2026-01-22">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b2-2026-01-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b2] - 2026-01-17
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b2] - 2026-01-17">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198b1-2025-01-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8b1] - 2025-01-17
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8b1] - 2025-01-17">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a2-2025-01-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.1.0a2] - 2025-01-16
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.1.0a2] - 2025-01-16">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010a1-2025-01-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.1.0a1] - 2025-01-16
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.1.0a1] - 2025-01-16">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#historical-releases-from-upstream-django-dirtyfields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Historical Releases (from upstream django-dirtyfields)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#198-2025-11-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.8] - 2025-11-17
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.8] - 2025-11-17">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#197-2025-03-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.7] - 2025-03-22
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.7] - 2025-03-22">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#196-2025-02-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.6] - 2025-02-07
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.6] - 2025-02-07">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#195-2024-11-09" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.5] - 2024-11-09
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.5] - 2024-11-09">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#194-2024-11-09" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.4] - 2024-11-09
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.4] - 2024-11-09">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#193-2024-05-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.3] - 2024-05-24
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.3] - 2024-05-24">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#192-2023-04-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.2] - 2023-04-12
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.2] - 2023-04-12">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#191-2023-01-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.1] - 2023-01-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.1] - 2023-01-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#190-2022-11-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.9.0] - 2022-11-07
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.9.0] - 2022-11-07">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#182-2022-07-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.8.2] - 2022-07-16
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.8.2] - 2022-07-16">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#181-2022-03-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.8.1] - 2022-03-07
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.8.1] - 2022-03-07">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#180-2022-01-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.8.0] - 2022-01-22
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.8.0] - 2022-01-22">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#170-2021-05-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.7.0] - 2021-05-02
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.7.0] - 2021-05-02">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#160-2021-04-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.6.0] - 2021-04-07
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.6.0] - 2021-04-07">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#150-2021-01-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.5.0] - 2021-01-15
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.5.0] - 2021-01-15">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#141-2020-11-28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.4.1] - 2020-11-28
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.4.1] - 2020-11-28">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-2020-04-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.4] - 2020-04-11
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.4] - 2020-04-11">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#131-2018-02-28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.3.1] - 2018-02-28
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.3.1] - 2018-02-28">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-2017-08-23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.3] - 2017-08-23
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.3] - 2017-08-23">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#121-2016-11-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.2.1] - 2016-11-16
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.2.1] - 2016-11-16">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-2016-08-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.2] - 2016-08-11
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.2] - 2016-08-11">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-2016-08-04" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.1] - 2016-08-04
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.1] - 2016-08-04">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#101-2016-07-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.0.1] - 2016-07-25
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.0.1] - 2016-07-25">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-2016-06-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.0] - 2016-06-26
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.0] - 2016-06-26">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#09-2016-06-18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.9] - 2016-06-18
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.9] - 2016-06-18">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#082-2016-03-19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.8.2] - 2016-03-19
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.8.2] - 2016-03-19">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#081-2015-12-08" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.8.1] - 2015-12-08
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.8.1] - 2015-12-08">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#08-2015-10-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.8] - 2015-10-30
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.8] - 2015-10-30">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#07-2015-06-18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.7] - 2015-06-18
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.7] - 2015-06-18">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#061-2015-06-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.6.1] - 2015-06-14
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.6.1] - 2015-06-14">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#06-2015-06-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.6] - 2015-06-11
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.6] - 2015-06-11">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#05-2015-05-06" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.5] - 2015-05-06
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.5] - 2015-05-06">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#041-2015-04-08" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.4.1] - 2015-04-08
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.4.1] - 2015-04-08">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#04-2015-03-31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [0.4] - 2015-03-31
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[0.4] - 2015-03-31">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
+<p>All notable changes to this project will be documented in this file.</p>
+<p>The format is based on <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>,
+and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+<h2 id="202-2026-04-27">[2.0.2] - 2026-04-27<a class="headerlink" href="#202-2026-04-27" title="Permanent link">&para;</a></h2>
+<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>capture_dirty_state()</code> and <code>reset_dirty_state()</code> now accept a single <code>DirtyFieldsMixin</code> instance in addition to an iterable. Existing iterable callers are unaffected.</li>
+</ul>
+<h2 id="201-2026-04-27">[2.0.1] - 2026-04-27<a class="headerlink" href="#201-2026-04-27" title="Permanent link">&para;</a></h2>
+<h3 id="changed_1">Changed<a class="headerlink" href="#changed_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Development status classifier bumped from <code>4 - Beta</code> to <code>5 - Production/Stable</code>.</li>
+</ul>
+<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>sdist no longer ships a partial <code>tests/</code> tree. Setuptools' default sdist rule auto-included <code>tests/test_*.py</code> but not the supporting helpers (<code>models.py</code>, <code>django_settings.py</code>, <code>utils.py</code>), making the test files unrunnable from the sdist. <code>MANIFEST.in</code> now prunes <code>tests/</code> entirely.</li>
+</ul>
+<h2 id="200-2026-04-26">[2.0.0] - 2026-04-26<a class="headerlink" href="#200-2026-04-26" title="Permanent link">&para;</a></h2>
+<h3 id="changed_2">Changed<a class="headerlink" href="#changed_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Breaking:</strong> import name renamed from <code>dirtyfields</code> to <code>filthyfields</code>. Update <code>from dirtyfields import …</code> to <code>from filthyfields import …</code>. PyPI distribution name unchanged.</li>
+<li>LICENSE rewritten with own copyright + attribution to upstream (Praekelt Foundation original, romgar's fork). Terms (BSD-3-Clause) unchanged.</li>
+<li><code>FIELDS_TO_CHECK</code> + <code>FIELDS_TO_CHECK_EXCLUDE</code> mutual-exclusion check now fires at class def time, not first write.</li>
+<li><code>_normalize_value</code> compiled as a Cython <code>ccall</code>; <code>all(generator)</code> rewritten as for-loops with early return.</li>
+</ul>
+<h3 id="fixed_1">Fixed<a class="headerlink" href="#fixed_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>save(update_fields=…)</code> no longer wipes dirty state for fields it didn't persist.</li>
+<li><code>is_dirty()</code> now honors <code>compare_function</code> (matched <code>get_dirty_fields()</code>).</li>
+<li>TRACK_MUTATIONS snapshot no longer skipped on first read of a deferred field.</li>
+<li><code>__set__</code>: equality computed before the dict write so a raise in <code>_values_equal</code> doesn't tear <code>__dict__</code>.</li>
+<li><code>__get__</code> <code>_state_mut_snapshot</code> init uses <code>setdefault</code> — closes free-threading race.</li>
+<li>API docs: <code>save_dirty_fields</code> doesn't raise on never-saved (it falls back to <code>save()</code>); <code>normalise_function</code> example replaced with a real transformation.</li>
+</ul>
+<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Tests: custom <code>compare_function</code> callable, custom <code>normalise_function</code> callable, partial-save reset, TRACK_MUTATIONS read-without-track-flag, <code>arefresh_from_db(from_queryset=…)</code>, <code>reset_dirty_state(fields=…)</code> for FK. <code>isolated_media_root</code> fixture so file-field tests don't leak files.</li>
+</ul>
+<h2 id="198b9-2026-04-26">[1.9.8b9] - 2026-04-26<a class="headerlink" href="#198b9-2026-04-26" title="Permanent link">&para;</a></h2>
+<h3 id="changed_3">Changed<a class="headerlink" href="#changed_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Repo renamed to <code>oliverhaas/django-filthyfields</code> and detached from upstream fork relationship. URLs and badges updated.</li>
+</ul>
+<h3 id="fixed_2">Fixed<a class="headerlink" href="#fixed_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Docs: F()-expressions section in the basic-usage guide claimed F() was tracked as dirty (true pre-b8, no longer correct).</li>
+</ul>
+<h2 id="198b8-2026-04-25">[1.9.8b8] - 2026-04-25<a class="headerlink" href="#198b8-2026-04-25" title="Permanent link">&para;</a></h2>
+<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>TRACK_MUTATIONS</code> opt-in: detects in-place mutations of mutable field values (<code>dict</code>, <code>list</code>, <code>set</code>, <code>bytearray</code>).</li>
+</ul>
+<h3 id="fixed_3">Fixed<a class="headerlink" href="#fixed_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>F()</code> and other ORM expressions are no longer reported as dirty — they're directives the ORM resolves at save time, not value changes.</li>
+</ul>
+<h2 id="198b7-2026-04-24">[1.9.8b7] - 2026-04-24<a class="headerlink" href="#198b7-2026-04-24" title="Permanent link">&para;</a></h2>
+<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Compiled wheels (<code>cp314</code>, <code>cp314t</code>); ~50% less <code>__get__</code> overhead on the compiled path.</li>
+<li>Free-threaded Python 3.14t support.</li>
+</ul>
+<h3 id="changed_4">Changed<a class="headerlink" href="#changed_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Build backend: <code>hatchling</code> → <code>setuptools</code>.</li>
+<li>File-field tracking now uses an <code>attr_class</code> subclass instead of monkey-patching <code>FieldFile.save</code> / <code>.delete</code>.</li>
+</ul>
+<h2 id="198b5-2026-04-23">[1.9.8b5] - 2026-04-23<a class="headerlink" href="#198b5-2026-04-23" title="Permanent link">&para;</a></h2>
+<h3 id="changed_5">Changed<a class="headerlink" href="#changed_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Dropped support for Python 3.11, 3.12, 3.13; Python 3.14+ required</li>
+<li>Dropped support for Django 4.2 and 5.2; Django 6.0+ required</li>
+<li>Development status bumped to Beta</li>
+<li>Bumped dev dependencies (mypy, ruff, ty, pytest-django, pytest-cov, pre-commit, mkdocs-material, mike, hatchling) and <code>django-stubs</code> 5.2.8 → 6.0.3</li>
+</ul>
+<h3 id="fixed_4">Fixed<a class="headerlink" href="#fixed_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Documentation: <code>check_m2m</code> parameter on <code>is_dirty()</code> and <code>get_dirty_fields()</code> is a <code>bool</code>, not a dict</li>
+<li>Documentation: benchmark invocation path</li>
+<li>Documentation: <code>__version__</code> example now reflects actual version format</li>
+<li>Documentation: added async methods (<code>asave()</code>, <code>arefresh_from_db()</code>) and bulk helpers to the guide and API reference</li>
+</ul>
+<h3 id="removed">Removed<a class="headerlink" href="#removed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>SECURITY.md</code> and <code>.github/ISSUE_TEMPLATE/</code> (GitHub issues disabled on this fork)</li>
+</ul>
+<h2 id="198b4-2026-04-06">[1.9.8b4] - 2026-04-06<a class="headerlink" href="#198b4-2026-04-06" title="Permanent link">&para;</a></h2>
+<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Async support: <code>asave()</code> and <code>arefresh_from_db()</code> overrides for dirty-tracking in async code paths</li>
+<li><code>FIELDS_TO_CHECK_EXCLUDE</code> class attribute for blacklist-style field filtering (alternative to <code>FIELDS_TO_CHECK</code>)</li>
+<li><code>capture_dirty_state()</code> and <code>reset_dirty_state()</code> helper functions for bulk operations (<code>bulk_update()</code> and similar)</li>
+</ul>
+<h3 id="changed_6">Changed<a class="headerlink" href="#changed_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Tests synced with upstream django-dirtyfields v1.9.9 (F() expression auto-refresh behavior on Django 6.0, deterministic timezone tests)</li>
+</ul>
+<h2 id="198b3-2026-01-22">[1.9.8b3] - 2026-01-22<a class="headerlink" href="#198b3-2026-01-22" title="Permanent link">&para;</a></h2>
+<h3 id="changed_7">Changed<a class="headerlink" href="#changed_7" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Performance: <code>__get__</code> uses try/except for faster dict access</li>
+<li>Performance: <code>__set__</code> has early returns and caches <code>FIELDS_TO_CHECK</code> per instance</li>
+<li>Performance: <code>_values_equal</code> has a fast path for same-type comparisons</li>
+<li>Performance: <code>_normalize_value</code> uses shallow copy for simple dicts/lists (common for JSONField)</li>
+<li>Benchmarks diversified across DateTime, Decimal, JSON, Float, and Text fields</li>
+</ul>
+<h2 id="198b2-2026-01-17">[1.9.8b2] - 2026-01-17<a class="headerlink" href="#198b2-2026-01-17" title="Permanent link">&para;</a></h2>
+<h3 id="added_4">Added<a class="headerlink" href="#added_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Django 4.2 LTS, 5.2, and 6.0 support</li>
+<li>Python 3.11 and 3.12 support</li>
+<li>Python 3.14t (free-threaded) support</li>
+</ul>
+<h3 id="changed_8">Changed<a class="headerlink" href="#changed_8" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Minimum Python version is now 3.11 (from 3.13)</li>
+<li>Minimum Django version is now 4.2 LTS (from 5.1)</li>
+</ul>
+<h2 id="198b1-2025-01-17">[1.9.8b1] - 2025-01-17<a class="headerlink" href="#198b1-2025-01-17" title="Permanent link">&para;</a></h2>
+<h3 id="added_5">Added<a class="headerlink" href="#added_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Re-added M2M field tracking with <code>ENABLE_M2M_CHECK</code> class attribute</li>
+<li>Re-added <code>check_m2m</code> parameter to <code>is_dirty()</code> and <code>get_dirty_fields()</code></li>
+<li>Re-added custom <code>compare_function</code> support for field value comparison</li>
+<li>Re-added custom <code>normalise_function</code> support for output value transformation</li>
+<li>Added <code>was_dirty()</code> and <code>get_was_dirty_fields()</code> methods</li>
+<li>Added <code>raw_compare</code>, <code>normalise_value</code>, and <code>timezone_support_compare</code> utility functions</li>
+</ul>
+<h3 id="changed_9">Changed<a class="headerlink" href="#changed_9" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Version numbering now follows upstream django-dirtyfields for API compatibility indication</li>
+</ul>
+<h2 id="010a2-2025-01-16">[0.1.0a2] - 2025-01-16<a class="headerlink" href="#010a2-2025-01-16" title="Permanent link">&para;</a></h2>
+<h3 id="changed_10">Changed<a class="headerlink" href="#changed_10" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Test automated PyPI publishing pipeline</li>
+</ul>
+<h2 id="010a1-2025-01-16">[0.1.0a1] - 2025-01-16<a class="headerlink" href="#010a1-2025-01-16" title="Permanent link">&para;</a></h2>
+<h3 id="added_6">Added<a class="headerlink" href="#added_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Initial release as <code>django-filthyfields</code> (fork of <code>django-dirtyfields</code>)</li>
+<li>Descriptor-based dirty field tracking (replaces signal-based approach)</li>
+<li>Support for <code>FIELDS_TO_CHECK</code> to limit tracked fields</li>
+<li>File field tracking including <code>.save()</code> and <code>.delete()</code> methods</li>
+<li>F() expression support</li>
+<li>Modern Python 3.13+ and Django 5.0+ support</li>
+</ul>
+<h3 id="changed_11">Changed<a class="headerlink" href="#changed_11" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Complete rewrite using descriptors instead of <code>post_init</code>/<code>post_save</code> signals</li>
+<li>Significantly improved performance for model loading</li>
+</ul>
+<h3 id="removed_1">Removed<a class="headerlink" href="#removed_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Python &lt; 3.13 support</li>
+<li>Django &lt; 5.0 support</li>
+</ul>
+<hr />
+<h2 id="historical-releases-from-upstream-django-dirtyfields">Historical Releases (from upstream django-dirtyfields)<a class="headerlink" href="#historical-releases-from-upstream-django-dirtyfields" title="Permanent link">&para;</a></h2>
+<h2 id="198-2025-11-17">[1.9.8] - 2025-11-17<a class="headerlink" href="#198-2025-11-17" title="Permanent link">&para;</a></h2>
+<h3 id="added_7">Added<a class="headerlink" href="#added_7" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Confirm support for Python 3.14</li>
+<li>Confirm support for Django 5.2</li>
+</ul>
+<h3 id="removed_2">Removed<a class="headerlink" href="#removed_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Drop support for Python 3.9</li>
+<li>Drop support for Django 2.2, 3.0, 3.1</li>
+</ul>
+<h2 id="197-2025-03-22">[1.9.7] - 2025-03-22<a class="headerlink" href="#197-2025-03-22" title="Permanent link">&para;</a></h2>
+<h3 id="fixed_5">Fixed<a class="headerlink" href="#fixed_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Fix <code>Model.refresh_from_db()</code> so calling it with 3 positional args works.</li>
+</ul>
+<h2 id="196-2025-02-07">[1.9.6] - 2025-02-07<a class="headerlink" href="#196-2025-02-07" title="Permanent link">&para;</a></h2>
+<h3 id="fixed_6">Fixed<a class="headerlink" href="#fixed_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Allow passing <code>from_queryset</code> argument to <code>Model.refresh_from_db()</code> in Django 5.1+</li>
+</ul>
+<h2 id="195-2024-11-09">[1.9.5] - 2024-11-09<a class="headerlink" href="#195-2024-11-09" title="Permanent link">&para;</a></h2>
+<h3 id="fixed_7">Fixed<a class="headerlink" href="#fixed_7" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Fixed error in PyPI publish process</li>
+</ul>
+<h2 id="194-2024-11-09">[1.9.4] - 2024-11-09<a class="headerlink" href="#194-2024-11-09" title="Permanent link">&para;</a></h2>
+<h3 id="added_8">Added<a class="headerlink" href="#added_8" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Confirm support for Python 3.13</li>
+<li>Confirm support for Django 5.1</li>
+</ul>
+<h3 id="removed_3">Removed<a class="headerlink" href="#removed_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Drop support for Python 3.8</li>
+</ul>
+<h2 id="193-2024-05-24">[1.9.3] - 2024-05-24<a class="headerlink" href="#193-2024-05-24" title="Permanent link">&para;</a></h2>
+<h3 id="added_9">Added<a class="headerlink" href="#added_9" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Confirm support for Python 3.12</li>
+<li>Confirm support for Django 5.0</li>
+</ul>
+<h3 id="removed_4">Removed<a class="headerlink" href="#removed_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Drop support for Python 3.7</li>
+<li>Drop support for Django 2.0, 2.1</li>
+</ul>
+<h2 id="192-2023-04-12">[1.9.2] - 2023-04-12<a class="headerlink" href="#192-2023-04-12" title="Permanent link">&para;</a></h2>
+<h3 id="added_10">Added<a class="headerlink" href="#added_10" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Confirm support for Django 4.2</li>
+</ul>
+<h2 id="191-2023-01-14">[1.9.1] - 2023-01-14<a class="headerlink" href="#191-2023-01-14" title="Permanent link">&para;</a></h2>
+<h3 id="fixed_8">Fixed<a class="headerlink" href="#fixed_8" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Fixed a <code>KeyError</code> that would occur when updating a field two times in a row when the field value is set to an <code>F</code> object and the field is specified in the <code>update_fields</code> argument to <code>save()</code>. (#209)</li>
+</ul>
+<h2 id="190-2022-11-07">[1.9.0] - 2022-11-07<a class="headerlink" href="#190-2022-11-07" title="Permanent link">&para;</a></h2>
+<h3 id="added_11">Added<a class="headerlink" href="#added_11" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Confirm support for Python 3.11</li>
+<li>Confirm support for Django 4.1</li>
+</ul>
+<h3 id="changed_12">Changed<a class="headerlink" href="#changed_12" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The method <code>get_dirty_fields()</code> now returns only the file name for FileFields. This is to improve performance, since the entire <code>FieldFile</code> object will no longer be copied when Model instances are initialized and saved. (#203)</li>
+</ul>
+<h3 id="fixed_9">Fixed<a class="headerlink" href="#fixed_9" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The method <code>save_dirty_fields()</code> can now be called on Model instances that have not been saved to the Database yet. In this case all fields will be considered dirty, and all will be saved to the Database. Previously doing this would result in an Exception being raised. (#200)</li>
+</ul>
+<h3 id="removed_5">Removed<a class="headerlink" href="#removed_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Drop support for Django 1.11</li>
+</ul>
+<h2 id="182-2022-07-16">[1.8.2] - 2022-07-16<a class="headerlink" href="#182-2022-07-16" title="Permanent link">&para;</a></h2>
+<h3 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>General improvements to content and generation of Documentation (#197).</li>
+</ul>
+<h2 id="181-2022-03-07">[1.8.1] - 2022-03-07<a class="headerlink" href="#181-2022-03-07" title="Permanent link">&para;</a></h2>
+<h3 id="documentation_1">Documentation<a class="headerlink" href="#documentation_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Document limitations when using dirtyfields and database transactions (#148).</li>
+<li>Document how to use a Proxy Model to avoid performance impact (#132).</li>
+</ul>
+<h2 id="180-2022-01-22">[1.8.0] - 2022-01-22<a class="headerlink" href="#180-2022-01-22" title="Permanent link">&para;</a></h2>
+<h3 id="added_12">Added<a class="headerlink" href="#added_12" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Confirm support of Python 3.10</li>
+<li>Confirm support of Django 4.0</li>
+</ul>
+<h3 id="changed_13">Changed<a class="headerlink" href="#changed_13" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Run CI tests on Github Actions since travis-ci.org has been shutdown.</li>
+</ul>
+<h3 id="removed_6">Removed<a class="headerlink" href="#removed_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Drop support for Python 3.6</li>
+</ul>
+<h2 id="170-2021-05-02">[1.7.0] - 2021-05-02<a class="headerlink" href="#170-2021-05-02" title="Permanent link">&para;</a></h2>
+<h3 id="added_13">Added<a class="headerlink" href="#added_13" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Provide programmatically accessible package version number. Use <code>dirtyfields.__version__</code> for a string, <code>dirtyfields.VERSION</code> for a tuple.</li>
+<li>Build and publish a wheel to PyPI.</li>
+</ul>
+<h3 id="changed_14">Changed<a class="headerlink" href="#changed_14" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Only look at concrete fields when determining dirty fields.</li>
+<li>Migrate package metadata from setup.py to setup.cfg and specify the PEP-517 build-backend to use with the project.</li>
+</ul>
+<h3 id="fixed_10">Fixed<a class="headerlink" href="#fixed_10" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Fixed a <code>KeyError</code> that happened when saving a Model with <code>update_fields</code> specified after updating a field value with an <code>F</code> object (#118).</li>
+</ul>
+<h2 id="160-2021-04-07">[1.6.0] - 2021-04-07<a class="headerlink" href="#160-2021-04-07" title="Permanent link">&para;</a></h2>
+<h3 id="added_14">Added<a class="headerlink" href="#added_14" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Confirm support of Django 3.2</li>
+</ul>
+<h3 id="changed_15">Changed<a class="headerlink" href="#changed_15" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Remove pytz as a dependency.</li>
+</ul>
+<h2 id="150-2021-01-15">[1.5.0] - 2021-01-15<a class="headerlink" href="#150-2021-01-15" title="Permanent link">&para;</a></h2>
+<h3 id="added_15">Added<a class="headerlink" href="#added_15" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Confirm support of Python 3.8</li>
+<li>Confirm support of Python 3.9</li>
+<li>Confirm support of Django 3.0</li>
+<li>Confirm support of Django 3.1</li>
+</ul>
+<h3 id="removed_7">Removed<a class="headerlink" href="#removed_7" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Drop support of Python 2.7</li>
+<li>Drop support of Python 3.5</li>
+</ul>
+<h2 id="141-2020-11-28">[1.4.1] - 2020-11-28<a class="headerlink" href="#141-2020-11-28" title="Permanent link">&para;</a></h2>
+<h3 id="fixed_11">Fixed<a class="headerlink" href="#fixed_11" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Fixes an issue when <code>refresh_from_db</code> was called with the <code>fields</code> argument, the dirty state for all fields would be reset, even though only the fields specified are reloaded from the database. Now only the reloaded fields will have their dirty state reset (#154).</li>
+<li>Fixes an issue where accessing a deferred field would reset the dirty state for all fields (#154).</li>
+</ul>
+<h2 id="14-2020-04-11">[1.4] - 2020-04-11<a class="headerlink" href="#14-2020-04-11" title="Permanent link">&para;</a></h2>
+<h3 id="added_16">Added<a class="headerlink" href="#added_16" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Confirm support of Python 3.7</li>
+<li>Confirm support of Django 2.0, 2.1, 2.2</li>
+</ul>
+<h3 id="fixed_12">Fixed<a class="headerlink" href="#fixed_12" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Fixes tests for Django 2.0</li>
+<li><code>refresh_from_db</code> is now properly resetting dirty fields.</li>
+<li>Adds <code>normalise_function</code> to provide control on how dirty values are stored</li>
+</ul>
+<h3 id="removed_8">Removed<a class="headerlink" href="#removed_8" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Drop support of Python 3.4</li>
+<li>Drop support of Django 1.8, 1.9, 1.10</li>
+</ul>
+<h2 id="131-2018-02-28">[1.3.1] - 2018-02-28<a class="headerlink" href="#131-2018-02-28" title="Permanent link">&para;</a></h2>
+<h3 id="added_17">Added<a class="headerlink" href="#added_17" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Updates python classifier in setup file (#116). Thanks amureki.</li>
+<li>Adds PEP8 validation in travisCI run (#123). Thanks hsmett.</li>
+</ul>
+<h3 id="fixed_13">Fixed<a class="headerlink" href="#fixed_13" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Avoids <code>get_deferred_fields</code> to be called too many times on <code>_as_dict</code> (#115). Thanks benjaminrigaud.</li>
+<li>Respects <code>FIELDS_TO_CHECK</code> in <code>reset_state</code> (#114). Thanks bparker98.</li>
+</ul>
+<h2 id="13-2017-08-23">[1.3] - 2017-08-23<a class="headerlink" href="#13-2017-08-23" title="Permanent link">&para;</a></h2>
+<h3 id="added_18">Added<a class="headerlink" href="#added_18" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Add test coverage for Django 1.11.</li>
+<li>A new attribute <code>FIELDS_TO_CHECK</code> has been added to <code>DirtyFieldsMixin</code> to specify a limited set of fields to check.</li>
+</ul>
+<h3 id="fixed_14">Fixed<a class="headerlink" href="#fixed_14" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Fixes issue with verbose mode when the object has not been yet saved in the database (MR #99). Thanks vapkarian.</li>
+<li>Correctly handle <code>ForeignKey.db_column</code> <code>{}_id</code> in <code>update_fields</code>. Thanks Hugo Smett.</li>
+<li>Fixes #111: Eliminate a memory leak.</li>
+<li>Handle deferred fields in <code>update_fields</code></li>
+</ul>
+<h3 id="removed_9">Removed<a class="headerlink" href="#removed_9" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Drop support for unsupported Django versions: 1.4, 1.5, 1.6 and 1.7 series.</li>
+</ul>
+<h2 id="121-2016-11-16">[1.2.1] - 2016-11-16<a class="headerlink" href="#121-2016-11-16" title="Permanent link">&para;</a></h2>
+<h3 id="added_19">Added<a class="headerlink" href="#added_19" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>django-dirtyfields</code> is now tested with PostgreSQL, especially with specific fields</li>
+</ul>
+<h3 id="fixed_15">Fixed<a class="headerlink" href="#fixed_15" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Fixes #80: Use of <code>Field.rel</code> raises warnings from Django 1.9+</li>
+<li>Fixes #84: Use <code>only()</code> in conjunction with 2 foreign keys triggers a recursion error</li>
+<li>Fixes #77: Shallow copy does not work with Django 1.9's JSONField</li>
+<li>Fixes #88: <code>get_dirty_fields</code> on a newly-created model does not work if pk is specified</li>
+<li>Fixes #90: Unmark dirty fields only listed in <code>update_fields</code></li>
+</ul>
+<h2 id="12-2016-08-11">[1.2] - 2016-08-11<a class="headerlink" href="#12-2016-08-11" title="Permanent link">&para;</a></h2>
+<h3 id="added_20">Added<a class="headerlink" href="#added_20" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>django-dirtyfields</code> is now compatible with Django 1.10 series (deferred field handling has been updated).</li>
+</ul>
+<h2 id="11-2016-08-04">[1.1] - 2016-08-04<a class="headerlink" href="#11-2016-08-04" title="Permanent link">&para;</a></h2>
+<h3 id="added_21">Added<a class="headerlink" href="#added_21" title="Permanent link">&para;</a></h3>
+<ul>
+<li>A new attribute <code>ENABLE_M2M_CHECK</code> has been added to <code>DirtyFieldsMixin</code> to enable/disable m2m check functionality. This parameter is set to <code>False</code> by default.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Breaking Change</p>
+<p>Backward incompatibility with v1.0.x series. If you were using <code>check_m2m</code> parameter to check m2m relations, you should now add <code>ENABLE_M2M_CHECK = True</code> to these models inheriting from <code>DirtyFieldsMixin</code>.</p>
+</div>
+<h2 id="101-2016-07-25">[1.0.1] - 2016-07-25<a class="headerlink" href="#101-2016-07-25" title="Permanent link">&para;</a></h2>
+<h3 id="fixed_16">Fixed<a class="headerlink" href="#fixed_16" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Fixing a bug preventing <code>django-dirtyfields</code> to work properly on models with custom primary keys.</li>
+</ul>
+<h2 id="10-2016-06-26">[1.0] - 2016-06-26<a class="headerlink" href="#10-2016-06-26" title="Permanent link">&para;</a></h2>
+<p>After several years of existence, django-dirty-fields is mature enough to switch to 1.X version.</p>
+<h3 id="changed_16">Changed<a class="headerlink" href="#changed_16" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>get_dirty_fields</code> is now more consistent for models not yet saved in the database. <code>get_dirty_fields</code> is, in that situation, always returning ALL fields, where it was before returning various results depending on how you initialised your model.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Breaking Change</p>
+<p>It may affect you specially if you are using <code>get_dirty_fields</code> in a <code>pre_save</code> receiver. See more details at https://github.com/romgar/django-dirtyfields/issues/65.</p>
+</div>
+<h3 id="added_22">Added<a class="headerlink" href="#added_22" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Adding compatibility for old _meta API, deprecated in Django 1.10 version and now replaced by an official API.</li>
+<li>General test cleaning.</li>
+</ul>
+<h2 id="09-2016-06-18">[0.9] - 2016-06-18<a class="headerlink" href="#09-2016-06-18" title="Permanent link">&para;</a></h2>
+<h3 id="added_23">Added<a class="headerlink" href="#added_23" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Adding Many-to-Many fields comparison method <code>check_m2m</code> in <code>DirtyFieldsMixin</code>.</li>
+<li>Adding <code>verbose</code> parameter in <code>get_dirty_fields</code> method to get old AND new field values.</li>
+</ul>
+<h2 id="082-2016-03-19">[0.8.2] - 2016-03-19<a class="headerlink" href="#082-2016-03-19" title="Permanent link">&para;</a></h2>
+<h3 id="added_24">Added<a class="headerlink" href="#added_24" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Adding field comparison method <code>compare_function</code> in <code>DirtyFieldsMixin</code>.</li>
+<li>Also adding a specific comparison function <code>timezone_support_compare</code> to handle different Datetime situations.</li>
+</ul>
+<h2 id="081-2015-12-08">[0.8.1] - 2015-12-08<a class="headerlink" href="#081-2015-12-08" title="Permanent link">&para;</a></h2>
+<h3 id="fixed_17">Fixed<a class="headerlink" href="#fixed_17" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Not comparing fields that are deferred (<code>only</code> method on <code>QuerySet</code>).</li>
+<li>Being more tolerant when comparing values that can be on another type than expected.</li>
+</ul>
+<h2 id="08-2015-10-30">[0.8] - 2015-10-30<a class="headerlink" href="#08-2015-10-30" title="Permanent link">&para;</a></h2>
+<h3 id="added_25">Added<a class="headerlink" href="#added_25" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Adding <code>save_dirty_fields</code> method to save only dirty fields in the database.</li>
+</ul>
+<h2 id="07-2015-06-18">[0.7] - 2015-06-18<a class="headerlink" href="#07-2015-06-18" title="Permanent link">&para;</a></h2>
+<h3 id="added_26">Added<a class="headerlink" href="#added_26" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Using <code>copy</code> to properly track dirty fields on complex fields.</li>
+<li>Using <code>py.test</code> for tests launching.</li>
+</ul>
+<h2 id="061-2015-06-14">[0.6.1] - 2015-06-14<a class="headerlink" href="#061-2015-06-14" title="Permanent link">&para;</a></h2>
+<h3 id="fixed_18">Fixed<a class="headerlink" href="#fixed_18" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Preventing django db expressions to be evaluated when testing dirty fields (#39).</li>
+</ul>
+<h2 id="06-2015-06-11">[0.6] - 2015-06-11<a class="headerlink" href="#06-2015-06-11" title="Permanent link">&para;</a></h2>
+<h3 id="added_27">Added<a class="headerlink" href="#added_27" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Using <code>to_python</code> to avoid false positives when dealing with model fields that internally convert values (#4)</li>
+</ul>
+<h3 id="fixed_19">Fixed<a class="headerlink" href="#fixed_19" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Using <code>attname</code> instead of <code>name</code> on fields to avoid massive useless queries on ForeignKey fields (#34). For this kind of field, <code>get_dirty_fields()</code> is now returning instance id, instead of instance itself.</li>
+</ul>
+<h2 id="05-2015-05-06">[0.5] - 2015-05-06<a class="headerlink" href="#05-2015-05-06" title="Permanent link">&para;</a></h2>
+<h3 id="added_28">Added<a class="headerlink" href="#added_28" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Adding code compatibility for python3</li>
+<li>Launching travis-ci tests on python3</li>
+<li>Using <code>tox</code> to launch tests on Django 1.5, 1.6, 1.7 and 1.8 versions</li>
+<li>Updating <code>runtests.py</code> test script to run properly on every Django version.</li>
+</ul>
+<h3 id="fixed_20">Fixed<a class="headerlink" href="#fixed_20" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Catching <code>Error</code> when trying to get foreign key object if not existing (#32).</li>
+</ul>
+<h2 id="041-2015-04-08">[0.4.1] - 2015-04-08<a class="headerlink" href="#041-2015-04-08" title="Permanent link">&para;</a></h2>
+<h3 id="fixed_21">Fixed<a class="headerlink" href="#fixed_21" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Removing <code>model_to_form</code> to avoid bug when using models that have <code>editable=False</code> fields.</li>
+</ul>
+<h2 id="04-2015-03-31">[0.4] - 2015-03-31<a class="headerlink" href="#04-2015-03-31" title="Permanent link">&para;</a></h2>
+<h3 id="added_29">Added<a class="headerlink" href="#added_29" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Adding <code>check_relationship</code> parameter on <code>is_dirty</code> and <code>get_dirty_field</code> methods to also check foreign key values.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
