@@ -2,6 +2,9 @@
 
 from importlib.metadata import version
 
+from filthyfields.compare import normalise_value, raw_compare, timezone_support_compare
+from filthyfields.filthyfields import DirtyFieldsMixin, capture_dirty_state, reset_dirty_state
+
 __all__ = [
     "DirtyFieldsMixin",
     "capture_dirty_state",
@@ -11,6 +14,3 @@ __all__ = [
     "timezone_support_compare",
 ]
 __version__ = version("django-filthyfields")
-
-from filthyfields.compare import normalise_value, raw_compare, timezone_support_compare
-from filthyfields.filthyfields import DirtyFieldsMixin, capture_dirty_state, reset_dirty_state

@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-04-27
+
+### Changed
+
+- Development status classifier bumped from `4 - Beta` to `5 - Production/Stable`.
+
+### Fixed
+
+- sdist no longer ships a partial `tests/` tree. Setuptools' default sdist rule auto-included `tests/test_*.py` but not the supporting helpers (`models.py`, `django_settings.py`, `utils.py`), making the test files unrunnable from the sdist. `MANIFEST.in` now prunes `tests/` entirely.
+
 ## [2.0.0] - 2026-04-26
 
 ### Changed
