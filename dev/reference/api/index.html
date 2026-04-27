@@ -1755,7 +1755,7 @@
 <h2 id="bulk-operation-helpers">Bulk Operation Helpers<a class="headerlink" href="#bulk-operation-helpers" title="Permanent link">&para;</a></h2>
 <p>These functions help track dirty state when using bulk operations like <code>bulk_update()</code>, which bypass the model's <code>save()</code> method.</p>
 <h3 id="capture_dirty_stateinstances"><code>capture_dirty_state(instances)</code><a class="headerlink" href="#capture_dirty_stateinstances" title="Permanent link">&para;</a></h3>
-<p>Capture current dirty state for multiple instances before a bulk operation.</p>
+<p>Capture current dirty state before a bulk operation.</p>
 <p>Call this before <code>bulk_update()</code> to preserve the dirty state for later inspection via <code>was_dirty()</code> / <code>get_was_dirty_fields()</code>.</p>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -1769,15 +1769,15 @@
 <tbody>
 <tr>
 <td><code>instances</code></td>
-<td><code>Iterable[DirtyFieldsMixin]</code></td>
-<td>Model instances to capture state for</td>
+<td><code>DirtyFieldsMixin \| Iterable[DirtyFieldsMixin]</code></td>
+<td>A single instance or an iterable of instances</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Returns:</strong> <code>None</code></p>
 <hr />
 <h3 id="reset_dirty_stateinstances-fieldsnone"><code>reset_dirty_state(instances, fields=None)</code><a class="headerlink" href="#reset_dirty_stateinstances-fieldsnone" title="Permanent link">&para;</a></h3>
-<p>Reset dirty tracking state for multiple instances after a bulk operation.</p>
+<p>Reset dirty tracking state after a bulk operation.</p>
 <p>Call this after <code>bulk_update()</code> to clear the dirty state, indicating that changes have been persisted.</p>
 <p><strong>Parameters:</strong></p>
 <table>
@@ -1792,9 +1792,9 @@
 <tbody>
 <tr>
 <td><code>instances</code></td>
-<td><code>Iterable[DirtyFieldsMixin]</code></td>
+<td><code>DirtyFieldsMixin \| Iterable[DirtyFieldsMixin]</code></td>
 <td>-</td>
-<td>Model instances to reset state for</td>
+<td>A single instance or an iterable of instances</td>
 </tr>
 <tr>
 <td><code>fields</code></td>
