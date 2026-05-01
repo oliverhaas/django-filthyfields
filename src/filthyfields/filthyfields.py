@@ -54,12 +54,26 @@ class _TrackingFieldFileMixin:
     """``FieldFile`` mixin that records ``save()`` / ``delete()`` into the instance's diff."""
 
     def save(self, name: str, content: File[Any], save: bool = True) -> None:
-        old_name = self.name or ""  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
-        super().save(name, content, save=save)  # type: ignore[misc]  # ty: ignore[unresolved-attribute]
-        new_name = self.name or ""  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
         instance = self.instance  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+        field_name = self.field.name  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+        old_name = self.name or ""  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+        # Suppress _FileDiffDescriptor tracking during super().save: Django's
+        # FieldFile.save mutates self.name then calls _set_instance_attribute,
+        # which (for ImageFieldFile) does setattr(instance, attname, content).
+        # That hits __set__ with a stale-relative-to-mixin baseline and writes
+        # a wrong entry to _state_diff. The mixin is the source of truth here.
+        # The set is left in __dict__ even when empty so a concurrent thread
+        # under free-threading can't pop it between our discard and another
+        # thread's setdefault — set.add/discard/membership are atomic.
+        inflight = instance.__dict__.setdefault("_dirty_filefield_inflight", set())
+        inflight.add(field_name)
+        try:
+            super().save(name, content, save=save)  # type: ignore[misc]  # ty: ignore[unresolved-attribute]
+        finally:
+            inflight.discard(field_name)
+        new_name = self.name or ""  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
         if not instance._state.adding:
-            _track_file_change(instance, self.field.name, old_name, new_name)  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+            _track_file_change(instance, field_name, old_name, new_name)
 
     def delete(self, save: bool = True) -> None:
         old_name = self.name or ""  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
@@ -102,9 +116,13 @@ class _FileDiffDescriptor(FileDescriptor):
         attname = self.field.attname
         field_name = self.field.name
 
+        # FieldFile.save sets a sentinel for the duration of super().save so the
+        # mixin owns tracking; we must not record a diff entry from this path.
+        inflight = d.get("_dirty_filefield_inflight")
         state = getattr(instance, "_state", None)
         should_track = (
-            state is not None
+            (inflight is None or field_name not in inflight)
+            and state is not None
             and not state.adding
             and attname in d
             and _should_track_field(instance, field_name, attname)

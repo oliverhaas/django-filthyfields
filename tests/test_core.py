@@ -1,11 +1,18 @@
+import io
+
 import django
 import pytest
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.db import DatabaseError, transaction
+from PIL import Image
 
 import filthyfields
 from filthyfields import capture_dirty_state, reset_dirty_state
 from tests.models import (
+    CompareFunctionCustomCallableModel,
     FileFieldModel,
+    ImageFieldModel,
     JSONFieldModel,
     JSONFieldTrackMutationsModel,
     ModelTest,
@@ -13,6 +20,7 @@ from tests.models import (
     ModelWithFieldsToCheckExclude,
     ModelWithForeignKeyTest,
     ModelWithOneToOneFieldTest,
+    NormaliseFunctionCustomCallableModel,
     OrdinaryModelTest,
     OrdinaryWithDirtyFieldsProxy,
     SubclassModelTest,
@@ -243,28 +251,125 @@ def isolated_media_root(tmp_path, settings):
     return tmp_path
 
 
+def _png_bytes() -> bytes:
+    """Tiny valid PNG so ImageField doesn't reject the upload."""
+    buf = io.BytesIO()
+    Image.new("RGB", (1, 1), color="red").save(buf, format="PNG")
+    return buf.getvalue()
+
+
 @pytest.mark.django_db
 def test_file_fields_save_method(isolated_media_root):
-    """Test file field tracking via FieldFile.save() method."""
-    from django.core.files.base import ContentFile
-
+    """File field tracking via FieldFile.save() on a fresh instance."""
     tm = FileFieldModel()
     tm.save()
     assert tm.get_dirty_fields() == {}
 
-    # Use FieldFile.save() - should be tracked
     tm.file1.save("test-file-1.txt", ContentFile(b"Test content"), save=False)
     assert tm.get_dirty_fields(verbose=True) == {"file1": {"current": "file1/test-file-1.txt", "saved": ""}}
     tm.save()
     assert tm.get_dirty_fields() == {}
 
-    # Change file via save()
     tm.file1.save("test-file-2.txt", ContentFile(b"New content"), save=False)
     assert tm.get_dirty_fields(verbose=True) == {
         "file1": {"current": "file1/test-file-2.txt", "saved": "file1/test-file-1.txt"},
     }
     tm.save()
     assert tm.get_dirty_fields() == {}
+
+
+@pytest.mark.django_db
+def test_filefield_save_after_refresh_records_baseline(isolated_media_root):
+    """FieldFile.save() on a refreshed instance records the DB-loaded name as
+    the dirty baseline. Guards against the descriptor/mixin interaction where
+    the descriptor saw a stale post-rename .name and wrote a wrong entry that
+    the mixin's tracking call then deleted."""
+    tm = FileFieldModel.objects.create(file1=ContentFile(b"first", name="a.txt"))
+    original_name = tm.file1.name
+    tm.refresh_from_db()
+
+    tm.file1.save("b.txt", ContentFile(b"second"), save=False)
+
+    assert tm.get_dirty_fields() == {"file1": original_name}
+
+
+@pytest.mark.django_db
+def test_filefield_delete_after_refresh_records_baseline(isolated_media_root):
+    tm = FileFieldModel.objects.create(file1=ContentFile(b"first", name="a.txt"))
+    original_name = tm.file1.name
+    tm.refresh_from_db()
+
+    tm.file1.delete(save=False)
+
+    assert tm.get_dirty_fields() == {"file1": original_name}
+
+
+@pytest.mark.django_db
+def test_filefield_consecutive_saves_preserve_db_baseline(isolated_media_root):
+    """Two .save() calls in a row — diff points at the DB baseline, not the
+    intermediate name."""
+    tm = FileFieldModel.objects.create(file1=ContentFile(b"first", name="a.txt"))
+    original_name = tm.file1.name
+    tm.refresh_from_db()
+
+    tm.file1.save("b.txt", ContentFile(b"second"), save=False)
+    tm.file1.save("c.txt", ContentFile(b"third"), save=False)
+
+    assert tm.get_dirty_fields() == {"file1": original_name}
+
+
+@pytest.mark.django_db
+def test_filefield_save_recovers_after_storage_exception(isolated_media_root, monkeypatch):
+    """If storage.save raises, dirty state stays clean and a later .save()
+    still tracks correctly — i.e. the failed call doesn't leave the field
+    permanently flagged as in-flight."""
+    tm = FileFieldModel.objects.create(file1=ContentFile(b"first", name="a.txt"))
+    original_name = tm.file1.name
+    tm.refresh_from_db()
+
+    def _boom(name, content, max_length=None):
+        raise RuntimeError("storage failure")
+
+    monkeypatch.setattr(default_storage, "save", _boom)
+    with pytest.raises(RuntimeError, match="storage failure"):
+        tm.file1.save("b.txt", ContentFile(b"second"), save=False)
+
+    assert tm.get_dirty_fields() == {}
+
+    monkeypatch.undo()
+    tm.file1.save("c.txt", ContentFile(b"third"), save=False)
+
+    assert tm.get_dirty_fields() == {"file1": original_name}
+
+
+@pytest.mark.django_db
+def test_imagefield_save_after_refresh_records_baseline(isolated_media_root):
+    """ImageFieldFile.save takes a different code path than FieldFile.save:
+    its _set_instance_attribute does setattr(instance, attname, content) with
+    the ContentFile (not the name string), which exercises the descriptor's
+    File-vs-string normalization branch."""
+    tm = ImageFieldModel.objects.create(image1=ContentFile(_png_bytes(), name="a.png"))
+    original_name = tm.image1.name
+    tm.refresh_from_db()
+    assert tm.image1.name == original_name
+
+    tm.image1.save("b.png", ContentFile(_png_bytes()), save=False)
+
+    assert tm.get_dirty_fields() == {"image1": original_name}
+    assert tm.image1.name != original_name
+
+
+@pytest.mark.django_db
+def test_imagefield_direct_assignment_tracked(isolated_media_root):
+    """The descriptor remains the cheap path for plain assignment — no
+    FieldFile.save in flight, so the in-flight check must not interfere."""
+    tm = ImageFieldModel.objects.create(image1=ContentFile(_png_bytes(), name="a.png"))
+    original_name = tm.image1.name
+    tm.refresh_from_db()
+
+    tm.image1 = ContentFile(_png_bytes(), name="b.png")
+
+    assert tm.get_dirty_fields() == {"image1": original_name}
 
 
 @pytest.mark.django_db
@@ -637,8 +742,6 @@ def test_track_mutations_off_with_first_read_no_detection():
 @pytest.mark.django_db
 def test_compare_function_custom_callable():
     """compare_function accepts an arbitrary (callable, kwargs) tuple."""
-    from tests.models import CompareFunctionCustomCallableModel
-
     obj = CompareFunctionCustomCallableModel.objects.create(int_field=10)
     obj = CompareFunctionCustomCallableModel.objects.get(pk=obj.pk)
 
@@ -655,8 +758,6 @@ def test_compare_function_custom_callable():
 @pytest.mark.django_db
 def test_normalise_function_custom_callable():
     """normalise_function transforms the saved value before it's returned."""
-    from tests.models import NormaliseFunctionCustomCallableModel
-
     obj = NormaliseFunctionCustomCallableModel.objects.create(int_field=42)
     obj = NormaliseFunctionCustomCallableModel.objects.get(pk=obj.pk)
 
