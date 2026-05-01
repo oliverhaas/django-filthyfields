@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `ImageField` change went untracked when modified via `FieldFile.save()` after `refresh_from_db()`. `ImageFieldFile._set_instance_attribute` calls `setattr(instance, attname, content)` from inside `FieldFile.save()` after `self.name` has already been mutated; the descriptor saw asymmetric old/new and wrote a wrong entry that the mixin's tracking call then deleted, leaving dirty state empty. The mixin now marks the field in-flight for the duration of `super().save()` so the descriptor skips its tracking branch and the mixin owns the diff write.
+
+### Added
+
+- Tests: parametrized direct-assignment matrix covering 21 commonly-used Django builtin field types (`AllFieldTypesModel`) across five scenarios per type — different value, same value, A→B→A, None→value, value→None — for 105 cases total. Catches type-specific regressions in `_normalize_value` and `_values_equal`.
+- Pillow added to dev dependencies (required by the new `ImageField` regression tests).
+
 ## [2.0.2] - 2026-04-27
 
 ### Changed

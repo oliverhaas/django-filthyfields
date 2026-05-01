@@ -36,10 +36,10 @@ Repository = "https://github.com/oliverhaas/django-filthyfields.git"
 
 [dependency-groups]
 dev = [
-  "cython>=3.2.4",
+  "cython==3.2.4",
   "django-stubs==6.0.3",
   "mypy==1.20.2",
-  "pillow",
+  "pillow==12.2.0",
   "pre-commit==4.6.0",
   "pytest==9.0.3",
   "pytest-asyncio==1.3.0",
@@ -47,8 +47,8 @@ dev = [
   "pytest-django==4.12.0",
   "pytest-xdist==3.8.0",
   "ruff==0.15.12",
-  "setuptools>=80.10.1",
-  "ty==0.0.32",
+  "setuptools==82.0.1",
+  "ty==0.0.33",
 ]
 docs = ["mkdocs==1.6.1", "mkdocs-material==9.7.6", "mike==2.2.0"]
 
@@ -180,6 +180,9 @@ exclude_lines = [
 python_version = "3.14"
 strict = true
 plugins = ["mypy_django_plugin.main"]
+
+[tool.ty.environment]
+python-version = "3.14"
 
 [tool.django-stubs]
 django_settings_module = "tests.django_settings"
