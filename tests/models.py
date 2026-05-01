@@ -1,3 +1,5 @@
+import tempfile
+
 from django.db import models
 from django.db.models.signals import pre_save
 from django.utils import timezone as django_timezone
@@ -206,3 +208,30 @@ class NormaliseFunctionCustomCallableModel(DirtyFieldsMixin, models.Model):
     normalise_function = (_to_str, {})
 
     int_field = models.IntegerField(default=0)
+
+
+class AllFieldTypesModel(DirtyFieldsMixin, models.Model):
+    """All commonly-used Django builtin field types, all nullable. Backs
+    test_fields.py's parametrized direct-assignment coverage matrix."""
+
+    boolean = models.BooleanField(null=True)
+    char = models.CharField(max_length=80, blank=True, null=True)
+    text = models.TextField(blank=True, null=True)
+    slug = models.SlugField(null=True)
+    email = models.EmailField(null=True)
+    url = models.URLField(null=True)
+    integer = models.IntegerField(null=True)
+    big_integer = models.BigIntegerField(null=True)
+    small_integer = models.SmallIntegerField(null=True)
+    positive_integer = models.PositiveIntegerField(null=True)
+    float_value = models.FloatField(null=True)
+    decimal = models.DecimalField(decimal_places=2, max_digits=10, null=True)
+    date = models.DateField(null=True)
+    datetime = models.DateTimeField(null=True)
+    time = models.TimeField(null=True)
+    duration = models.DurationField(null=True)
+    uuid = models.UUIDField(null=True)
+    binary = models.BinaryField(null=True)
+    json = models.JSONField(null=True)
+    ip = models.GenericIPAddressField(null=True)
+    file_path = models.FilePathField(path=tempfile.gettempdir(), null=True, blank=True)
