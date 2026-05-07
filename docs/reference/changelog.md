@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-05-07
+
+### Added
+
+- `is_adding` / `was_adding` properties on `DirtyFieldsMixin`. `is_adding` mirrors `self._state.adding`; `was_adding` reports the value captured at the start of the last `save()` / `asave()` / `capture_dirty_state()`, letting `post_save` handlers distinguish INSERT from UPDATE without re-reading `_state.adding` (which Django flips to `False` before signals fire).
+
 ## [2.0.3] - 2026-05-01
 
 ### Fixed
