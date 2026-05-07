@@ -8,13 +8,13 @@
 Dirty means that field in-memory and database values are different.
 
 !!! info "Originated as a fork of django-dirtyfields"
-    This project started as a fork of [django-dirtyfields](https://github.com/romgar/django-dirtyfields) with a rewritten lazy, descriptor-based internal implementation. It has since diverged with its own feature set, release cadence, and import name (`filthyfields`). The mixin and method names (`DirtyFieldsMixin`, `get_dirty_fields`, `is_dirty`, …) are kept from upstream — hence the play-on-words package name.
+    This project started as a fork of [django-dirtyfields](https://github.com/romgar/django-dirtyfields) with a rewritten lazy, descriptor-based internal implementation. It has since diverged with its own feature set, release cadence, and import name (`filthyfields`). The mixin and method names (`DirtyFieldsMixin`, `get_dirty_fields`, `is_dirty`, …) are mostly kept from upstream.
 
 ## Why This Project?
 
-The original django-dirtyfields captures model state by snapshotting every field on instance initialization — every field value is copied on every model load, regardless of whether you'll modify the instance.
+The original django-dirtyfields captures model state by snapshotting every field on instance initialization, meaning every field value is copied on every model load, regardless of whether you'll modify the instance. There are approaches given by django-dirtyfields to alleviate that, but they are somewhat manual, and the performance penalty is noticable in many use cases.
 
-This project uses lazy descriptor-based tracking instead, which for typical use cases (read or write each field at most once) has less overhead.
+This project main improvement is a lazy descriptor-based tracking instead of snapshotting, which for typical use cases has almost always less overhead.
 
 ### Benchmark Results
 
@@ -29,7 +29,7 @@ Python 3.14, 10,000 instances × 20 fields, 5 iterations. Numbers in parentheses
 | `.only(1 field)` + read+write 1 field |  38 ms  |  48 ms (+10)        | 141 ms (+103)       |
 | Load 20 fields + read+write 20 fields | 138 ms  | 254 ms (+116)       | 527 ms (+390)       |
 
-Across the suite, filthyfields overhead is 3×–28× smaller than dirtyfields overhead — biggest on read-only paths where the Cython-backed descriptor avoids the full-model snapshot that upstream does on every load.
+Across the suite, filthyfields overhead is 3×-28× smaller than dirtyfields overhead, biggest on read-only paths where the Cython-backed descriptor avoids the full-model snapshot that upstream does on every load by default.
 
 Run the benchmark yourself: `uv run pytest tests/test_benchmark.py -m benchmark -s`
 
@@ -58,7 +58,3 @@ obj.name = "changed"
 obj.is_dirty()  # True
 obj.get_dirty_fields()  # {'name': 'test'}
 ```
-
-## Getting Help
-
-- [GitHub Discussions](https://github.com/oliverhaas/django-filthyfields/discussions) - Questions and community support
