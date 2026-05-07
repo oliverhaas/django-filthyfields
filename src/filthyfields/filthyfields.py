@@ -199,10 +199,21 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
     normalise_function: NormaliseFunction | None = None
 
     def _dirty_capture_was_dirty(self) -> None:
+        self._was_adding = self._state.adding
         self._was_dirty_fields = self.get_dirty_fields(check_relationship=False)
         self._was_dirty_fields_rel = self.get_dirty_fields(check_relationship=True)
         if self.ENABLE_M2M_CHECK:
             self._was_dirty_fields_m2m = self._get_m2m_dirty_fields()
+
+    @property
+    def is_adding(self) -> bool:
+        """Whether this instance is unsaved (mirrors ``self._state.adding``)."""
+        return self._state.adding
+
+    @property
+    def was_adding(self) -> bool:
+        """Whether the instance was unsaved before the last ``save()`` / ``capture_dirty_state()``."""
+        return getattr(self, "_was_adding", False)
 
     def _dirty_reset_state(self, fields: Iterable[str] | None = None) -> None:
         """Reset dirty state. ``fields=None`` resets everything; otherwise accepts name or attname."""

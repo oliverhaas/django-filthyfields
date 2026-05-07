@@ -283,6 +283,48 @@ Get fields that were dirty before the last save.
 
 ---
 
+#### `is_adding` *(property)*
+
+Whether this instance is unsaved. Mirrors `self._state.adding`.
+
+**Returns:** `bool` — `True` for instances that haven't been INSERTed yet
+
+**Example:**
+
+```python
+>>> obj = MyModel(name="new")
+>>> obj.is_adding
+True
+>>> obj.save()
+>>> obj.is_adding
+False
+```
+
+---
+
+#### `was_adding` *(property)*
+
+Whether this instance was unsaved before the last `save()` / `asave()` / `capture_dirty_state()`. Useful in `post_save` handlers to distinguish "this save was an INSERT" from "this save was an UPDATE".
+
+**Returns:** `bool` — `False` if no save or capture has happened yet
+
+**Example:**
+
+```python
+>>> obj = MyModel(name="new")
+>>> obj.was_adding
+False  # Nothing captured yet
+>>> obj.save()
+>>> obj.was_adding
+True   # The save we just did was an INSERT
+>>> obj.name = "changed"
+>>> obj.save()
+>>> obj.was_adding
+False  # The save we just did was an UPDATE
+```
+
+---
+
 #### `save_dirty_fields()`
 
 Save only the fields that have been modified. On a never-saved instance (`_state.adding=True`) this falls back to a normal full `save()`, since "only changed fields" doesn't make sense for an INSERT.

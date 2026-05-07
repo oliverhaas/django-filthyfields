@@ -39,6 +39,20 @@ async def test_asave_captures_was_dirty():
 
 
 @pytest.mark.asyncio
+async def test_asave_captures_was_adding():
+    tm = ModelTest(characters="new")
+    assert tm.is_adding is True
+    assert tm.was_adding is False
+
+    await tm.asave()
+    assert tm.is_adding is False
+    assert tm.was_adding is True
+
+    await tm.asave()
+    assert tm.was_adding is False
+
+
+@pytest.mark.asyncio
 async def test_asave_with_update_fields():
     tm = await ModelTest.objects.acreate(boolean=True, characters="original")
 

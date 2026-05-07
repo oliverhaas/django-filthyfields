@@ -71,16 +71,30 @@ Get the fields that were dirty before the last save.
 {'name': 'old name'}
 ```
 
+### `is_adding` / `was_adding`
+
+Properties for inspecting the create-vs-update state of an instance. `is_adding` mirrors `self._state.adding`; `was_adding` reports the state captured before the last save (or `capture_dirty_state()`), so a `post_save` handler can tell an INSERT from an UPDATE:
+
+```python
+>>> obj = MyModel(name="new")
+>>> obj.is_adding, obj.was_adding
+(True, False)
+>>> obj.save()
+>>> obj.is_adding, obj.was_adding
+(False, True)
+```
+
 This is particularly useful in signal handlers:
 
 ```python
 from django.db.models.signals import post_save
 
 def my_handler(sender, instance, **kwargs):
-    if instance.was_dirty():
+    if instance.was_adding:
+        notify_created(instance)
+    elif instance.was_dirty():
         changed = instance.get_was_dirty_fields()
         if 'status' in changed:
-            # Status changed from changed['status'] to instance.status
             notify_status_change(instance)
 
 post_save.connect(my_handler, sender=MyModel)

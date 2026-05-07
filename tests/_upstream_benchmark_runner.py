@@ -28,9 +28,9 @@ settings.configure(
 )
 django.setup()
 
-from dirtyfields import DirtyFieldsMixin
 from django.db import connection, models
 
+from dirtyfields import DirtyFieldsMixin
 from tests._benchmark_common import ITERATIONS, N_INSTANCES, SCENARIOS, populate, run_paired
 
 

@@ -452,6 +452,35 @@ def test_was_dirty_after_save():
 
 
 @pytest.mark.django_db
+def test_is_adding_and_was_adding():
+    """is_adding mirrors _state.adding; was_adding captures it across save()."""
+    tm = ModelTest(characters="new")
+    assert tm.is_adding is True
+    assert tm.was_adding is False  # No save/capture yet -> default False
+
+    tm.save()
+    assert tm.is_adding is False
+    assert tm.was_adding is True  # Captured pre-save state of the INSERT
+
+    tm.characters = "modified"
+    tm.save()
+    assert tm.is_adding is False
+    assert tm.was_adding is False  # Pre-save state of the UPDATE
+
+
+@pytest.mark.django_db
+def test_was_adding_with_capture_dirty_state():
+    """capture_dirty_state populates _was_adding for the bulk_update flow."""
+    tm = ModelTest(characters="new")
+    capture_dirty_state(tm)
+    assert tm.was_adding is True
+
+    tm.save()
+    capture_dirty_state(tm)
+    assert tm.was_adding is False
+
+
+@pytest.mark.django_db
 def test_was_dirty_with_relationship():
     """Test was_dirty with relationship checking."""
     tm1 = ModelTest.objects.create()
