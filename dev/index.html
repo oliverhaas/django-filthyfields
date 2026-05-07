@@ -890,7 +890,7 @@
 </tr>
 </tbody>
 </table>
-<p>Across the suite, filthyfields overhead is 3×-28× smaller than dirtyfields overhead, biggest on read-only paths where the Cython-backed descriptor avoids the full-model snapshot that upstream does on every load.</p>
+<p>Across the suite, filthyfields overhead is 3×-28× smaller than dirtyfields overhead, biggest on read-only paths where the Cython-backed descriptor avoids the full-model snapshot that upstream does on every load by default.</p>
 <p>Run the benchmark yourself: <code>uv run pytest tests/test_benchmark.py -m benchmark -s</code></p>
 <h2 id="compatibility">Compatibility<a class="headerlink" href="#compatibility" title="Permanent link">&para;</a></h2>
 <table>
