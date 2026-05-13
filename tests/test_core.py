@@ -8,7 +8,7 @@ from django.db import DatabaseError, transaction
 from PIL import Image
 
 import filthyfields
-from filthyfields import capture_dirty_state, reset_dirty_state
+from filthyfields import DirtyStateNotCapturedError, capture_dirty_state, reset_dirty_state
 from tests.models import (
     CompareFunctionCustomCallableModel,
     FileFieldModel,
@@ -456,7 +456,8 @@ def test_is_adding_and_was_adding():
     """is_adding mirrors _state.adding; was_adding captures it across save()."""
     tm = ModelTest(characters="new")
     assert tm.is_adding is True
-    assert tm.was_adding is False  # No save/capture yet -> default False
+    with pytest.raises(DirtyStateNotCapturedError):
+        tm.was_adding  # noqa: B018 — nothing captured yet
 
     tm.save()
     assert tm.is_adding is False
@@ -466,6 +467,16 @@ def test_is_adding_and_was_adding():
     tm.save()
     assert tm.is_adding is False
     assert tm.was_adding is False  # Pre-save state of the UPDATE
+
+
+@pytest.mark.django_db
+def test_was_dirty_raises_before_capture():
+    """was_dirty / get_was_dirty_fields raise if nothing has been captured."""
+    tm = ModelTest(characters="new")
+    with pytest.raises(DirtyStateNotCapturedError):
+        tm.was_dirty()
+    with pytest.raises(DirtyStateNotCapturedError):
+        tm.get_was_dirty_fields()
 
 
 @pytest.mark.django_db

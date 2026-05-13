@@ -23,6 +23,10 @@ if TYPE_CHECKING:
     NormaliseFunction = tuple[Callable[..., Any], dict[str, Any]]
 
 
+class DirtyStateNotCapturedError(RuntimeError):
+    """Raised when pre-save state is read before any save/asave/capture_dirty_state."""
+
+
 def _should_track_field(instance: models.Model, field_name: str, field_attname: str | None = None) -> bool:
     """Apply FIELDS_TO_CHECK / FIELDS_TO_CHECK_EXCLUDE. Accepts both name and attname (e.g. 'fkey'/'fkey_id')."""
     fields_to_check = getattr(instance, "FIELDS_TO_CHECK", None)
@@ -212,8 +216,15 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
 
     @property
     def was_adding(self) -> bool:
-        """Whether the instance was unsaved before the last ``save()`` / ``capture_dirty_state()``."""
-        return getattr(self, "_was_adding", False)
+        """Whether the instance was unsaved before the last ``save()`` / ``capture_dirty_state()``.
+
+        Raises ``DirtyStateNotCapturedError`` if no save or capture has happened yet.
+        """
+        if "_was_adding" not in self.__dict__:
+            raise DirtyStateNotCapturedError(
+                "was_adding read before any save()/asave()/capture_dirty_state() — nothing has been captured yet.",
+            )
+        return self._was_adding
 
     def _dirty_reset_state(self, fields: Iterable[str] | None = None) -> None:
         """Reset dirty state. ``fields=None`` resets everything; otherwise accepts name or attname."""
@@ -453,14 +464,20 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         return bool(self.get_was_dirty_fields(check_relationship=check_relationship, check_m2m=check_m2m))
 
     def get_was_dirty_fields(self, check_relationship: bool = False, check_m2m: bool = False) -> dict[str, Any]:
-        """Fields dirty before the last save (captured by save()/asave())."""
+        """Fields dirty before the last save (captured by save()/asave()).
+
+        Raises ``DirtyStateNotCapturedError`` if no save or capture has happened yet.
+        """
         if check_m2m and not self.ENABLE_M2M_CHECK:
             raise ValueError("You can't check m2m fields if ENABLE_M2M_CHECK is set to False")
 
-        if check_relationship:
-            result = dict(getattr(self, "_was_dirty_fields_rel", {}))
-        else:
-            result = dict(getattr(self, "_was_dirty_fields", {}))
+        if "_was_dirty_fields" not in self.__dict__:
+            raise DirtyStateNotCapturedError(
+                "get_was_dirty_fields() called before any save()/asave()/capture_dirty_state() — "
+                "nothing has been captured yet.",
+            )
+
+        result = dict(self._was_dirty_fields_rel) if check_relationship else dict(self._was_dirty_fields)
 
         if check_m2m:
             result.update(getattr(self, "_was_dirty_fields_m2m", {}))

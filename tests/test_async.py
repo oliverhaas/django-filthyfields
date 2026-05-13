@@ -1,5 +1,6 @@
 import pytest
 
+from filthyfields import DirtyStateNotCapturedError
 from tests.models import ModelTest
 
 pytestmark = [pytest.mark.django_db(transaction=True)]
@@ -42,7 +43,8 @@ async def test_asave_captures_was_dirty():
 async def test_asave_captures_was_adding():
     tm = ModelTest(characters="new")
     assert tm.is_adding is True
-    assert tm.was_adding is False
+    with pytest.raises(DirtyStateNotCapturedError):
+        tm.was_adding  # noqa: B018 — nothing captured yet
 
     await tm.asave()
     assert tm.is_adding is False

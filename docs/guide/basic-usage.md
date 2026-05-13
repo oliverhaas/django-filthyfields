@@ -77,12 +77,14 @@ Properties for inspecting the create-vs-update state of an instance. `is_adding`
 
 ```python
 >>> obj = MyModel(name="new")
->>> obj.is_adding, obj.was_adding
-(True, False)
+>>> obj.is_adding
+True
 >>> obj.save()
 >>> obj.is_adding, obj.was_adding
 (False, True)
 ```
+
+`was_adding`, `was_dirty()`, and `get_was_dirty_fields()` raise `DirtyStateNotCapturedError` if read before any `save()` / `asave()` / `capture_dirty_state()` has run on the instance.
 
 This is particularly useful in signal handlers:
 

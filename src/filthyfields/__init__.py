@@ -3,10 +3,16 @@
 from importlib.metadata import version
 
 from filthyfields.compare import normalise_value, raw_compare, timezone_support_compare
-from filthyfields.filthyfields import DirtyFieldsMixin, capture_dirty_state, reset_dirty_state
+from filthyfields.filthyfields import (
+    DirtyFieldsMixin,
+    DirtyStateNotCapturedError,
+    capture_dirty_state,
+    reset_dirty_state,
+)
 
 __all__ = [
     "DirtyFieldsMixin",
+    "DirtyStateNotCapturedError",
     "capture_dirty_state",
     "normalise_value",
     "raw_compare",

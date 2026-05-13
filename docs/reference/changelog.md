@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Breaking:** `was_dirty()`, `get_was_dirty_fields()`, and the `was_adding` property now raise `DirtyStateNotCapturedError` (a `RuntimeError` subclass, exported from the package root) when called before any `save()` / `asave()` / `capture_dirty_state()` on the instance. Previously they silently returned `False` / `{}`, which was indistinguishable from "captured, but nothing was dirty".
+
 ## [2.1.0] - 2026-05-07
 
 ### Added

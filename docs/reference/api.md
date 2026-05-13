@@ -232,7 +232,10 @@ Check if instance was dirty before the last save.
 
 **Returns:** `bool` - `True` if any tracked fields were dirty before the last save
 
-**Raises:** `ValueError` if `check_m2m=True` but `ENABLE_M2M_CHECK` is `False`
+**Raises:**
+
+- `ValueError` if `check_m2m=True` but `ENABLE_M2M_CHECK` is `False`
+- `DirtyStateNotCapturedError` if no `save()` / `asave()` / `capture_dirty_state()` has run on the instance yet
 
 **Example:**
 
@@ -264,7 +267,10 @@ Get fields that were dirty before the last save.
 
 **Returns:** `dict` - Dictionary mapping field names to original values from before the last save
 
-**Raises:** `ValueError` if `check_m2m=True` but `ENABLE_M2M_CHECK` is `False`
+**Raises:**
+
+- `ValueError` if `check_m2m=True` but `ENABLE_M2M_CHECK` is `False`
+- `DirtyStateNotCapturedError` if no `save()` / `asave()` / `capture_dirty_state()` has run on the instance yet
 
 **Example:**
 
@@ -306,14 +312,18 @@ False
 
 Whether this instance was unsaved before the last `save()` / `asave()` / `capture_dirty_state()`. Useful in `post_save` handlers to distinguish "this save was an INSERT" from "this save was an UPDATE".
 
-**Returns:** `bool` — `False` if no save or capture has happened yet
+**Returns:** `bool`
+
+**Raises:** `DirtyStateNotCapturedError` if no `save()` / `asave()` / `capture_dirty_state()` has run on the instance yet.
 
 **Example:**
 
 ```python
 >>> obj = MyModel(name="new")
 >>> obj.was_adding
-False  # Nothing captured yet
+Traceback (most recent call last):
+    ...
+DirtyStateNotCapturedError: was_adding read before any save()/asave()/capture_dirty_state() ...
 >>> obj.save()
 >>> obj.was_adding
 True   # The save we just did was an INSERT
