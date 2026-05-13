@@ -2,30 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://oliverhaas.github.io/django-filthyfields/dev/</loc>
-         <lastmod>2026-05-07</lastmod>
+         <lastmod>2026-05-13</lastmod>
     </url>
     <url>
          <loc>https://oliverhaas.github.io/django-filthyfields/dev/getting-started/installation/</loc>
-         <lastmod>2026-05-07</lastmod>
+         <lastmod>2026-05-13</lastmod>
     </url>
     <url>
          <loc>https://oliverhaas.github.io/django-filthyfields/dev/getting-started/quickstart/</loc>
-         <lastmod>2026-05-07</lastmod>
+         <lastmod>2026-05-13</lastmod>
     </url>
     <url>
          <loc>https://oliverhaas.github.io/django-filthyfields/dev/guide/advanced/</loc>
-         <lastmod>2026-05-07</lastmod>
+         <lastmod>2026-05-13</lastmod>
     </url>
     <url>
          <loc>https://oliverhaas.github.io/django-filthyfields/dev/guide/basic-usage/</loc>
-         <lastmod>2026-05-07</lastmod>
+         <lastmod>2026-05-13</lastmod>
     </url>
     <url>
          <loc>https://oliverhaas.github.io/django-filthyfields/dev/reference/api/</loc>
-         <lastmod>2026-05-07</lastmod>
+         <lastmod>2026-05-13</lastmod>
     </url>
     <url>
          <loc>https://oliverhaas.github.io/django-filthyfields/dev/reference/changelog/</loc>
-         <lastmod>2026-05-07</lastmod>
+         <lastmod>2026-05-13</lastmod>
     </url>
 </urlset>

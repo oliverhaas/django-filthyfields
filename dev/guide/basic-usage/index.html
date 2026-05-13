@@ -1081,12 +1081,13 @@
 <h3 id="is_adding-was_adding"><code>is_adding</code> / <code>was_adding</code><a class="headerlink" href="#is_adding-was_adding" title="Permanent link">&para;</a></h3>
 <p>Properties for inspecting the create-vs-update state of an instance. <code>is_adding</code> mirrors <code>self._state.adding</code>; <code>was_adding</code> reports the state captured before the last save (or <code>capture_dirty_state()</code>), so a <code>post_save</code> handler can tell an INSERT from an UPDATE:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;new&quot;</span><span class="p">)</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_adding</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">was_adding</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_adding</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kc">True</span>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_adding</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">was_adding</span>
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
+<p><code>was_adding</code>, <code>was_dirty()</code>, and <code>get_was_dirty_fields()</code> raise <code>DirtyStateNotCapturedError</code> if read before any <code>save()</code> / <code>asave()</code> / <code>capture_dirty_state()</code> has run on the instance.</p>
 <p>This is particularly useful in signal handlers:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.db.models.signals</span><span class="w"> </span><span class="kn">import</span> <span class="n">post_save</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
