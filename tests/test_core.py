@@ -477,6 +477,10 @@ def test_was_dirty_raises_before_capture():
         tm.was_dirty()
     with pytest.raises(DirtyStateNotCapturedError):
         tm.get_was_dirty_fields()
+    with pytest.raises(DirtyStateNotCapturedError):
+        tm.get_was_dirty_fields(check_relationship=True)
+    with pytest.raises(DirtyStateNotCapturedError):
+        tm.was_dirty(check_relationship=True)
 
 
 @pytest.mark.django_db

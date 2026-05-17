@@ -398,6 +398,26 @@ obj.is_dirty()  # False
 
 ---
 
+## Exceptions
+
+### `DirtyStateNotCapturedError`
+
+Raised when pre-save state (`was_dirty()`, `get_was_dirty_fields()`, `was_adding`) is read before any `save()` / `asave()` / `capture_dirty_state()` has run on the instance. Also raised when `check_m2m=True` is requested but `ENABLE_M2M_CHECK` was disabled at the time of the last capture.
+
+Subclass of `RuntimeError`, importable from the package root:
+
+```python
+from filthyfields import DirtyStateNotCapturedError
+
+try:
+    obj.was_dirty()
+except DirtyStateNotCapturedError:
+    # nothing has been captured for this instance yet
+    ...
+```
+
+---
+
 ## Utility Functions
 
 ### `raw_compare(new_value, old_value)`

@@ -1,5 +1,7 @@
 import pytest
 
+from filthyfields import DirtyStateNotCapturedError
+
 from .models import (
     M2MModelWithCustomPKOnM2MTest,
     Many2ManyModelTest,
@@ -56,6 +58,27 @@ def test_m2m_was_dirty_after_save():
     assert not tm.is_dirty(check_m2m=True)
     assert tm.was_dirty(check_m2m=True)
     assert tm.get_was_dirty_fields(check_m2m=True) == {"m2m_field": set()}
+
+
+@pytest.mark.django_db
+def test_was_dirty_m2m_raises_before_capture():
+    """check_m2m=True on an uncapured instance raises DirtyStateNotCapturedError."""
+    tm = Many2ManyModelTest()
+    with pytest.raises(DirtyStateNotCapturedError):
+        tm.was_dirty(check_m2m=True)
+    with pytest.raises(DirtyStateNotCapturedError):
+        tm.get_was_dirty_fields(check_m2m=True)
+
+
+@pytest.mark.django_db
+def test_get_was_dirty_fields_m2m_raises_when_disabled_at_capture(monkeypatch):
+    """check_m2m=True after a capture that did NOT include M2M state raises."""
+    tm = Many2ManyModelTest.objects.create()
+    # Pretend ENABLE_M2M_CHECK was False at capture time by stripping the snapshot.
+    del tm._was_dirty_fields_m2m
+    monkeypatch.setattr(type(tm), "ENABLE_M2M_CHECK", True)
+    with pytest.raises(DirtyStateNotCapturedError, match="ENABLE_M2M_CHECK"):
+        tm.get_was_dirty_fields(check_m2m=True)
 
 
 @pytest.mark.django_db

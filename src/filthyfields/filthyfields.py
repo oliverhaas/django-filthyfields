@@ -461,12 +461,19 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         return result
 
     def was_dirty(self, check_relationship: bool = False, check_m2m: bool = False) -> bool:
+        """Whether any tracked field was dirty before the last save.
+
+        Delegates to :meth:`get_was_dirty_fields`; raises ``DirtyStateNotCapturedError``
+        if no save or capture has happened yet.
+        """
         return bool(self.get_was_dirty_fields(check_relationship=check_relationship, check_m2m=check_m2m))
 
     def get_was_dirty_fields(self, check_relationship: bool = False, check_m2m: bool = False) -> dict[str, Any]:
         """Fields dirty before the last save (captured by save()/asave()).
 
-        Raises ``DirtyStateNotCapturedError`` if no save or capture has happened yet.
+        Raises ``DirtyStateNotCapturedError`` if no save or capture has happened yet, or
+        if ``check_m2m=True`` is requested but ``ENABLE_M2M_CHECK`` was disabled at the
+        time of the last capture.
         """
         if check_m2m and not self.ENABLE_M2M_CHECK:
             raise ValueError("You can't check m2m fields if ENABLE_M2M_CHECK is set to False")
@@ -480,7 +487,12 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         result = dict(self._was_dirty_fields_rel) if check_relationship else dict(self._was_dirty_fields)
 
         if check_m2m:
-            result.update(getattr(self, "_was_dirty_fields_m2m", {}))
+            if "_was_dirty_fields_m2m" not in self.__dict__:
+                raise DirtyStateNotCapturedError(
+                    "check_m2m=True but no M2M state was captured — "
+                    "ENABLE_M2M_CHECK was disabled at the time of the last save/capture.",
+                )
+            result.update(self._was_dirty_fields_m2m)
 
         return result
 
