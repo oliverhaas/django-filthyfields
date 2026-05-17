@@ -5,11 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.1.1] - 2026-05-17
 
 ### Changed
 
-- **Breaking:** `was_dirty()`, `get_was_dirty_fields()`, and the `was_adding` property now raise `DirtyStateNotCapturedError` (a `RuntimeError` subclass, exported from the package root) when called before any `save()` / `asave()` / `capture_dirty_state()` on the instance. Previously they silently returned `False` / `{}`, which was indistinguishable from "captured, but nothing was dirty".
+- `was_dirty()`, `get_was_dirty_fields()`, and the `was_adding` property now raise `DirtyStateNotCapturedError` (a `RuntimeError` subclass, exported from the package root) when called before any `save()` / `asave()` / `capture_dirty_state()` on the instance. Previously they silently returned `False` / `{}`, which was indistinguishable from "captured, but nothing was dirty". `get_was_dirty_fields(check_m2m=True)` also raises if `ENABLE_M2M_CHECK` was disabled at the time of the last capture.
 
 ## [2.1.0] - 2026-05-07
 
