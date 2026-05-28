@@ -352,9 +352,39 @@ Save only the fields that have been modified. On a never-saved instance (`_state
 
 ---
 
-#### `asave(*args, **kwargs)` *(async)*
+#### `save(*args, dirty_capture=True, dirty_reset=True, **kwargs)`
 
-Async equivalent of `Model.save()` with dirty tracking. Captures dirty state into `_was_dirty_fields`, calls `super().asave()`, then resets the dirty state.
+Override of `Model.save()` with dirty tracking. By default it captures the pre-save dirty state into `_was_dirty_fields` (so `was_dirty()` works afterwards), calls `super().save()`, then resets the dirty state. The two keyword-only flags let you opt out of either step. All other positional and keyword arguments are forwarded to Django's `save()` unchanged.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `dirty_capture` | `bool` | `True` | When `False`, skip the `was_dirty` snapshot. `was_dirty()` / `get_was_dirty_fields()` / `was_adding` then reflect the previous capture, or raise `DirtyStateNotCapturedError` if none exists. |
+| `dirty_reset` | `bool` | `True` | When `False`, leave the dirty state intact after the save so `get_dirty_fields()` is still readable for post-save inspection. |
+
+**Returns:** None
+
+**Example:**
+
+```python
+# Keep the diff readable after saving (e.g. for a post-save handler).
+obj.name = "changed"
+obj.save(dirty_reset=False)
+obj.get_dirty_fields()   # {'name': 'old'}
+
+# Persist without paying for the was_dirty snapshot.
+obj.save(dirty_capture=False)
+```
+
+!!! note "Keyword-only"
+    `dirty_capture` and `dirty_reset` are keyword-only so they never collide with Django's positional `save()` arguments (`force_insert`, `force_update`, `using`, `update_fields`).
+
+---
+
+#### `asave(*args, dirty_capture=True, dirty_reset=True, **kwargs)` *(async)*
+
+Async equivalent of `save()`, accepting the same `dirty_capture` / `dirty_reset` flags. Django's `asave()` runs the synchronous `save()` in a thread, so this delegates to `save()` with the flags forwarded.
 
 **Example:**
 
@@ -363,6 +393,9 @@ obj.name = "changed"
 await obj.asave()
 obj.is_dirty()      # False
 obj.was_dirty()     # True
+
+await obj.asave(dirty_reset=False)
+obj.get_dirty_fields()   # still readable
 ```
 
 ---

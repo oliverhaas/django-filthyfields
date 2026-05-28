@@ -3,6 +3,7 @@ import pytest
 from django.db.models import F, Value
 from django.db.models.functions import Concat
 
+from filthyfields import DirtyStateNotCapturedError
 from tests.models import (
     ExpressionModelTest,
     MixedFieldsModelTest,
@@ -113,6 +114,72 @@ def test_fk_assigned_by_id_saved_with_name_in_update_fields():
 
     tmwfk.save(update_fields=["fkey"])
     assert tmwfk.get_dirty_fields(check_relationship=True) == {}
+
+
+@pytest.mark.django_db
+def test_save_dirty_reset_false_keeps_dirty_fields():
+    """save(dirty_reset=False) persists the row but leaves dirty state intact for post-save inspection."""
+    tm = ModelTest.objects.create(boolean=True, characters="original")
+    tm.characters = "modified"
+    assert tm.get_dirty_fields() == {"characters": "original"}
+
+    tm.save(dirty_reset=False)
+
+    # Row was persisted...
+    assert ModelTest.objects.get(pk=tm.pk).characters == "modified"
+    # ...but the diff is still readable.
+    assert tm.get_dirty_fields() == {"characters": "original"}
+    # Capture still ran by default.
+    assert tm.get_was_dirty_fields() == {"characters": "original"}
+
+
+@pytest.mark.django_db
+def test_save_dirty_capture_false_skips_was_dirty_capture():
+    """save(dirty_capture=False) skips the was_dirty snapshot but still resets by default."""
+    # Build (don't create) so no capture has ever run for this instance.
+    tm = ModelTest(boolean=True, characters="original")
+
+    tm.save(dirty_capture=False)
+
+    # Nothing was captured for this save.
+    with pytest.raises(DirtyStateNotCapturedError):
+        tm.was_dirty()
+    # Reset still ran by default.
+    assert tm.get_dirty_fields() == {}
+    assert ModelTest.objects.get(pk=tm.pk).characters == "original"
+
+
+@pytest.mark.django_db
+def test_save_dirty_capture_false_preserves_prior_capture():
+    """A skipped capture must not clobber the snapshot from an earlier save."""
+    tm = ModelTest.objects.create(boolean=True, characters="original")
+    tm.characters = "first"
+    tm.save()
+    assert tm.get_was_dirty_fields() == {"characters": "original"}
+
+    tm.characters = "second"
+    tm.save(dirty_capture=False)
+
+    # Prior capture is untouched.
+    assert tm.get_was_dirty_fields() == {"characters": "original"}
+
+
+@pytest.mark.django_db
+def test_save_dirty_kwargs_not_forwarded_to_django():
+    """dirty_capture / dirty_reset are consumed here, not passed to Django's save()."""
+    tm = ModelTest.objects.create(boolean=True, characters="original")
+    tm.boolean = False
+    tm.characters = "modified"
+
+    # Combined with a real Django kwarg to prove they coexist without leaking.
+    tm.save(update_fields=["boolean"], dirty_capture=False, dirty_reset=False)
+
+    refreshed = ModelTest.objects.get(pk=tm.pk)
+    assert refreshed.boolean is False
+    # `characters` was excluded from update_fields, so it was not persisted.
+    assert refreshed.characters == "original"
+    # Reset was skipped, so the full diff is still present.
+    assert tm.get_dirty_fields() == {"boolean": True, "characters": "original"}
 
 
 @pytest.mark.django_db

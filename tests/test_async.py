@@ -69,6 +69,32 @@ async def test_asave_with_update_fields():
 
 
 @pytest.mark.asyncio
+async def test_asave_dirty_reset_false_keeps_dirty_fields():
+    """asave(dirty_reset=False) persists the row but leaves dirty state intact."""
+    tm = await ModelTest.objects.acreate(boolean=True, characters="original")
+    tm.characters = "modified"
+    assert tm.get_dirty_fields() == {"characters": "original"}
+
+    await tm.asave(dirty_reset=False)
+
+    assert tm.get_dirty_fields() == {"characters": "original"}
+    assert tm.get_was_dirty_fields() == {"characters": "original"}
+
+
+@pytest.mark.asyncio
+async def test_asave_dirty_capture_false_skips_was_dirty_capture():
+    """asave(dirty_capture=False) skips the was_dirty snapshot but still resets by default."""
+    # Build (don't acreate) so no capture has ever run for this instance.
+    tm = ModelTest(boolean=True, characters="original")
+
+    await tm.asave(dirty_capture=False)
+
+    with pytest.raises(DirtyStateNotCapturedError):
+        tm.was_dirty()
+    assert tm.get_dirty_fields() == {}
+
+
+@pytest.mark.asyncio
 async def test_arefresh_from_db_resets_dirty_state():
     tm = await ModelTest.objects.acreate(boolean=True, characters="original")
     alias = await ModelTest.objects.aget(pk=tm.pk)
