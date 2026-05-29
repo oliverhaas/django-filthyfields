@@ -380,11 +380,14 @@ obj.save(dirty_capture=False)
 !!! note "Keyword-only"
     `dirty_capture` and `dirty_reset` are keyword-only so they never collide with Django's positional `save()` arguments (`force_insert`, `force_update`, `using`, `update_fields`).
 
+!!! warning "Sync-only flags"
+    `dirty_capture` / `dirty_reset` are accepted by `save()` only, not by `asave()`. Django's `Model.asave` runs `save()` in a thread with a fixed signature, so the flags can't be forwarded to the async path. Passing them to `asave()` raises `TypeError`. To skip capture or reset on an async write, call the sync `save()` via `asgiref.sync.sync_to_async`, or use `capture_dirty_state()` / `reset_dirty_state()` directly.
+
 ---
 
-#### `asave(*args, dirty_capture=True, dirty_reset=True, **kwargs)` *(async)*
+#### `asave(...)` *(async)*
 
-Async equivalent of `save()`, accepting the same `dirty_capture` / `dirty_reset` flags. Django's `asave()` runs the synchronous `save()` in a thread, so this delegates to `save()` with the flags forwarded.
+Not overridden. `DirtyFieldsMixin` relies on Django's `Model.asave`, which runs `save()` in a thread, so dirty tracking (capture into `_was_dirty_fields`, then reset) happens through the synchronous `save()` automatically. The signature is Django's; the `dirty_capture` / `dirty_reset` flags are not accepted here (see the warning above).
 
 **Example:**
 
@@ -393,9 +396,6 @@ obj.name = "changed"
 await obj.asave()
 obj.is_dirty()      # False
 obj.was_dirty()     # True
-
-await obj.asave(dirty_reset=False)
-obj.get_dirty_fields()   # still readable
 ```
 
 ---

@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `save()` and `asave()` accept two keyword-only flags, `dirty_capture` and `dirty_reset` (both default `True`). `dirty_capture=False` skips the pre-save `was_dirty` snapshot; `dirty_reset=False` leaves the dirty state intact after the save so `get_dirty_fields()` stays readable for post-save inspection. Both flags are consumed locally and never forwarded to Django's `save()`.
+- `save()` accepts two keyword-only flags, `dirty_capture` and `dirty_reset` (both default `True`). `dirty_capture=False` skips the pre-save `was_dirty` snapshot; `dirty_reset=False` leaves the dirty state intact after the save so `get_dirty_fields()` stays readable for post-save inspection. Both flags are consumed locally and never forwarded to Django's `save()`. They are `save()`-only: Django's `Model.asave` runs `save()` in a thread with a fixed signature, so the flags cannot be forwarded to the async path and `asave()` rejects them.
 
-### Changed
+### Removed
 
-- `asave()` now delegates to `save()` (matching Django's own `asave()` pattern of running the synchronous `save()` in a thread) instead of routing through `super().asave()`. This removes a redundant second capture/reset that the previous implementation performed and lets the new flags take effect on the async path.
+- The redundant `asave()` override. Django's `Model.asave` already runs `save()` in a thread, so dirty tracking flows through `save()` on the async path without an override. The previous override duplicated the capture/reset (once explicitly, once via the inner `save()`).
 
 ## [2.1.1] - 2026-05-17
 

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
 
-from asgiref.sync import sync_to_async
 from django.core.exceptions import FieldDoesNotExist
 from django.core.files import File
 from django.db import models
@@ -266,17 +265,15 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
                     self._original_m2m_state[name] = current_m2m[name]
 
     def save(self, *args: Any, dirty_capture: bool = True, dirty_reset: bool = True, **kwargs: Any) -> None:
+        # No asave() override: Django's Model.asave runs self.save in a thread, so dirty
+        # tracking already flows through here on the async path. The dirty_capture /
+        # dirty_reset flags are save()-only. asave can't forward them (its signature is
+        # fixed), and overriding asave to add them would re-enter save() and double the work.
         if dirty_capture:
             self._dirty_capture_was_dirty()
         super().save(*args, **kwargs)
         if dirty_reset:
             self._dirty_reset_state(fields=kwargs.get("update_fields"))
-
-    async def asave(self, *args: Any, dirty_capture: bool = True, dirty_reset: bool = True, **kwargs: Any) -> None:
-        # Django's Model.asave delegates to sync_to_async(self.save), so routing
-        # through self.save (rather than super().asave) lets the dirty flags take
-        # effect once instead of being re-applied with defaults by the inner save.
-        await sync_to_async(self.save)(*args, dirty_capture=dirty_capture, dirty_reset=dirty_reset, **kwargs)
 
     def refresh_from_db(  # ty: ignore[invalid-method-override]
         self,
