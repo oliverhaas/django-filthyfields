@@ -354,40 +354,29 @@ Save only the fields that have been modified. On a never-saved instance (`_state
 
 #### `save(*args, dirty_capture=True, dirty_reset=True, **kwargs)`
 
-Override of `Model.save()` with dirty tracking. By default it captures the pre-save dirty state into `_was_dirty_fields` (so `was_dirty()` works afterwards), calls `super().save()`, then resets the dirty state. The two keyword-only flags let you opt out of either step. All other positional and keyword arguments are forwarded to Django's `save()` unchanged.
+Override of `Model.save()` with dirty tracking. The keyword-only flags let you skip either step.
 
 **Parameters:**
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `dirty_capture` | `bool` | `True` | When `False`, skip the `was_dirty` snapshot. `was_dirty()` / `get_was_dirty_fields()` / `was_adding` then reflect the previous capture, or raise `DirtyStateNotCapturedError` if none exists. |
-| `dirty_reset` | `bool` | `True` | When `False`, leave the dirty state intact after the save so `get_dirty_fields()` is still readable for post-save inspection. |
-
-**Returns:** None
+| `dirty_capture` | `bool` | `True` | If `False`, skip the `was_dirty` snapshot. |
+| `dirty_reset` | `bool` | `True` | If `False`, leave dirty state intact so `get_dirty_fields()` stays readable after the save. |
 
 **Example:**
 
 ```python
-# Keep the diff readable after saving (e.g. for a post-save handler).
-obj.name = "changed"
-obj.save(dirty_reset=False)
-obj.get_dirty_fields()   # {'name': 'old'}
-
-# Persist without paying for the was_dirty snapshot.
-obj.save(dirty_capture=False)
+>>> obj.name = "changed"
+>>> obj.save(dirty_reset=False)
+>>> obj.get_dirty_fields()
+{'name': 'old'}
 ```
-
-!!! note "Keyword-only"
-    `dirty_capture` and `dirty_reset` are keyword-only so they never collide with Django's positional `save()` arguments (`force_insert`, `force_update`, `using`, `update_fields`).
-
-!!! warning "Sync-only flags"
-    `dirty_capture` / `dirty_reset` are accepted by `save()` only, not by `asave()`. Django's `Model.asave` runs `save()` in a thread with a fixed signature, so the flags can't be forwarded to the async path. Passing them to `asave()` raises `TypeError`. To skip capture or reset on an async write, call the sync `save()` via `asgiref.sync.sync_to_async`, or use `capture_dirty_state()` / `reset_dirty_state()` directly.
 
 ---
 
 #### `asave(...)` *(async)*
 
-Not overridden. `DirtyFieldsMixin` relies on Django's `Model.asave`, which runs `save()` in a thread, so dirty tracking (capture into `_was_dirty_fields`, then reset) happens through the synchronous `save()` automatically. The signature is Django's; the `dirty_capture` / `dirty_reset` flags are not accepted here (see the warning above).
+Not overridden; Django's `Model.asave` runs `save()` in a thread, so dirty tracking applies automatically. The `dirty_capture` / `dirty_reset` flags are `save()`-only and passing them to `asave()` raises `TypeError`.
 
 **Example:**
 
