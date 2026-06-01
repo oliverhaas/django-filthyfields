@@ -352,9 +352,31 @@ Save only the fields that have been modified. On a never-saved instance (`_state
 
 ---
 
-#### `asave(*args, **kwargs)` *(async)*
+#### `save(*args, dirty_capture=True, dirty_reset=True, **kwargs)`
 
-Async equivalent of `Model.save()` with dirty tracking. Captures dirty state into `_was_dirty_fields`, calls `super().asave()`, then resets the dirty state.
+Override of `Model.save()` with dirty tracking. The keyword-only flags let you skip either step.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `dirty_capture` | `bool` | `True` | If `False`, skip the `was_dirty` snapshot. |
+| `dirty_reset` | `bool` | `True` | If `False`, skip the post-save reset so `get_dirty_fields()` stays readable. |
+
+**Example:**
+
+```python
+>>> obj.name = "changed"
+>>> obj.save(dirty_reset=False)
+>>> obj.get_dirty_fields()
+{'name': 'old'}
+```
+
+---
+
+#### `asave(...)` *(async)*
+
+Not overridden; Django's `Model.asave` runs `save()` in a thread, so dirty tracking applies automatically. The `dirty_capture` / `dirty_reset` flags are `save()`-only and passing them to `asave()` raises `TypeError`.
 
 **Example:**
 

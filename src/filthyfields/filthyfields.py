@@ -264,15 +264,12 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
                 if name in current_m2m:
                     self._original_m2m_state[name] = current_m2m[name]
 
-    def save(self, *args: Any, **kwargs: Any) -> None:
-        self._dirty_capture_was_dirty()
+    def save(self, *args: Any, dirty_capture: bool = True, dirty_reset: bool = True, **kwargs: Any) -> None:
+        if dirty_capture:
+            self._dirty_capture_was_dirty()
         super().save(*args, **kwargs)
-        self._dirty_reset_state(fields=kwargs.get("update_fields"))
-
-    async def asave(self, *args: Any, **kwargs: Any) -> None:
-        self._dirty_capture_was_dirty()
-        await super().asave(*args, **kwargs)
-        self._dirty_reset_state(fields=kwargs.get("update_fields"))
+        if dirty_reset:
+            self._dirty_reset_state(fields=kwargs.get("update_fields"))
 
     def refresh_from_db(  # ty: ignore[invalid-method-override]
         self,

@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-06-01
+
+### Added
+
+- `save()` accepts two keyword-only flags, `dirty_capture` and `dirty_reset` (both default `True`). `dirty_capture=False` skips the pre-save `was_dirty` snapshot; `dirty_reset=False` skips the post-save reset so `get_dirty_fields()` stays readable. Both flags are consumed locally and never forwarded to Django's `save()`.
+- The flags are `save()`-only. Django's `Model.asave` runs `save()` in a thread with a fixed signature, so `asave()` rejects them with `TypeError`.
+
+### Removed
+
+- The redundant `asave()` override. Django's `Model.asave` already runs `save()` in a thread, so dirty tracking flows through `save()` on the async path without an override. The previous override duplicated the capture/reset (once explicitly, once via the inner `save()`).
+
 ## [2.1.1] - 2026-05-17
 
 ### Changed
