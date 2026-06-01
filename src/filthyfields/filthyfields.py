@@ -265,10 +265,6 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
                     self._original_m2m_state[name] = current_m2m[name]
 
     def save(self, *args: Any, dirty_capture: bool = True, dirty_reset: bool = True, **kwargs: Any) -> None:
-        # No asave() override: Django's Model.asave runs self.save in a thread, so dirty
-        # tracking already flows through here on the async path. The dirty_capture /
-        # dirty_reset flags are save()-only. asave can't forward them (its signature is
-        # fixed), and overriding asave to add them would re-enter save() and double the work.
         if dirty_capture:
             self._dirty_capture_was_dirty()
         super().save(*args, **kwargs)

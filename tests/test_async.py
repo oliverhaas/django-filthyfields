@@ -70,14 +70,7 @@ async def test_asave_with_update_fields():
 
 @pytest.mark.asyncio
 async def test_asave_does_not_accept_dirty_flags():
-    """The dirty_capture/dirty_reset flags are save()-only.
-
-    DirtyFieldsMixin deliberately does not override asave(): Django's Model.asave runs
-    self.save() in a thread, so the flags would have to be re-applied there with defaults,
-    undoing whatever asave tried to skip. Rather than ship a broken async toggle, asave keeps
-    Django's fixed signature and rejects the flags. Use the sync save() (or capture_dirty_state
-    / reset_dirty_state) when you need to skip capture or reset.
-    """
+    """dirty_capture / dirty_reset are save()-only; asave keeps Django's fixed signature."""
     tm = await ModelTest.objects.acreate(characters="x")
 
     with pytest.raises(TypeError):
