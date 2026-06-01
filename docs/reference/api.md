@@ -361,7 +361,7 @@ Override of `Model.save()` with dirty tracking. The keyword-only flags let you s
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `dirty_capture` | `bool` | `True` | If `False`, skip the `was_dirty` snapshot. |
-| `dirty_reset` | `bool` | `True` | If `False`, leave dirty state intact so `get_dirty_fields()` stays readable after the save. |
+| `dirty_reset` | `bool` | `True` | If `False`, skip the post-save reset so `get_dirty_fields()` stays readable. |
 
 **Example:**
 

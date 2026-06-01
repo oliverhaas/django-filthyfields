@@ -70,7 +70,7 @@ async def test_asave_with_update_fields():
 
 @pytest.mark.asyncio
 async def test_asave_does_not_accept_dirty_flags():
-    """dirty_capture / dirty_reset are save()-only; asave keeps Django's fixed signature."""
+    """dirty_capture / dirty_reset are save()-only; asave() raises TypeError on them."""
     tm = await ModelTest.objects.acreate(characters="x")
 
     with pytest.raises(TypeError):

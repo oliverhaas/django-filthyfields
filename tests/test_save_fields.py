@@ -135,7 +135,7 @@ def test_save_dirty_reset_false_keeps_dirty_fields():
 
 @pytest.mark.django_db
 def test_save_dirty_capture_false_skips_was_dirty_capture():
-    """save(dirty_capture=False) skips the was_dirty snapshot but still resets by default."""
+    """save(dirty_capture=False) skips the was_dirty snapshot; reset runs by default."""
     # Build (don't create) so no capture has ever run for this instance.
     tm = ModelTest(boolean=True, characters="original")
 
@@ -151,7 +151,7 @@ def test_save_dirty_capture_false_skips_was_dirty_capture():
 
 @pytest.mark.django_db
 def test_save_dirty_capture_false_preserves_prior_capture():
-    """A skipped capture must not clobber the snapshot from an earlier save."""
+    """A skipped capture preserves the snapshot from an earlier save."""
     tm = ModelTest.objects.create(boolean=True, characters="original")
     tm.characters = "first"
     tm.save()

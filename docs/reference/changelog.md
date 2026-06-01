@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `save()` accepts two keyword-only flags, `dirty_capture` and `dirty_reset` (both default `True`). `dirty_capture=False` skips the pre-save `was_dirty` snapshot; `dirty_reset=False` leaves the dirty state intact after the save so `get_dirty_fields()` stays readable for post-save inspection. Both flags are consumed locally and never forwarded to Django's `save()`. They are `save()`-only: Django's `Model.asave` runs `save()` in a thread with a fixed signature, so the flags cannot be forwarded to the async path and `asave()` rejects them.
+- `save()` accepts two keyword-only flags, `dirty_capture` and `dirty_reset` (both default `True`). `dirty_capture=False` skips the pre-save `was_dirty` snapshot; `dirty_reset=False` skips the post-save reset so `get_dirty_fields()` stays readable. Both flags are consumed locally and never forwarded to Django's `save()`.
+- The flags are `save()`-only. Django's `Model.asave` runs `save()` in a thread with a fixed signature, so `asave()` rejects them with `TypeError`.
 
 ### Removed
 
