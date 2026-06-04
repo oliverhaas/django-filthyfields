@@ -174,6 +174,19 @@ You can also reset only specific fields:
 reset_dirty_state(instances, fields=['status'])
 ```
 
+!!! warning "Conditional bulk upserts"
+    A conditional `bulk_create()` upsert (Django's `ON CONFLICT ... DO UPDATE ... WHERE`,
+    expected in Django 6.1) can skip rows whose condition is false. How `filthyfields`
+    sees a skipped instance depends on its primary key:
+
+    - **Auto-increment PKs:** the skipped instance keeps `pk=None`, and
+      `reset_dirty_state()` leaves it dirty. Correct: it was never written.
+    - **User-assigned PKs:** the skipped instance has a `pk` set and
+      `_state.adding=False`, with no signal that the database rejected the update.
+      `filthyfields` cannot detect this case, so the instance may report clean even
+      though the row was not changed. Re-query with `refresh_from_db()` if you need
+      certainty after a conditional upsert on user-assigned PKs.
+
 ## Transaction Limitations
 
 !!! warning "Rollback Behavior"
