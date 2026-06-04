@@ -721,6 +721,40 @@ def test_reset_dirty_state_single_instance_with_fields():
 
 
 @pytest.mark.django_db
+def test_reset_dirty_state_guard_preserves_diff_when_pk_none():
+    """reset_dirty_state must not clear state on a never-persisted (pk=None) instance.
+
+    The descriptor won't populate _state_diff while adding, so synthesize one to
+    exercise the guard directly. Without `if self.pk is None: return`,
+    _dirty_reset_state(fields=None) would pop _state_diff.
+    """
+    tm = ModelTest(characters="x")
+    assert tm.pk is None
+    tm.__dict__["_state_diff"] = {"characters": "old"}
+
+    reset_dirty_state(tm)
+
+    assert tm.__dict__.get("_state_diff") == {"characters": "old"}
+
+
+@pytest.mark.django_db
+def test_reset_dirty_state_leaves_unsaved_instance_dirty():
+    """Contract: a never-persisted instance stays dirty after reset (no DB row to baseline).
+
+    Passes regardless of the guard today (is_dirty short-circuits on _state.adding);
+    locks the contract for a row skipped by a conditional bulk_create upsert.
+    """
+    tm = ModelTest(characters="x")
+    assert tm.pk is None
+    assert tm.is_dirty()
+
+    reset_dirty_state(tm)
+
+    assert tm.is_dirty()
+    assert tm.get_dirty_fields() == {"boolean": True, "characters": "x"}
+
+
+@pytest.mark.django_db
 def test_bulk_helpers_with_generator():
     """Test that bulk helpers work with generators/iterables."""
     instances = [ModelTest.objects.create(characters=f"obj{i}") for i in range(3)]
