@@ -5,6 +5,7 @@ import pytest
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db import DatabaseError, transaction
+from django.db.models import DEFERRED
 from PIL import Image
 
 import filthyfields
@@ -12,6 +13,7 @@ from filthyfields import DirtyStateNotCapturedError, capture_dirty_state, reset_
 from tests.models import (
     CompareFunctionCustomCallableModel,
     FileFieldModel,
+    GeneratedFieldModel,
     ImageFieldModel,
     JSONFieldModel,
     JSONFieldTrackMutationsModel,
@@ -825,3 +827,86 @@ def test_reset_dirty_state_with_specific_fields_clears_relation_diff():
     capture_dirty_state([fk])
     reset_dirty_state([fk], fields=["fkey"])
     assert fk.get_dirty_fields(check_relationship=True) == {}
+
+
+# Deferred field assignment tests
+
+
+@pytest.mark.django_db
+def test_assigning_deferred_foreign_key_marks_it_dirty():
+    tm1 = ModelTest.objects.create()
+    tm2 = ModelTest.objects.create()
+    fk = ModelWithForeignKeyTest.objects.create(fkey=tm1)
+    fk = ModelWithForeignKeyTest.objects.only("pk").get(pk=fk.pk)
+
+    fk.fkey = tm2
+
+    assert fk.get_dirty_fields() == {}
+    assert fk.get_dirty_fields(check_relationship=True) == {"fkey": DEFERRED}
+
+
+@pytest.mark.django_db
+def test_reassigning_deferred_field_keeps_it_dirty():
+    """A revert can't be detected against an unknown old value. CharField.to_python
+    turns DEFERRED into this string, so an equality check would match it."""
+    tm = ModelTest.objects.create(characters="old")
+    tm = ModelTest.objects.defer("characters").get(pk=tm.pk)
+
+    tm.characters = "new"
+    tm.characters = str(DEFERRED)
+
+    assert tm.get_dirty_fields() == {"characters": DEFERRED}
+
+
+@pytest.mark.django_db
+def test_deferred_assignment_respects_fields_to_check():
+    tm = ModelWithFieldsToCheck.objects.create()
+    tm = ModelWithFieldsToCheck.objects.defer("boolean1", "boolean2").get(pk=tm.pk)
+
+    tm.boolean1 = False
+    tm.boolean2 = False
+
+    assert tm.get_dirty_fields() == {"boolean1": DEFERRED}
+
+
+@pytest.mark.django_db
+def test_assigning_deferred_file_field_marks_it_dirty():
+    tm = FileFieldModel.objects.create(file1="path/to/file.txt")
+    tm = FileFieldModel.objects.defer("file1").get(pk=tm.pk)
+
+    tm.file1 = "path/to/other.txt"
+
+    assert tm.get_dirty_fields() == {"file1": DEFERRED}
+
+
+@pytest.mark.django_db
+def test_compare_function_skips_deferred_old_value():
+    """11 is within tolerance of the DB value 10, but that value was never loaded."""
+    obj = CompareFunctionCustomCallableModel.objects.create(int_field=10)
+    obj = CompareFunctionCustomCallableModel.objects.defer("int_field").get(pk=obj.pk)
+
+    obj.int_field = 11
+
+    assert obj.get_dirty_fields() == {"int_field": DEFERRED}
+
+
+@pytest.mark.django_db
+def test_normalise_function_skips_deferred_old_value():
+    obj = NormaliseFunctionCustomCallableModel.objects.create(int_field=42)
+    obj = NormaliseFunctionCustomCallableModel.objects.defer("int_field").get(pk=obj.pk)
+
+    obj.int_field = 99
+
+    assert obj.get_dirty_fields(verbose=True) == {"int_field": {"saved": DEFERRED, "current": "99"}}
+
+
+@pytest.mark.django_db
+def test_deferred_generated_field_stays_clean_after_partial_save():
+    """save(update_fields=...) writes the generated value back onto the deferred attname."""
+    obj = GeneratedFieldModel.objects.create(base=1)
+    obj = GeneratedFieldModel.objects.defer("doubled").get(pk=obj.pk)
+
+    obj.base = 5
+    obj.save(update_fields=["base"])
+
+    assert obj.get_dirty_fields() == {}

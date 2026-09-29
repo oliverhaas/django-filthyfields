@@ -108,6 +108,8 @@ class MyModel(DirtyFieldsMixin, models.Model):
     updated_at = models.DateTimeField()
 ```
 
+It isn't called for a field assigned while deferred: with no loaded old value to compare against, that field stays dirty.
+
 **Type:** `tuple[Callable[..., bool], dict[str, Any]] | None`
 
 **Default:** `None` (uses simple equality)
@@ -139,6 +141,8 @@ class MyModel(DirtyFieldsMixin, models.Model):
 ```
 
 The tuple's second element is passed as keyword arguments to the callable: `your_func(value, **kwargs)`.
+
+It isn't called for a field assigned while deferred: `get_dirty_fields()` returns that field's `DEFERRED` marker as is.
 
 **Type:** `tuple[Callable[..., Any], dict[str, Any]] | None`
 
@@ -195,7 +199,7 @@ Get a dictionary of fields that have been modified.
 | `check_m2m` | `bool` | `False` | Include M2M fields (requires `ENABLE_M2M_CHECK=True`) |
 | `verbose` | `bool` | `False` | Return both old and new values |
 
-**Returns:** `dict` - Dictionary mapping field names to original values (or to `{'saved': old, 'current': new}` if verbose)
+**Returns:** `dict` - Dictionary mapping field names to original values (or to `{'saved': old, 'current': new}` if verbose). A field assigned while deferred maps to `django.db.models.DEFERRED`, see [Deferred Fields](../guide/advanced.md#deferred-fields).
 
 **Raises:** `ValueError` if `check_m2m=True` but `ENABLE_M2M_CHECK` is `False`
 

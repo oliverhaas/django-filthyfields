@@ -117,6 +117,17 @@ def test_fk_assigned_by_id_saved_with_name_in_update_fields():
 
 
 @pytest.mark.django_db
+def test_save_dirty_fields_persists_deferred_assignment():
+    tm = ModelTest.objects.create(characters="old")
+    tm = ModelTest.objects.defer("characters").get(pk=tm.pk)
+
+    tm.characters = "new"
+    tm.save_dirty_fields()
+
+    assert ModelTest.objects.get(pk=tm.pk).characters == "new"
+
+
+@pytest.mark.django_db
 def test_save_dirty_reset_false_keeps_dirty_fields():
     """save(dirty_reset=False) persists the row but leaves dirty state intact for post-save inspection."""
     tm = ModelTest.objects.create(boolean=True, characters="original")
