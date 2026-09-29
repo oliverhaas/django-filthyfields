@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Assigning a deferred field (left out by `.only()` / `.defer()` and never read) marks it dirty. Its old value was never loaded, so `get_dirty_fields()` and `get_was_dirty_fields()` report Django's `DEFERRED` marker in its place, and `compare_function` / `normalise_function` are not called for it. Previously the assignment went untracked: `is_dirty()` stayed `False` and `save_dirty_fields()` dropped the write.
+
 ## [2.2.0] - 2026-06-01
 
 ### Added

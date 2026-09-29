@@ -214,21 +214,27 @@ False
 
 ## Deferred Fields
 
-When using `.only()` or `.defer()`, only the loaded fields are tracked:
+With `.only()` or `.defer()`, assigning a field that was never loaded marks it dirty. Its old value was never read from the database, so `get_dirty_fields()` reports Django's `DEFERRED` marker in its place:
+
+```python
+>>> from django.db.models import DEFERRED
+>>> obj = MyModel.objects.only('name').get(pk=1)
+>>> obj.other_field = "changed"
+>>> obj.get_dirty_fields()
+{'other_field': <Deferred field>}
+>>> obj.get_dirty_fields()['other_field'] is DEFERRED
+True
+```
+
+Such a field stays dirty even if you assign the value the database already holds, and `compare_function` and `normalise_function` are not called for it. To track it against the real old value, read the field before assigning. The read loads it from the database without marking it dirty:
 
 ```python
 >>> obj = MyModel.objects.only('name').get(pk=1)
->>> obj.name = "changed"
->>> obj.is_dirty()
-True
->>> obj.get_dirty_fields()
-{'name': 'old name'}
-
-# Accessing a deferred field loads it from the database
 >>> obj.other_field  # Loads from DB
+'original value'
 >>> obj.other_field = "changed"
 >>> obj.get_dirty_fields()
-{'name': 'old name', 'other_field': 'original value'}
+{'other_field': 'original value'}
 ```
 
 ## Many-to-Many Field Tracking
