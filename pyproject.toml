@@ -69,7 +69,6 @@ filthyfields = ["*.c", "*.html"]
 # We target cp314 and cp314t (free-threaded) because that's our supported runtime.
 [tool.cibuildwheel]
 build = ["cp314-*", "cp314t-*"]
-enable = ["cpython-freethreading"]
 build-verbosity = 1
 # Smoke-test the wheel: configure a minimal Django (no apps), then import
 # the compiled descriptor. Importing `filthyfields` triggers loading
