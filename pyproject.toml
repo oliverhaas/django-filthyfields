@@ -50,7 +50,7 @@ dev = [
   "setuptools==82.0.1",
   "ty==0.0.33",
 ]
-docs = ["mkdocs==1.6.1", "mkdocs-material==9.7.6", "mike==2.2.0"]
+docs = ["mkdocs==1.6.1", "mkdocs-material==9.7.7", "mike==2.2.0"]
 
 [build-system]
 requires = ["setuptools>=80", "cython>=3.2.4"]
