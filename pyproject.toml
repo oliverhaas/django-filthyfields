@@ -46,7 +46,7 @@ dev = [
   "pytest-cov==7.1.0",
   "pytest-django==4.14.0",
   "pytest-xdist==3.8.0",
-  "ruff==0.15.12",
+  "ruff==0.16.9",
   "setuptools==84.0.0",
   "ty==0.0.33",
 ]
