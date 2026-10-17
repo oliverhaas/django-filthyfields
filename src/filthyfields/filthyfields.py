@@ -226,18 +226,26 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
             )
         return self._was_adding
 
-    def _dirty_reset_state(self, fields: Iterable[str] | None = None) -> None:
-        """Reset dirty state. ``fields=None`` resets everything; otherwise accepts name or attname."""
+    # Branch count is inherent: independent resets for diff, rel, mut-snapshot, and m2m,
+    # inlined here rather than split into a single-use helper.
+    def _dirty_reset_state(self, fields: Iterable[str] | None = None) -> None:  # noqa: PLR0912
+        """Reset dirty state. ``fields=None`` resets everything; otherwise accepts name or attname.
+
+        No-op when the instance was never persisted (``pk is None``). There is no
+        database row to use as the new baseline, so the instance stays dirty. This
+        happens for rows skipped by a conditional ``bulk_create`` upsert.
+        """
+        if self.pk is None:
+            return
+
         if fields is None:
             self.__dict__.pop("_state_diff", None)
             self.__dict__.pop("_state_diff_rel", None)
             self.__dict__.pop("_state_mut_snapshot", None)
-            if self.ENABLE_M2M_CHECK and self.pk:
+            if self.ENABLE_M2M_CHECK:
                 self._snapshot_m2m_state()
             return
-        self._dirty_reset_partial(fields)
 
-    def _dirty_reset_partial(self, fields: Iterable[str]) -> None:
         # Normalize attnames -> names so callers can pass either form.
         normalized: set[str] = set()
         for name in fields:
@@ -258,7 +266,7 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         if mut_snap:
             for name in normalized:
                 mut_snap.pop(name, None)
-        if self.ENABLE_M2M_CHECK and self.pk and "_original_m2m_state" in self.__dict__:
+        if self.ENABLE_M2M_CHECK and "_original_m2m_state" in self.__dict__:
             current_m2m = self._as_dict_m2m()
             for name in normalized:
                 if name in current_m2m:

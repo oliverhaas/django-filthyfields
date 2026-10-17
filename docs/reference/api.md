@@ -531,6 +531,13 @@ Call this after `bulk_update()` to clear the dirty state, indicating that change
 
 **Returns:** `None`
 
+!!! note "Unsaved instances"
+    `reset_dirty_state()` is a no-op for an instance whose `pk` is `None` (never
+    persisted), so a row skipped by a conditional `bulk_create()` upsert stays dirty.
+    With user-assigned primary keys this cannot be detected (the instance has a `pk`
+    and `_state.adding=False`); see the conditional-upsert warning in the Bulk
+    Operations guide.
+
 **Example:**
 
 ```python

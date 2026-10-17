@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2026-06-04
+
+### Changed
+
+- `_dirty_reset_state` now returns early for instances that were never persisted (`pk is None`), and the single-use `_dirty_reset_partial` helper is inlined. No behaviour change: a `pk=None` instance already stayed dirty because the diff descriptor does not track changes while `_state.adding` is `True`. The guard makes the intent explicit for rows skipped by a conditional `bulk_create()` upsert.
+- Documentation: with user-assigned primary keys, a row skipped by a conditional `bulk_create()` upsert cannot be detected and may report clean.
+
 ## [2.2.0] - 2026-06-01
 
 ### Added
