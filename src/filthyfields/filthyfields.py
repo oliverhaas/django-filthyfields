@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, cast
 from django.core.exceptions import FieldDoesNotExist
 from django.core.files import File
 from django.db import models
+from django.db.models import DEFERRED
 from django.db.models.base import ModelBase
 from django.db.models.expressions import BaseExpression, Combinable
 from django.db.models.fields.files import FieldFile, FileDescriptor
@@ -128,11 +129,13 @@ class _FileDiffDescriptor(FileDescriptor):
             (inflight is None or field_name not in inflight)
             and state is not None
             and not state.adding
-            and attname in d
             and _should_track_field(instance, field_name, attname)
         )
 
-        if should_track:
+        if should_track and attname not in d:
+            # Never loaded: there is no old name to compare against.
+            d.setdefault("_state_diff", {}).setdefault(field_name, DEFERRED)
+        elif should_track:
             old = d[attname]
             old_normalized = (old.name or "") if isinstance(old, File) else (old or "")
             new_normalized = (value.name or "") if isinstance(value, File) else (value or "")
@@ -398,7 +401,12 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
         compare_func = getattr(self, "compare_function", None)
         if compare_func is not None and result:
             func, kwargs = compare_func
-            result = {k: v for k, v in result.items() if not func(self._get_field_value_for_verbose(k), v, **kwargs)}
+            # A DEFERRED old value was never loaded, so there's nothing to compare against.
+            result = {
+                k: v
+                for k, v in result.items()
+                if v is DEFERRED or not func(self._get_field_value_for_verbose(k), v, **kwargs)
+            }
 
         if check_m2m:
             result.update(self._get_m2m_dirty_fields())
@@ -415,7 +423,8 @@ class DirtyFieldsMixin(models.Model, metaclass=_DirtyMeta):
 
     def _normalise_output_value(self, value: Any) -> Any:
         normalise_func = getattr(self, "normalise_function", None)
-        if normalise_func is not None:
+        # DEFERRED marks an old value that was never loaded; it isn't a value to normalise.
+        if normalise_func is not None and value is not DEFERRED:
             func, kwargs = normalise_func
             return func(value, **kwargs)
         return value

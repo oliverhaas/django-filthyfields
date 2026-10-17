@@ -1,6 +1,7 @@
 import tempfile
 
 from django.db import models
+from django.db.models import F
 from django.db.models.signals import pre_save
 from django.utils import timezone as django_timezone
 
@@ -62,6 +63,11 @@ class SubclassModelTest(ModelTest):
 
 class ExpressionModelTest(DirtyFieldsMixin, models.Model):
     counter = models.IntegerField(default=0)
+
+
+class GeneratedFieldModel(DirtyFieldsMixin, models.Model):
+    base = models.IntegerField(default=0)
+    doubled = models.GeneratedField(expression=F("base") * 2, output_field=models.IntegerField(), db_persist=True)
 
 
 class DatetimeModelTest(DirtyFieldsMixin, models.Model):

@@ -46,6 +46,7 @@ except ImportError:  # pragma: no cover - pure-Python fallback when cython not i
 
 from django.core.exceptions import ValidationError
 from django.core.files import File
+from django.db.models import DEFERRED
 from django.db.models.expressions import BaseExpression, Combinable
 
 if TYPE_CHECKING:
@@ -166,8 +167,7 @@ class DiffDescriptor:
             return
 
         try:
-            state = instance._state
-            if state.adding or attname not in d:
+            if instance._state.adding:
                 d[attname] = value
                 return
         except AttributeError:
@@ -195,6 +195,19 @@ class DiffDescriptor:
             d[attname] = value
             return
 
+        # Deferred and never loaded: the old value is unknown, so any assignment
+        # is a change. The diff records DEFERRED instead of the old value.
+        if attname not in d:
+            d[attname] = value
+            # Django writes a generated field's value back here after
+            # save(update_fields=...); that isn't an assignment to track.
+            if self._field.generated:
+                return
+            d.setdefault("_state_diff", {}).setdefault(field_name, DEFERRED)
+            if self._is_relation:
+                d.setdefault("_state_diff_rel", set()).add(field_name)
+            return
+
         # Equality before the dict write so a raise in _values_equal leaves
         # __dict__ consistent with _state_diff.
         old = d[attname]
@@ -214,7 +227,8 @@ class DiffDescriptor:
                 d.setdefault("_state_diff_rel", set()).add(field_name)
             return
 
-        if self._values_equal(value, diff[field_name]):
+        # No value can revert to a DEFERRED original: it was never loaded.
+        if diff[field_name] is not DEFERRED and self._values_equal(value, diff[field_name]):
             del diff[field_name]
             if self._is_relation:
                 rel = d.get("_state_diff_rel")
